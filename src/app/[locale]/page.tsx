@@ -56,7 +56,7 @@ export default function Page() {
 
     const fetchSystemAnalytics = async () => {
         try {
-            const response = await fetch('/api/files/analytics');
+            const response = await fetch('https://safeturnedapi.unturnedguard.com/v1.0/files/analytics');
             if (response.ok) {
                 const data = await response.json();
                 setSystemAnalytics(data);
