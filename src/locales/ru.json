@@ -30,7 +30,9 @@
     "safe": "Безопасно",
     "unsafe": "Небезопасно",
     "riskLevel": "Уровень безопасности",
-    "accuracy": "Точность обнаружения"
+    "accuracy": "Точность обнаружения",
+    "threatsDetected": "Угроз обнаружено",
+    "detectionAccuracy": "Точность обнаружения"
   },
   "features": {
     "title": "Возможности SafeTurned",

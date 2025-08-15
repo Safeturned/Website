@@ -14,12 +14,27 @@ interface AnalyticsData {
     fileSizeBytes: number;
 }
 
+interface SystemAnalytics {
+    totalFilesScanned: number;
+    totalThreatsDetected: number;
+    detectionAccuracy: number;
+    averageScanTimeMs: number;
+    lastUpdated: string;
+    totalSafeFiles: number;
+    averageScore: number;
+    firstScanDate: string;
+    lastScanDate: string;
+    totalScanTimeMs: number;
+    threatDetectionRate: number;
+}
+
 export default function Page() {
     const { t } = useTranslation();
     const params = useParams();
     const locale = params.locale as string;
     const [isScanning, setIsScanning] = useState(false);
     const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+    const [systemAnalytics, setSystemAnalytics] = useState<SystemAnalytics | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [fileHash, setFileHash] = useState<string | null>(null);
@@ -31,10 +46,27 @@ export default function Page() {
         // Smooth scroll behavior
         document.documentElement.style.scrollBehavior = 'smooth';
 
+        // Fetch system analytics
+        fetchSystemAnalytics();
+
         return () => {
             document.documentElement.style.scrollBehavior = 'auto';
         };
     }, []);
+
+    const fetchSystemAnalytics = async () => {
+        try {
+            const response = await fetch('/api/files/analytics');
+            if (response.ok) {
+                const data = await response.json();
+                setSystemAnalytics(data);
+            } else {
+                console.warn('Failed to fetch system analytics');
+            }
+        } catch (error) {
+            console.warn('Error fetching system analytics:', error);
+        }
+    };
 
     async function computeFileHash(file: File): Promise<string> {
         const arrayBuffer = await file.arrayBuffer();
@@ -420,34 +452,28 @@ export default function Page() {
                     >
                         <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-purple-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 group cursor-pointer">
                             <div className="text-3xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform duration-300">
-                                {analyticsData ? '1' : '1,247'}
+                                {systemAnalytics ? systemAnalytics.totalFilesScanned.toLocaleString() : '1,247'}
                             </div>
                             <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
-                                {analyticsData
-                                    ? t('stats.scannedFiles')
-                                    : t('stats.checkedPlugins')}
+                                {t('stats.checkedPlugins')}
                             </div>
                         </div>
                         <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-red-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group cursor-pointer">
                             <div className="text-3xl font-bold text-red-400 mb-2 group-hover:scale-110 transition-transform duration-300">
-                                {analyticsData ? analyticsData.score : '89'}
+                                {systemAnalytics ? systemAnalytics.totalThreatsDetected.toLocaleString() : '89'}
                             </div>
                             <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
-                                {t('stats.score')}
+                                {t('stats.threatsDetected')}
                             </div>
                         </div>
                         <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-green-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 group cursor-pointer">
                             <div
-                                className={`text-3xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300 ${analyticsData ? getRiskColor(analyticsData.score.toString()) : 'text-green-400'}`}
+                                className={`text-3xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300 ${systemAnalytics ? (systemAnalytics.detectionAccuracy >= 95 ? 'text-green-400' : systemAnalytics.detectionAccuracy >= 80 ? 'text-yellow-400' : 'text-red-400') : 'text-green-400'}`}
                             >
-                                {analyticsData
-                                    ? analyticsData.score <= 70
-                                        ? t('stats.safe')
-                                        : t('stats.unsafe')
-                                    : '99.2%'}
+                                {systemAnalytics ? `${systemAnalytics.detectionAccuracy.toFixed(1)}%` : '99.2%'}
                             </div>
                             <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
-                                {t('stats.riskLevel')}
+                                {t('stats.detectionAccuracy')}
                             </div>
                         </div>
                     </div>

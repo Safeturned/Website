@@ -30,7 +30,9 @@
     "safe": "Safe",
     "unsafe": "Unsafe",
     "riskLevel": "Security level",
-    "accuracy": "Detection accuracy"
+    "accuracy": "Detection accuracy",
+    "threatsDetected": "Threats detected",
+    "detectionAccuracy": "Detection accuracy"
   },
   "features": {
     "title": "SafeTurned Features",
