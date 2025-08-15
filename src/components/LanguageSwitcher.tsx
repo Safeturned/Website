@@ -28,7 +28,7 @@ export default function LanguageSwitcher() {
         };
     }, []);
 
-    const handleLanguageChange = (langCode: string) => {
+    const handleLanguageChange = (langCode: 'ru' | 'en') => {
         changeLanguage(langCode);
         setIsOpen(false);
     };
