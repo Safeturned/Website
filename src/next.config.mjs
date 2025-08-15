@@ -6,6 +6,8 @@ const nextConfig = {
     experimental: {
         appDir: true,
     },
+    // Enable standalone output for Docker deployment
+    output: 'standalone',
 };
 
 export default nextConfig;

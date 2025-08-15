@@ -1,0 +1,126 @@
+name: Deploy Website
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: safeturned/website
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: src/package-lock.json
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GHCR
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+    - name: Build and push Docker image
+      run: |
+        cd src
+        
+        # Build the Docker image
+        docker build -t "ghcr.io/safeturned/website:latest" .
+        docker tag "ghcr.io/safeturned/website:latest" "ghcr.io/safeturned/website:v${{ github.run_number }}"
+        
+        # Push both latest and versioned tags
+        docker push "ghcr.io/safeturned/website:latest"
+        docker push "ghcr.io/safeturned/website:v${{ github.run_number }}"
+        
+        echo "✅ Images built and pushed successfully"
+
+    - name: Create deployment package
+      run: |
+        mkdir -p ./deploy
+        
+        # Copy docker-compose file
+        cp ./src/docker-compose.yml ./deploy/
+        
+        # Create deployment script
+        cat > ./deploy/deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "Starting website deployment..."
+        
+        # Stop existing containers
+        docker compose down || true
+        
+        echo "Pulling latest image from registry..."
+        docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
+        
+        # Start the new containers
+        docker compose up -d
+        
+        echo "Website deployment completed successfully!"
+        
+        # Optional: Clean up old images
+        docker image prune -f || true
+        EOF
+        
+        chmod +x ./deploy/deploy.sh
+
+    - name: Copy files to server
+      uses: appleboy/scp-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "./deploy/deploy.sh,./deploy/docker-compose.yml"
+        target: "/opt/safeturned-website"
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "=== Starting website deployment ==="
+          
+          # Go to the deploy directory where files are copied
+          cd /opt/safeturned-website
+          
+          # Run deployment
+          ./deploy.sh
+          
+          echo "=== Website deployment completed ==="
+
+    #- name: Create Release
+    #  if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    #  uses: actions/create-release@v1
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #  with:
+    #    tag_name: website-v${{ github.run_number }}
+    #    release_name: Website Release v${{ github.run_number }}
+    #    body: |
+    #      ## Website Deployment
+    #      - Built from commit: ${{ github.sha }}
+    #      - Image: ghcr.io/safeturned/website:v${{ github.run_number }}
+    #      - Deployed to server behind Cloudflare and nginx
+    #    draft: false
+    #    prerelease: false
