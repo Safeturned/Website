@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 
-const languages = [
+const languages: Array<{ code: 'ru' | 'en'; name: string; flag: string }> = [
     { code: 'ru', name: 'Русский', flag: '🇷🇺' },
     { code: 'en', name: 'English', flag: '🇺🇸' },
 ];
