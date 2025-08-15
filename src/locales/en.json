@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "contacts": "Contacts"
+  },
+  "hero": {
+    "title": "SafeTurned",
+    "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
+    "uploadTitle": "Upload plugin for scanning",
+    "uploadSubtitle": "Supported files: .dll, .cs, .zip",
+    "scanButton": "Start scan",
+    "scanning": "Scanning..."
+  },
+  "results": {
+    "title": "Analysis Results",
+    "fileName": "File name",
+    "score": "Security score",
+    "riskLevel": "Security level",
+    "fileSize": "File size",
+    "processingTime": "Processing time",
+    "checkedItemsTitle": "Checked items:",
+    "safe": "Safe",
+    "unsafe": "Unsafe"
+  },
+  "stats": {
+    "checkedPlugins": "Analyzed plugins",
+    "scannedFiles": "File analyzed",
+    "score": "Security score",
+    "safe": "Safe",
+    "unsafe": "Unsafe",
+    "riskLevel": "Security level",
+    "accuracy": "Detection accuracy"
+  },
+  "features": {
+    "title": "SafeTurned Features",
+    "codeAnalysis": "Code Analysis",
+    "codeAnalysisDescription": "Deep static analysis of plugin source code for suspicious patterns",
+    "threatDetection": "Threat Detection",
+    "threatDetectionDescription": "Detection of backdoors, trojans and other malicious components in plugins",
+    "fastCheck": "Fast Scanning",
+    "fastCheckDescription": "Analysis results in seconds with detailed report of found issues"
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "step1": {
+      "title": "Upload plugin",
+      "description": "Upload plugin file (.dll, .cs or archive) through web interface"
+    },
+    "step2": {
+      "title": "Code analysis",
+      "description": "System analyzes code for suspicious functions and patterns"
+    },
+    "step3": {
+      "title": "Get results",
+      "description": "Get detailed report with security assessment and recommendations"
+    }
+  },
+  "footer": {
+    "protectionMessage": "Protect your server from malicious plugins",
+    "allRightsReserved": "All rights reserved"
+  },
+  "errors": {
+    "uploadFailed": "File upload failed",
+    "unknownError": "An unknown error occurred"
+  }
+} 
