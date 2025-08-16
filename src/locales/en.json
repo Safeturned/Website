@@ -11,7 +11,7 @@
     "uploadSubtitle": "Supported files: .dll",
     "scanButton": "Start scan",
     "scanning": "Scanning...",
-    "maxFileSize": "Max size 1GB",
+    "maxFileSize": "Max size 500MB",
     "fileSelected": "File selected",
     "confirmUpload": "Confirm upload"
   },
@@ -88,7 +88,7 @@
   "errors": {
     "uploadFailed": "File upload failed",
     "unknownError": "An unknown error occurred",
-    "fileTooLarge": "File is too large. Maximum size is 1 GB.",
+    "fileTooLarge": "File is too large. Maximum size is 500 MB.",
     "analysisTimeout": "Analysis is taking longer than expected (waited 2 minutes). Please try again in a few moments or check back later."
   },
   "dragDrop": {

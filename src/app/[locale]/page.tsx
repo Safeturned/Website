@@ -88,8 +88,8 @@ export default function Page() {
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            // Check file size (1GB limit)
-            if (file.size > 1024 * 1024 * 1024) {
+            // Check file size (500MB limit)
+            if (file.size > 500 * 1024 * 1024) {
                 setError(t('errors.fileTooLarge'));
                 return;
             }
@@ -139,7 +139,7 @@ export default function Page() {
         if (files.length > 0) {
             const file = files[0];
             if (file.name.toLowerCase().endsWith('.dll')) {
-                if (file.size > 1024 * 1024 * 1024) {
+                if (file.size > 500 * 1024 * 1024) {
                     setError(t('errors.fileTooLarge'));
                     return;
                 }

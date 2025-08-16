@@ -93,7 +93,7 @@ export default function ResultPage() {
         if (files.length > 0) {
             const file = files[0];
             if (file.name.toLowerCase().endsWith('.dll')) {
-                if (file.size > 1024 * 1024 * 1024) {
+                if (file.size > 500 * 1024 * 1024) {
                     alert(t('errors.fileTooLarge'));
                     return;
                 }
