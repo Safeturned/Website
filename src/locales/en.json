@@ -8,7 +8,7 @@
     "title": "Safeturned",
     "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
     "uploadTitle": "Upload plugin for scanning",
-    "uploadSubtitle": "Supported files: .dll, .cs, .zip",
+    "uploadSubtitle": "Supported files: .dll",
     "scanButton": "Start scan",
     "scanning": "Scanning..."
   },

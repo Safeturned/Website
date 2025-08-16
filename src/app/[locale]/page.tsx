@@ -254,13 +254,13 @@ export default function Page() {
                                 className="border-2 border-dashed border-purple-500/50 rounded-xl p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group"
                                 onClick={handleScan}
                             >
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept=".dll,.cs,.zip"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                />
+                                                                 <input
+                                     ref={fileInputRef}
+                                     type="file"
+                                     accept=".dll"
+                                     onChange={handleFileChange}
+                                     className="hidden"
+                                 />
 
                                 <svg
                                     className="w-12 h-12 text-purple-400 mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:text-pink-400"
