@@ -63,7 +63,7 @@ jobs:
         echo "Starting website deployment..."
         
         # Stop and remove containers
-        docker compose down || true
+        docker compose -f docker-compose.yaml down || true
         
         # Remove old images to force fresh pull
         docker rmi ghcr.io/safeturned/website:latest || true
@@ -75,13 +75,13 @@ jobs:
         docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
         
         # Start the new containers with build time
-        BUILD_TIME=$(date +%s) docker compose up -d
+        BUILD_TIME=$(date +%s) docker compose -f docker-compose.yaml up -d
         
         # Clear Docker build cache
         docker builder prune -f || true
         
         # Force restart to ensure fresh content
-        docker compose restart
+        docker compose -f docker-compose.yaml restart
         
         # Wait for container to be ready
         sleep 10
@@ -102,8 +102,8 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "./deploy/deploy.sh,./deploy/docker-compose.yaml"
-        target: "/opt/safeturned-website"
+        source: "./deploy/*"
+        target: "/opt/safeturned-website/deploy"
 
     - name: Deploy to server
       uses: appleboy/ssh-action@v1
@@ -116,7 +116,14 @@ jobs:
           echo "=== Starting website deployment ==="
           
           # Go to the deploy directory where files are copied
-          cd /opt/safeturned-website
+          cd /opt/safeturned-website/deploy
+          
+          # List files to debug
+          echo "Files in directory:"
+          ls -la
+          
+          # Make deploy script executable
+          chmod +x deploy.sh
           
           # Run deployment
           ./deploy.sh
@@ -125,10 +132,10 @@ jobs:
           sleep 5
           
           # Check if containers are running
-          docker compose ps
+          docker compose -f docker-compose.yaml ps
           
           # Show logs to verify deployment
-          docker compose logs --tail=20
+          docker compose -f docker-compose.yaml logs --tail=20
           
           echo "=== Website deployment completed ==="
 

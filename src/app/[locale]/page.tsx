@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 
 interface AnalyticsData {
     fileName: string;
@@ -166,9 +167,11 @@ export default function Page() {
                             onContextMenu={(e) => e.preventDefault()}
                             onDragStart={(e) => e.preventDefault()}
                         >
-                            <img
+                            <Image
                                 src="/favicon.jpg"
                                 alt="Safeturned Logo"
+                                width={40}
+                                height={40}
                                 className="w-full h-full object-contain rounded-lg pointer-events-none"
                                 onLoad={() => console.log('Logo loaded successfully')}
                                 onError={(e) => {
@@ -681,9 +684,11 @@ export default function Page() {
                                 onContextMenu={(e) => e.preventDefault()}
                                 onDragStart={(e) => e.preventDefault()}
                             >
-                                <img
+                                <Image
                                     src="/favicon.jpg"
                                     alt="Safeturned Logo"
+                                    width={32}
+                                    height={32}
                                     className="w-full h-full object-contain rounded-lg pointer-events-none"
                                     draggable={false}
                                     onContextMenu={(e) => e.preventDefault()}
