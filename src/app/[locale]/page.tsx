@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface AnalyticsData {
@@ -36,7 +36,6 @@ export default function Page() {
     const { t } = useTranslation();
     const params = useParams();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const locale = params.locale as string;
     const [isScanning, setIsScanning] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
