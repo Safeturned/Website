@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface VersionInfo {
     version: string;
@@ -137,12 +138,12 @@ export default function DebugPage() {
                         >
                             Clear Browser Cache
                         </button>
-                        <a 
+                        <Link 
                             href="/" 
                             className="block w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded transition-colors text-center"
                         >
                             Back to Home
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

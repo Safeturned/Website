@@ -40,8 +40,8 @@ jobs:
       run: |
         cd src
         
-        # Build the Docker image
-        docker build -t "ghcr.io/safeturned/website:latest" .
+        # Build the Docker image with no cache to ensure fresh build
+        docker build --no-cache -t "ghcr.io/safeturned/website:latest" .
         docker tag "ghcr.io/safeturned/website:latest" "ghcr.io/safeturned/website:v${{ github.run_number }}"
         
         # Push both latest and versioned tags
