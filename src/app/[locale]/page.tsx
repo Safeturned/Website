@@ -11,7 +11,7 @@ interface AnalyticsData {
     score: number;
     checked: string[];
     message: string;
-    processedAt: string;
+    lastScanned: string;
     fileSizeBytes: number;
 }
 

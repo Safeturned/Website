@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAnalysisResult } from '../../storage';
+import { getAnalysisResult, storeAnalysisResult } from '../../storage';
 
 export async function GET(request: NextRequest, { params }: { params: { hash: string } }) {
     try {
-        // Try to find the analysis result in our storage
-        const result = getAnalysisResult(params.hash);
-        
+        // First try to get from local storage
+        let result = getAnalysisResult(params.hash);
+
         if (result) {
             return NextResponse.json(result);
         }
-        
-        // If not found, return 404
+
+        // If not found locally, try to fetch from upstream API
+        try {
+            const response = await fetch(`https://safeturnedapi.unturnedguard.com/v1.0/files/${params.hash}`);
+            
+            if (response.ok) {
+                const upstreamResult = await response.json();
+                
+                // Store the result locally for future requests
+                storeAnalysisResult(params.hash, upstreamResult);
+                
+                return NextResponse.json(upstreamResult);
+            }
+        } catch (upstreamError) {
+            // Silently fail and continue to return 404
+        }
+
         return NextResponse.json(
             { error: 'Analysis not found' },
             { status: 404 }
