@@ -374,23 +374,29 @@ export default function ResultPage() {
                     </div>
                 </div>
 
-                {/* Share Section */}
-                <div className="mt-8 text-center">
+                {/* Share Section - Mobile Only */}
+                <div className="mt-8 text-center md:hidden">
                     <p className="text-gray-400 mb-4">{t('results.shareDescription')}</p>
                     <div className="flex justify-center gap-4">
                         <button
                             onClick={() => {
                                 const shareUrl = `${window.location.origin}/${params.locale}/result/${hash}`;
-                                if (navigator.share) {
+                                
+                                // Only use native share API on mobile devices
+                                if (navigator.share && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                                     navigator.share({
                                         title: `${t('results.shareTitle')} - ${analyticsData.fileName}`,
                                         text: `${t('results.shareText')} ${analyticsData.fileName} (${getRiskLevel(analyticsData.score)})`,
                                         url: shareUrl,
-                                    }).catch(() => {
-                                        navigator.clipboard.writeText(shareUrl);
-                                        alert(t('results.linkCopied'));
+                                    }).catch((error) => {
+                                        // Only fall back to clipboard if share was cancelled by user
+                                        if (error.name !== 'AbortError') {
+                                            navigator.clipboard.writeText(shareUrl);
+                                            alert(t('results.linkCopied'));
+                                        }
                                     });
                                 } else {
+                                    // Fallback for devices without native share
                                     navigator.clipboard.writeText(shareUrl);
                                     alert(t('results.linkCopied'));
                                 }
@@ -402,8 +408,6 @@ export default function ResultPage() {
                             </svg>
                             <span>{t('results.shareButton')}</span>
                         </button>
-                        
-                        
                     </div>
                 </div>
             </div>

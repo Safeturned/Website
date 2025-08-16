@@ -226,17 +226,7 @@ export default function Page() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const fallbackToClipboard = (shareUrl: string) => {
-        navigator.clipboard
-            .writeText(shareUrl)
-            .then(() => {
-                alert(t('results.linkCopied'));
-            })
-            .catch(() => {
-                // Final fallback - show the URL for manual copy
-                alert(`${t('results.copyManually')}\n\n${shareUrl}`);
-            });
-    };
+
 
     return (
         <div 
