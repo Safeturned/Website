@@ -35,7 +35,7 @@
     "lastAnalysisDate": "Last Analysis Date",
     "analysisResults": "Analysis Results",
     "reanalyzeDescription": "Want to reanalyze this file? Click the button below to get fresh results.",
-    "reanalyzeButton": "Reanalyze File",
+    "reanalyzeButton": "Reanalyze",
     "shareDescription": "Share this analysis with others",
     "shareButton": "Share",
     "shareTitle": "Plugin Analysis Result",
