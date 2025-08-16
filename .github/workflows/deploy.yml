@@ -68,6 +68,9 @@ jobs:
         # Remove old images to force fresh pull
         docker rmi ghcr.io/safeturned/website:latest || true
         
+        # Clear all unused images and containers
+        docker system prune -f || true
+        
         echo "Pulling latest image from registry..."
         docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
         
@@ -76,6 +79,16 @@ jobs:
         
         # Clear Docker build cache
         docker builder prune -f || true
+        
+        # Force restart to ensure fresh content
+        docker compose restart
+        
+        # Wait for container to be ready
+        sleep 10
+        
+        # Test the website
+        echo "Testing website..."
+        curl -f http://localhost:3000/api/version || echo "Version endpoint not available"
         
         echo "Website deployment completed successfully!"
         EOF
@@ -107,6 +120,15 @@ jobs:
           
           # Run deployment
           ./deploy.sh
+          
+          # Wait a moment for containers to start
+          sleep 5
+          
+          # Check if containers are running
+          docker compose ps
+          
+          # Show logs to verify deployment
+          docker compose logs --tail=20
           
           echo "=== Website deployment completed ==="
 

@@ -181,6 +181,7 @@ export default function Page() {
                             />
                         </div>
                         <span className="text-xl font-bold animate-pulse">{t('hero.title')}</span>
+                        <span className="text-xs text-gray-400 ml-2">v{process.env.BUILD_TIME ? new Date(parseInt(process.env.BUILD_TIME) * 1000).toLocaleTimeString() : 'dev'}</span>
                     </div>
                                          <div
                          className={`hidden md:flex space-x-6 transition-all duration-1000 delay-300 ${
@@ -699,6 +700,8 @@ export default function Page() {
                     </div>
                                          <div className="text-gray-500 text-sm hover:text-gray-400 transition-colors duration-300 mb-4">
                          © {new Date().getFullYear()} Safeturned. {t('footer.allRightsReserved')}.
+                         <br />
+                         <span className="text-xs">Build: {process.env.BUILD_TIME ? new Date(parseInt(process.env.BUILD_TIME) * 1000).toISOString() : 'dev'}</span>
                      </div>
                      <div className="text-gray-600 text-xs max-w-2xl mx-auto leading-relaxed">
                          {t('footer.disclaimer')}
