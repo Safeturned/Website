@@ -11,13 +11,23 @@ const nextConfig = {
         forceSwcTransforms: true,
     },
     
-    // Ensure fresh builds
+    // Ensure fresh builds with timestamp
     generateBuildId: async () => {
-        return `build-${Date.now()}`;
+        const timestamp = Date.now();
+        console.log(`Generating build ID: build-${timestamp}`);
+        return `build-${timestamp}`;
     },
     
     // Disable static optimization for pages with dynamic content
     trailingSlash: false,
+    
+    // Force cache busting
+    env: {
+        BUILD_TIME: Date.now().toString(),
+    },
+    
+    // Disable static generation completely
+    staticPageGenerationTimeout: 0,
 };
 
 export default nextConfig;

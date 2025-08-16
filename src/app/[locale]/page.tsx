@@ -161,18 +161,17 @@ export default function Page() {
                             isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'
                         }`}
                     >
-                        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center transform hover:scale-110 hover:rotate-12 transition-all duration-300">
-                            <svg
-                                className="w-5 h-5 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    fillRule="evenodd"
-                                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clipRule="evenodd"
-                                />
-                            </svg>
+                        <div className="w-10 h-10 transform hover:scale-110 hover:rotate-12 transition-all duration-300">
+                            <img
+                                src="/favicon.jpg"
+                                alt="Safeturned Logo"
+                                className="w-full h-full object-contain rounded-lg"
+                                onLoad={() => console.log('Logo loaded successfully')}
+                                onError={(e) => {
+                                    console.error('Failed to load logo image:', e.currentTarget.src);
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                            />
                         </div>
                         <span className="text-xl font-bold animate-pulse">{t('hero.title')}</span>
                     </div>
