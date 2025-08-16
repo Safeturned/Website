@@ -54,7 +54,7 @@ jobs:
       run: |
         mkdir -p ./deploy
         
-        cp ./src/docker-compose.yml ./deploy/
+        cp ./src/docker-compose.yaml ./deploy/
         
         cat > ./deploy/deploy.sh << 'EOF'
         #!/bin/bash
@@ -102,7 +102,7 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "./deploy/deploy.sh,./deploy/docker-compose.yml"
+        source: "./deploy/deploy.sh,./deploy/docker-compose.yaml"
         target: "/opt/safeturned-website"
 
     - name: Deploy to server
