@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface AnalyticsData {
@@ -35,30 +35,29 @@ export const dynamic = 'force-dynamic';
 export default function Page() {
     const { t } = useTranslation();
     const params = useParams();
+    const router = useRouter();
     const locale = params.locale as string;
     const [isScanning, setIsScanning] = useState(false);
-    const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [showConfirmUpload, setShowConfirmUpload] = useState(false);
     const [systemAnalytics, setSystemAnalytics] = useState<SystemAnalytics | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [fileHash, setFileHash] = useState<string | null>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [dragEnterCount, setDragEnterCount] = useState(0);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchSystemAnalytics = async () => {
         try {
-            console.log('Fetching system analytics...');
             const response = await fetch('/api/analytics');
-            console.log('Response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Analytics data received:', data);
                 setSystemAnalytics(data);
-            } else {
-                console.warn('Failed to fetch system analytics:', response.status, response.statusText);
             }
         } catch (error) {
-            console.error('Error fetching system analytics:', error);
+            // Silently handle analytics fetch errors
         }
     };
 
@@ -81,22 +80,86 @@ export default function Page() {
         const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
         const bytes = Array.from(new Uint8Array(hashBuffer));
         const base64 = btoa(String.fromCharCode(...bytes));
-        // Convert to URL-safe base64 (to align with our API proxy param format)
-        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+        // Use standard base64 to match the API's Convert.ToBase64String
+        return base64;
     }
 
-    const handleFileUpload = async (file: File) => {
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            // Check file size (1GB limit)
+            if (file.size > 1024 * 1024 * 1024) {
+                setError(t('errors.fileTooLarge'));
+                return;
+            }
+            
+            setSelectedFile(file);
+            setShowConfirmUpload(true);
+            setError(null);
+        }
+    };
+
+    // Drag and drop handlers
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        setDragEnterCount(prev => prev + 1);
+        setIsDragOver(true);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setDragEnterCount(prev => {
+            const newCount = prev - 1;
+            // Only hide overlay when we've completely left the drop zone
+            if (newCount <= 0) {
+                setIsDragOver(false);
+            }
+            return newCount;
+        });
+    };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        setDragEnterCount(0);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        setDragEnterCount(0);
+        
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.name.toLowerCase().endsWith('.dll')) {
+                if (file.size > 1024 * 1024 * 1024) {
+                    setError(t('errors.fileTooLarge'));
+                    return;
+                }
+                setSelectedFile(file);
+                setShowConfirmUpload(true);
+                setError(null);
+            } else {
+                setError('Please select a .dll file');
+            }
+        }
+    };
+
+    const handleConfirmUpload = async () => {
+        if (!selectedFile) return;
+        
         setIsScanning(true);
         setError(null);
-        setAnalyticsData(null);
 
         try {
             const formData = new FormData();
-            formData.append('file', file, file.name);
-
-            // Pre-compute hash for shareable link
-            const hash = await computeFileHash(file);
-            setFileHash(hash);
+            formData.append('file', selectedFile, selectedFile.name);
 
             const response = await fetch('/api/upload', {
                 method: 'POST',
@@ -109,9 +172,29 @@ export default function Page() {
             }
 
             const result = await response.json();
-            setAnalyticsData(result);
+            
+            // The upload response contains the analysis results directly
+            // Store the result in sessionStorage so the results page can access it
+            sessionStorage.setItem('uploadResult', JSON.stringify(result));
+            
+            // Use the ID from the API response
+            let hash;
+            if (result.id) {
+                hash = result.id;
+            } else if (result.fileHash) {
+                hash = result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+            } else if (result.hash) {
+                hash = result.hash;
+            } else {
+                hash = await computeFileHash(selectedFile);
+                // Convert to URL-safe base64 for the URL
+                hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+            }
+            
+            // Redirect to results page immediately
+            router.push(`/${locale}/result/${hash}`);
+            return;
         } catch (err) {
-            console.error('Upload error:', err);
             setError(err instanceof Error ? err.message : 'Unknown error occurred');
         } finally {
             setIsScanning(false);
@@ -122,12 +205,7 @@ export default function Page() {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            handleFileUpload(file);
-        }
-    };
+
 
     const getRiskColor = (score: string) => {
         const scoreNum = parseInt(score);
@@ -148,8 +226,27 @@ export default function Page() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const fallbackToClipboard = (shareUrl: string) => {
+        navigator.clipboard
+            .writeText(shareUrl)
+            .then(() => {
+                alert(t('results.linkCopied'));
+            })
+            .catch(() => {
+                // Final fallback - show the URL for manual copy
+                alert(`${t('results.copyManually')}\n\n${shareUrl}`);
+            });
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+        <div 
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDragEnd={handleDragEnd}
+            onDrop={handleDrop}
+        >
             {/* Header */}
             <nav
                 className={`px-6 py-4 border-b border-purple-800/30 backdrop-blur-sm transition-all duration-1000 ${
@@ -173,11 +270,9 @@ export default function Page() {
                                 width={40}
                                 height={40}
                                 className="w-full h-full object-contain rounded-lg pointer-events-none"
-                                onLoad={() => console.log('Logo loaded successfully')}
-                                onError={(e) => {
-                                    console.error('Failed to load logo image:', e.currentTarget.src);
-                                    e.currentTarget.style.display = 'none';
-                                }}
+                                                                 onError={(e) => {
+                                     e.currentTarget.style.display = 'none';
+                                 }}
                                 draggable={false}
                                 onContextMenu={(e) => e.preventDefault()}
                                 onDragStart={(e) => e.preventDefault()}
@@ -297,201 +392,136 @@ export default function Page() {
                         }`}
                     >
                         <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-105">
-                            <div
-                                className="border-2 border-dashed border-purple-500/50 rounded-xl p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group"
-                                onClick={handleScan}
-                            >
-                                                                 <input
-                                     ref={fileInputRef}
-                                     type="file"
-                                     accept=".dll"
-                                     onChange={handleFileChange}
-                                     className="hidden"
-                                 />
-
-                                <svg
-                                    className="w-12 h-12 text-purple-400 mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:text-pink-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                                        {!showConfirmUpload ? (
+                                <div
+                                    className="border-2 border-dashed border-purple-500/50 rounded-xl p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group relative"
+                                    onClick={handleScan}
                                 >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".dll"
+                                        onChange={handleFileSelect}
+                                        className="hidden"
                                     />
-                                </svg>
-                                <p className="text-lg mb-2">{t('hero.uploadTitle')}</p>
-                                <p className="text-gray-400 text-sm mb-4">
-                                    {t('hero.uploadSubtitle')}
-                                </p>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleScan();
-                                    }}
-                                    disabled={isScanning}
-                                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100"
-                                >
-                                    {isScanning ? (
-                                        <span className="flex items-center">
-                                            <svg
-                                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <circle
-                                                    className="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    strokeWidth="4"
-                                                ></circle>
-                                                <path
-                                                    className="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                ></path>
-                                            </svg>
-                                            {t('hero.scanning')}
-                                        </span>
-                                    ) : (
-                                        t('hero.scanButton')
-                                    )}
-                                </button>
-                            </div>
 
-                            {/* Error Display */}
-                            {error && (
-                                <div className="mt-6 p-4 bg-red-900/50 border border-red-500/50 rounded-lg">
-                                    <div className="flex items-center">
-                                        <svg
-                                            className="w-5 h-5 text-red-400 mr-2"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                        <span className="text-red-300">{error}</span>
+                                    <svg
+                                        className="w-12 h-12 text-purple-400 mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:text-pink-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                        />
+                                    </svg>
+                                    <p className="text-lg mb-2">{t('hero.uploadTitle')}</p>
+                                    <p className="text-gray-400 text-sm mb-4">
+                                        {t('hero.uploadSubtitle')}
+                                    </p>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleScan();
+                                        }}
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
+                                    >
+                                        {t('hero.scanButton')}
+                                    </button>
+                                    
+                                    {/* Hover tooltip for file size limit */}
+                                    <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 translate-x-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+                                        <div className="bg-slate-800/95 backdrop-blur-sm border border-purple-500/50 rounded-lg p-3 text-sm text-gray-300 whitespace-nowrap shadow-lg">
+                                            <div className="font-semibold text-purple-400 mb-1">{t('hero.maxFileSize')}</div>
+                                            <div className="text-white">1 GB</div>
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Results Display */}
-                            {analyticsData && (
-                                <div className="mt-6 p-6 bg-slate-700/50 border border-slate-600/50 rounded-lg">
-                                    <h3 className="text-xl font-semibold mb-4 text-white">
-                                        {t('results.title')}
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-purple-400">
-                                                {analyticsData.fileName}
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {t('results.fileName')}
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-red-400">
-                                                {analyticsData.score}
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {t('results.score')}
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div
-                                                className={`text-2xl font-bold ${getRiskColor(analyticsData.score.toString())}`}
-                                            >
-                                                {analyticsData.score <= 70
-                                                    ? t('results.safe')
-                                                    : t('results.unsafe')}
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {t('results.riskLevel')}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                        <div className="text-center">
-                                            <div className="text-lg font-semibold text-blue-400">
-                                                {formatFileSize(analyticsData.fileSizeBytes)}
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {t('results.fileSize')}
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-lg font-semibold text-gray-400">
-                                                {new Date(analyticsData.processedAt).toLocaleString(
-                                                    locale === 'ru' ? 'ru-RU' : 'en-US',
-                                                )}
-                                            </div>
-                                            <div className="text-sm text-gray-400">
-                                                {t('results.processingTime')}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {analyticsData.checked && analyticsData.checked.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold mb-2 text-white">
-                                                {t('results.checkedItemsTitle')}
-                                            </h4>
-                                            <ul className="space-y-1">
-                                                {analyticsData.checked.map((item, index) => (
-                                                    <li
-                                                        key={index}
-                                                        className="text-gray-300 text-sm flex items-start"
-                                                    >
-                                                        <span className="text-yellow-400 mr-2">
-                                                            •
-                                                        </span>
-                                                        {item}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    <div className="mt-4 text-xs text-gray-500">
-                                        {analyticsData.message}
-                                    </div>
-                                    <div className="mt-4 flex gap-3 justify-center">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (!fileHash) {
-                                                    alert('Хеш ещё не готов');
-                                                    return;
-                                                }
-                                                const shareUrl = `${window.location.origin}/${locale}/result/${encodeURIComponent(fileHash)}`;
-                                                navigator.clipboard
-                                                    .writeText(shareUrl)
-                                                    .then(() => {
-                                                        alert('Ссылка скопирована в буфер обмена');
-                                                    })
-                                                    .catch(() => {
-                                                        console.warn('Clipboard copy failed');
-                                                    });
-                                            }}
-                                            className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm"
+                            ) : (
+                                <div className="border-2 border-solid border-purple-500/50 rounded-xl p-8 bg-purple-500/5">
+                                    <div className="text-center mb-6">
+                                        <svg
+                                            className="w-12 h-12 text-purple-400 mx-auto mb-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
                                         >
-                                            Поделиться
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                        <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
+                                        <p className="text-gray-400">{selectedFile?.name}</p>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            {selectedFile ? formatFileSize(selectedFile.size) : '0 Bytes'}
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="flex justify-center">
+                                        <button
+                                            onClick={handleConfirmUpload}
+                                            disabled={isScanning}
+                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100"
+                                        >
+                                                                                                                                     {isScanning ? (
+                                                <span className="flex items-center">
+                                                    <svg
+                                                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle
+                                                            className="opacity-25"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        ></circle>
+                                                        <path
+                                                            className="opacity-75"
+                                                            fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                        ></path>
+                                                    </svg>
+                                                    {t('hero.scanning')}...
+                                                </span>
+                                            ) : (
+                                                t('hero.confirmUpload')
+                                            )}
                                         </button>
                                     </div>
                                 </div>
                             )}
+
+                                                                                     {/* Error Display */}
+                             {error && (
+                                 <div className="mt-6 p-4 bg-red-900/50 border border-red-500/50 rounded-lg">
+                                     <div className="flex items-center">
+                                         <svg
+                                             className="w-5 h-5 text-red-400 mr-2"
+                                             fill="currentColor"
+                                             viewBox="0 0 20 20"
+                                         >
+                                             <path
+                                                 fillRule="evenodd"
+                                                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                                 clipRule="evenodd"
+                                             />
+                                         </svg>
+                                         <span className="text-red-300">{error}</span>
+                                     </div>
+                                 </div>
+                             )}
+
+                             
                         </div>
                     </div>
 
@@ -710,6 +740,17 @@ export default function Page() {
                      </div>
                 </div>
             </footer>
+
+            {/* Drag Overlay */}
+            {isDragOver && (
+                <div className="fixed inset-0 bg-purple-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="text-6xl mb-4">📁</div>
+                        <h2 className="text-2xl font-bold text-white mb-2">{t('dragDrop.overlayTitle')}</h2>
+                        <p className="text-gray-300">{t('dragDrop.overlayDescription')}</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

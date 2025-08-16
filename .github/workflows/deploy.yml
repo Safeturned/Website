@@ -86,8 +86,6 @@ jobs:
         # Wait for container to be ready
         sleep 10
         
-
-        
         echo "Website deployment completed successfully!"
         EOF
         

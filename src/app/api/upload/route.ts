@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { storeAnalysisResult } from '../storage';
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,12 +19,26 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.json();
-        return NextResponse.json(result);
+        
+        // Generate a unique ID for this analysis
+        const analysisId = result.fileHash ? 
+            result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '') : 
+            Date.now().toString();
+        
+        // Store the analysis result with the ID
+        storeAnalysisResult(analysisId, result);
+        
+        // Return the result with the ID
+        return NextResponse.json({
+            ...result,
+            id: analysisId
+        });
     } catch (error) {
-        console.error('Proxy error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
         );
     }
-} 
+}
+
+ 

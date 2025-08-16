@@ -10,7 +10,10 @@
     "uploadTitle": "Upload plugin for scanning",
     "uploadSubtitle": "Supported files: .dll",
     "scanButton": "Start scan",
-    "scanning": "Scanning..."
+    "scanning": "Scanning...",
+    "maxFileSize": "Maximum file size",
+    "fileSelected": "File selected",
+    "confirmUpload": "Confirm upload"
   },
   "results": {
     "title": "Analysis Results",
@@ -21,7 +24,22 @@
     "processingTime": "Processing time",
     "checkedItemsTitle": "Checked items:",
     "safe": "Safe",
-    "unsafe": "Unsafe"
+    "unsafe": "Unsafe",
+    "suspicious": "Suspicious",
+    "loading": "Loading analysis...",
+    "notFound": "Analysis not found",
+    "notFoundDescription": "The requested analysis could not be found. Please check the hash or upload a new file.",
+    "backToHome": "Back to Home",
+    "searchPlaceholder": "Enter SHA-256 hash to search...",
+    "search": "Search",
+    "analysisDate": "Analysis date",
+    "analysisTime": "Analysis time",
+    "analysisResults": "Analysis Results",
+    "shareDescription": "Share this analysis with others",
+    "shareButton": "Share",
+    "shareTitle": "Plugin Analysis Result",
+    "shareText": "Check out this plugin analysis:",
+    "linkCopied": "Link copied to clipboard!"
   },
   "stats": {
     "checkedPlugins": "Analyzed plugins",
@@ -68,6 +86,20 @@
   },
   "errors": {
     "uploadFailed": "File upload failed",
-    "unknownError": "An unknown error occurred"
+    "unknownError": "An unknown error occurred",
+    "fileTooLarge": "File is too large. Maximum size is 1 GB.",
+    "analysisTimeout": "Analysis is taking longer than expected (waited 2 minutes). Please try again in a few moments or check back later."
+  },
+  "dragDrop": {
+    "tip": "💡 Tip: You can also drag and drop .dll files anywhere on this page to analyze them",
+    "overlayTitle": "Drop file to analyze",
+    "overlayDescription": "Release to upload and analyze your .dll file"
+  },
+  "scanning": {
+    "processing": "Processing your file",
+    "longRunning": "This is taking longer than usual",
+    "longRunningTitle": "Analysis in Progress",
+    "longRunningDescription": "Your file has been processing for {{elapsedTime}} seconds. This is normal for complex files.",
+    "estimatedTime": "Estimated completion: 1-2 minutes"
   }
 } 
