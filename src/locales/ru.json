@@ -5,7 +5,7 @@
     "contacts": "Контакты"
   },
   "hero": {
-    "title": "SafeTurned",
+    "title": "Safeturned",
     "subtitle": "Защитите свой сервер Unturned от вредоносных плагинов. Автоматическая проверка кода на наличие бэкдоров и уязвимостей.",
     "uploadTitle": "Загрузите плагин для проверки",
     "uploadSubtitle": "Поддерживаются файлы .dll, .cs, .zip",
@@ -35,7 +35,7 @@
     "detectionAccuracy": "Точность обнаружения"
   },
   "features": {
-    "title": "Возможности SafeTurned",
+    "title": "Возможности Safeturned",
     "codeAnalysis": "Анализ кода",
     "codeAnalysisDescription": "Глубокий статический анализ исходного кода плагинов на предмет подозрительных паттернов",
     "threatDetection": "Обнаружение угроз",

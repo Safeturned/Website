@@ -5,7 +5,7 @@
     "contacts": "Contacts"
   },
   "hero": {
-    "title": "SafeTurned",
+    "title": "Safeturned",
     "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
     "uploadTitle": "Upload plugin for scanning",
     "uploadSubtitle": "Supported files: .dll, .cs, .zip",
@@ -35,7 +35,7 @@
     "detectionAccuracy": "Detection accuracy"
   },
   "features": {
-    "title": "SafeTurned Features",
+    "title": "Safeturned Features",
     "codeAnalysis": "Code Analysis",
     "codeAnalysisDescription": "Deep static analysis of plugin source code for suspicious patterns",
     "threatDetection": "Threat Detection",

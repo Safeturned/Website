@@ -653,7 +653,7 @@ export default function Page() {
                         </p>
                     </div>
                     <div className="text-gray-500 text-sm hover:text-gray-400 transition-colors duration-300">
-                        © 2024 SafeTurned. {t('footer.allRightsReserved')}.
+                        © {new Date().getFullYear()} Safeturned. {t('footer.allRightsReserved')}.
                     </div>
                 </div>
             </footer>
