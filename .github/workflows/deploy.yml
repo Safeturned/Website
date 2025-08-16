@@ -62,13 +62,20 @@ jobs:
         
         echo "Starting website deployment..."
         
+        # Stop and remove containers
         docker compose down || true
+        
+        # Remove old images to force fresh pull
+        docker rmi ghcr.io/safeturned/website:latest || true
         
         echo "Pulling latest image from registry..."
         docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
         
-        # Start the new containers
-        docker compose up -d
+        # Start the new containers with build time
+        BUILD_TIME=$(date +%s) docker compose up -d
+        
+        # Clear Docker build cache
+        docker builder prune -f || true
         
         echo "Website deployment completed successfully!"
         EOF

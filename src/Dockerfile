@@ -10,8 +10,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Force fresh build by adding timestamp
+# Force fresh build by adding timestamp and clearing cache
 RUN echo "Build timestamp: $(date)" && \
+    rm -rf .next && \
     if [ -f package-lock.json ]; then npm run build; \
     elif [ -f yarn.lock ]; then corepack enable && yarn build; \
     else npm run build; fi

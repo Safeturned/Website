@@ -7,4 +7,5 @@ services:
       NODE_ENV: "production"
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
+      BUILD_TIME: "${BUILD_TIME:-${EPOCHSECONDS}}"
     restart: unless-stopped
