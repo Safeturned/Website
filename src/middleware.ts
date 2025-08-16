@@ -13,10 +13,38 @@ export function middleware(request: NextRequest) {
     // Redirect if there is no locale
     if (pathnameIsMissingLocale) {
         const locale = getLocale(request);
-        return NextResponse.redirect(
+        const response = NextResponse.redirect(
             new URL(`/${locale}${pathname}`, request.url)
         );
+        
+        // Add cache-busting headers
+        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+        
+        return response;
     }
+
+    // For existing requests, add cache-busting headers
+    const response = NextResponse.next();
+    
+    // Add cache-busting headers for translation files
+    if (pathname.includes('/locales/') || pathname.includes('.json')) {
+        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+    }
+
+    // Add cache-busting for main pages
+    if (pathname === '/' || 
+        pathname.startsWith('/en') || 
+        pathname.startsWith('/ru')) {
+        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+    }
+
+    return response;
 }
 
 function getLocale(request: NextRequest): string {
@@ -44,7 +72,13 @@ function getLocale(request: NextRequest): string {
 
 export const config = {
     matcher: [
-        // Skip all internal paths (_next)
-        '/((?!_next|api|favicon.ico).*)',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
     ],
 }; 
