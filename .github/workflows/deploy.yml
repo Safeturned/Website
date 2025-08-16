@@ -54,17 +54,14 @@ jobs:
       run: |
         mkdir -p ./deploy
         
-        # Copy docker-compose file
         cp ./src/docker-compose.yml ./deploy/
         
-        # Create deployment script
         cat > ./deploy/deploy.sh << 'EOF'
         #!/bin/bash
         set -e
         
         echo "Starting website deployment..."
         
-        # Stop existing containers
         docker compose down || true
         
         echo "Pulling latest image from registry..."
@@ -74,9 +71,6 @@ jobs:
         docker compose up -d
         
         echo "Website deployment completed successfully!"
-        
-        # Optional: Clean up old images
-        docker image prune -f || true
         EOF
         
         chmod +x ./deploy/deploy.sh
