@@ -74,8 +74,8 @@ jobs:
         echo "Pulling latest image from registry..."
         docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
         
-        # Start the new containers with build time
-        BUILD_TIME=$(date +%s) docker compose -f docker-compose.yaml up -d
+        # Start the new containers
+        docker compose -f docker-compose.yaml up -d
         
         # Clear Docker build cache
         docker builder prune -f || true
@@ -86,9 +86,7 @@ jobs:
         # Wait for container to be ready
         sleep 10
         
-        # Test the website
-        echo "Testing website..."
-        curl -f http://localhost:3000/api/version || echo "Version endpoint not available"
+
         
         echo "Website deployment completed successfully!"
         EOF
