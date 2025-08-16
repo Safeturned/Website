@@ -115,7 +115,7 @@ export default function ResultPage() {
         return base64;
     }
 
-    const handleDragUpload = async () => {
+    const handleDragUpload = async (forceAnalyze = false) => {
         if (!dragFile) return;
         
         setIsUploading(true);
@@ -123,6 +123,9 @@ export default function ResultPage() {
         try {
             const formData = new FormData();
             formData.append('file', dragFile, dragFile.name);
+            if (forceAnalyze) {
+                formData.append('forceAnalyze', 'true');
+            }
 
             const response = await fetch('/api/upload', {
                 method: 'POST',
@@ -325,30 +328,53 @@ export default function ResultPage() {
                             <h1 className="text-2xl font-bold text-white mb-2">{analyticsData.fileName}</h1>
                             <p className="text-gray-400">SHA-256: {hash}</p>
                         </div>
-                        <div className={`text-right ${getRiskColor(analyticsData.score)}`}>
-                            <div className="text-3xl font-bold">{analyticsData.score}</div>
-                            <div className="text-sm">{getRiskLevel(analyticsData.score)}</div>
-                        </div>
+                                                 <div className={`text-center ${getRiskColor(analyticsData.score)}`}>
+                             <div className="relative w-24 h-24 mx-auto">
+                                 {/* Circular progress background */}
+                                 <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                                     <circle
+                                         cx="50"
+                                         cy="50"
+                                         r="40"
+                                         stroke="currentColor"
+                                         strokeWidth="8"
+                                         fill="none"
+                                         opacity="0.2"
+                                     />
+                                                                           <circle
+                                          cx="50"
+                                          cy="50"
+                                          r="40"
+                                          stroke="currentColor"
+                                          strokeWidth="8"
+                                          fill="none"
+                                          strokeDasharray={`${((100 - analyticsData.score) / 100) * 251.2} 251.2`}
+                                          strokeLinecap="round"
+                                          className="transition-all duration-1000 ease-out"
+                                      />
+                                 </svg>
+                                 {/* Score text in center */}
+                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                     <div className="text-lg font-bold">{analyticsData.score}</div>
+                                     <div className="text-xs opacity-75">/100</div>
+                                 </div>
+                             </div>
+                             <div className="text-sm break-words max-w-24 mt-2">{getRiskLevel(analyticsData.score)}</div>
+                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <span className="text-gray-400">{t('results.fileSize')}:</span>
-                            <span className="ml-2 text-white">{formatFileSize(analyticsData.fileSizeBytes)}</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-400">{t('results.analysisDate')}:</span>
-                            <span className="ml-2 text-white">
-                                {new Date(analyticsData.processedAt).toLocaleDateString()}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-gray-400">{t('results.analysisTime')}:</span>
-                            <span className="ml-2 text-white">
-                                {new Date(analyticsData.processedAt).toLocaleTimeString()}
-                            </span>
-                        </div>
-                    </div>
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                         <div>
+                             <span className="text-gray-400">{t('results.fileSize')}:</span>
+                             <span className="ml-2 text-white">{formatFileSize(analyticsData.fileSizeBytes)}</span>
+                         </div>
+                                                   <div>
+                              <span className="text-gray-400">{t('results.lastAnalysisDate')}:</span>
+                              <span className="ml-2 text-white">
+                                  {new Date(analyticsData.processedAt).toLocaleString()}
+                              </span>
+                          </div>
+                     </div>
                 </div>
 
                 {/* Analysis Results */}
@@ -369,10 +395,29 @@ export default function ResultPage() {
                         </div>
                     )}
 
-                    <div className="text-sm text-gray-400">
-                        {analyticsData.message}
-                    </div>
-                </div>
+                                         <div className="text-sm text-gray-400">
+                         {analyticsData.message}
+                     </div>
+                     
+                     {/* Reanalyze Button */}
+                     <div className="mt-6 pt-6 border-t border-purple-500/30">
+                         <div className="text-center">
+                             <p className="text-gray-400 mb-4">{t('results.reanalyzeDescription')}</p>
+                                                           <button
+                                  onClick={() => {
+                                      // Redirect to home page to upload the same file again
+                                      router.push(`/${params.locale}`);
+                                  }}
+                                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 mx-auto"
+                             >
+                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                 </svg>
+                                 <span>{t('results.reanalyzeButton')}</span>
+                             </button>
+                         </div>
+                     </div>
+                 </div>
 
                 {/* Share Section - Mobile Only */}
                 <div className="mt-8 text-center md:hidden">
@@ -429,17 +474,17 @@ export default function ResultPage() {
                     <div className="bg-slate-800/95 border border-purple-500/50 rounded-xl p-8 max-w-md w-full mx-4">
                         <div className="text-center mb-6">
                             <div className="text-4xl mb-4">📄</div>
-                            <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
-                            <p className="text-gray-400">{dragFile.name}</p>
+                                                         <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
+                             <p className="text-gray-400 truncate max-w-full" title={dragFile.name}>{dragFile.name}</p>
                             <p className="text-sm text-gray-500 mt-1">
                                 {formatFileSize(dragFile.size)}
                             </p>
                         </div>
                         
                         <div className="flex gap-4 justify-center">
-                            <button
-                                onClick={handleDragUpload}
-                                disabled={isUploading}
+                                                         <button
+                                 onClick={() => handleDragUpload()}
+                                 disabled={isUploading}
                                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-6 py-3 rounded-lg font-medium transition-all duration-300"
                             >
                                                                                                  {isUploading ? (

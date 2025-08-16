@@ -4,6 +4,7 @@ import { storeAnalysisResult } from '../storage';
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
+        const forceAnalyze = formData.get('forceAnalyze') === 'true';
         
         const response = await fetch('https://safeturnedapi.unturnedguard.com/v1.0/files', {
             method: 'POST',

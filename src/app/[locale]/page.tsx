@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 interface AnalyticsData {
@@ -36,6 +36,7 @@ export default function Page() {
     const { t } = useTranslation();
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const locale = params.locale as string;
     const [isScanning, setIsScanning] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -422,13 +423,12 @@ export default function Page() {
                                         {t('hero.scanButton')}
                                     </button>
                                     
-                                    {/* Hover tooltip for file size limit */}
-                                    <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 translate-x-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
-                                        <div className="bg-slate-800/95 backdrop-blur-sm border border-purple-500/50 rounded-lg p-3 text-sm text-gray-300 whitespace-nowrap shadow-lg">
-                                            <div className="font-semibold text-purple-400 mb-1">{t('hero.maxFileSize')}</div>
-                                            <div className="text-white">1 GB</div>
-                                        </div>
-                                    </div>
+                                                                         {/* Hover tooltip for file size limit */}
+                                     <div className="absolute -top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+                                         <div className="bg-slate-800/95 backdrop-blur-sm border border-purple-500/50 rounded-lg px-2 py-1 text-xs text-gray-300 whitespace-nowrap shadow-lg">
+                                             {t('hero.maxFileSize')}
+                                         </div>
+                                     </div>
                                 </div>
                             ) : (
                                 <div className="border-2 border-solid border-purple-500/50 rounded-xl p-8 bg-purple-500/5">
@@ -446,8 +446,8 @@ export default function Page() {
                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                             />
                                         </svg>
-                                        <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
-                                        <p className="text-gray-400">{selectedFile?.name}</p>
+                                                                                 <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
+                                         <p className="text-gray-400 truncate max-w-full" title={selectedFile?.name}>{selectedFile?.name}</p>
                                         <p className="text-sm text-gray-500 mt-1">
                                             {selectedFile ? formatFileSize(selectedFile.size) : '0 Bytes'}
                                         </p>
