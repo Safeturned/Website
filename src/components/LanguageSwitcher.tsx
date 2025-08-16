@@ -38,9 +38,10 @@ export default function LanguageSwitcher() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-purple-500/30 hover:bg-slate-800/70 hover:border-purple-500/50 transition-all duration-300 text-white"
+                title={`Current: ${currentLanguage.name} (${currentLanguage.code})`}
             >
-                <span className="text-lg">{currentLanguage.flag}</span>
-                <span className="text-sm font-medium">{currentLanguage.name}</span>
+                <span className="text-lg" title="Flag">{currentLanguage.flag}</span>
+                <span className="text-sm font-medium" title="Language Name">{currentLanguage.name}</span>
                 <svg
                     className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -68,9 +69,10 @@ export default function LanguageSwitcher() {
                                         ? 'bg-purple-500/30 text-purple-300'
                                         : 'text-white'
                                 }`}
+                                title={`${language.name} (${language.code})`}
                             >
-                                <span className="text-lg">{language.flag}</span>
-                                <span className="text-sm font-medium">{language.name}</span>
+                                <span className="text-lg" title="Flag">{language.flag}</span>
+                                <span className="text-sm font-medium" title="Language Name">{language.name}</span>
                                 {locale === language.code && (
                                     <svg
                                         className="w-4 h-4 ml-auto text-purple-400"
