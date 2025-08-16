@@ -47,7 +47,7 @@
     "title": "Как это работает",
     "step1": {
       "title": "Загрузка плагина",
-      "description": "Загрузите файл плагина (.dll, .cs или архив) через веб-интерфейс"
+      "description": "Загрузите файл плагина (.dll) через веб-интерфейс"
     },
     "step2": {
       "title": "Анализ кода",
@@ -60,7 +60,11 @@
   },
   "footer": {
     "protectionMessage": "Защитите свой сервер от вредоносных плагинов",
-    "allRightsReserved": "Все права защищены"
+    "allRightsReserved": "Все права защищены",
+    "disclaimer": "Этот сайт не связан с Smartly Dressed Games или Unturned. Unturned® является зарегистрированной торговой маркой или товарным знаком Smartly Dressed Games Ltd. в США, Канаде и других странах."
+  },
+  "github": {
+    "tooltip": "Посмотреть на GitHub - Открытый исходный код"
   },
   "errors": {
     "uploadFailed": "Ошибка загрузки файла",

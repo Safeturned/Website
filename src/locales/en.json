@@ -47,7 +47,7 @@
     "title": "How it works",
     "step1": {
       "title": "Upload plugin",
-      "description": "Upload plugin file (.dll, .cs or archive) through web interface"
+      "description": "Upload plugin file (.dll) through web interface"
     },
     "step2": {
       "title": "Code analysis",
@@ -60,7 +60,11 @@
   },
   "footer": {
     "protectionMessage": "Protect your server from malicious plugins",
-    "allRightsReserved": "All rights reserved"
+    "allRightsReserved": "All rights reserved",
+    "disclaimer": "This site is not affiliated with Smartly Dressed Games or Unturned. Unturned® is a registered trademark or trademark of Smartly Dressed Games Ltd. in the United States, Canada, and other countries."
+  },
+  "github": {
+    "tooltip": "View on GitHub - Open Source"
   },
   "errors": {
     "uploadFailed": "File upload failed",
