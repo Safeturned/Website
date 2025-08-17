@@ -33,7 +33,7 @@ Node.js 20+ and npm
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Safeturned/WebSite.git
+git clone https://github.com/Safeturned/Website.git
 cd WebSite
 ```
 
