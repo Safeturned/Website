@@ -173,7 +173,6 @@ jobs:
           script: |
             echo "=== Starting website deployment ==="
             cd ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
-            ls -la
             chmod +x deploy.sh
             ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}"
             echo "=== Website deployment completed ==="
