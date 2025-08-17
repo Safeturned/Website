@@ -445,9 +445,9 @@ export default function Page() {
                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                             />
                                         </svg>
-                                                                                 <h3 className="text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
-                                         <p className="text-gray-400 truncate max-w-full" title={selectedFile?.name}>{selectedFile?.name}</p>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                                                                 <h3 className="text-lg md:text-xl font-semibold mb-2">{t('hero.fileSelected')}</h3>
+                                         <p className="text-gray-400 truncate max-w-full text-sm md:text-base" title={selectedFile?.name}>{selectedFile?.name}</p>
+                                        <p className="text-xs md:text-sm text-gray-500 mt-1">
                                             {selectedFile ? formatFileSize(selectedFile.size) : '0 Bytes'}
                                         </p>
                                     </div>
@@ -456,7 +456,7 @@ export default function Page() {
                                         <button
                                             onClick={handleConfirmUpload}
                                             disabled={isScanning}
-                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100"
+                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100 text-sm md:text-base"
                                         >
                                                                                                                                      {isScanning ? (
                                                 <span className="flex items-center">
