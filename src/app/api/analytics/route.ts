@@ -22,15 +22,29 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Forward the real user IP for rate limiting
+        const existingForwardedFor = request.headers.get('x-forwarded-for');
+        const realIP = request.headers.get('x-real-ip') || 
+                      request.headers.get('cf-connecting-ip');
+        
+        let forwardedForHeader = '';
+        if (realIP) {
+            // Append to existing X-Forwarded-For or create new one
+            forwardedForHeader = existingForwardedFor ? 
+                `${existingForwardedFor}, ${realIP}` : 
+                realIP;
+        } else if (existingForwardedFor) {
+            // Keep existing if no real IP found
+            forwardedForHeader = existingForwardedFor;
+        }
+
         const response = await fetch(`${apiUrl}/v1.0/files/analytics`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-API-Key': apiKey,
-                'X-Forwarded-For': request.headers.get('x-forwarded-for') || 
-                                  request.headers.get('x-real-ip') || 
-                                  request.headers.get('cf-connecting-ip') || ''
+                'X-Forwarded-For': forwardedForHeader
             },
         });
 
