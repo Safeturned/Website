@@ -114,5 +114,169 @@
   },
   "analytics": {
     "lastUpdated": "Last updated"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "acceptance": {
+      "title": "1. Acceptance of Terms",
+      "content": "By accessing and using Safeturned, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service."
+    },
+    "description": {
+      "title": "2. Description of Service",
+      "content": "Safeturned is a security analysis service that scans plugin files (.dll) for potential backdoors, trojans, and other malicious components. The service provides automated code analysis and threat detection for Unturned server plugins."
+    },
+    "responsibilities": {
+      "title": "3. User Responsibilities",
+      "fileOwnership": {
+        "title": "File Ownership",
+        "content": "You must only upload files that you own or have permission to analyze"
+      },
+      "noPersonalInfo": {
+        "title": "No Personal Information",
+        "content": "Do not submit any personal information or sensitive data"
+      },
+      "legalUse": {
+        "title": "Legal Use",
+        "content": "Use the service only for legitimate security analysis purposes"
+      },
+      "noMaliciousIntent": {
+        "title": "No Malicious Intent",
+        "content": "Do not use the service to analyze files with the intent to harm others"
+      },
+      "compliance": {
+        "title": "Compliance",
+        "content": "Comply with all applicable laws and regulations"
+      }
+    },
+    "limitations": {
+      "title": "4. Service Limitations",
+      "important": "Important Limitations",
+      "noGuarantees": {
+        "title": "No Guarantees",
+        "content": "We do not guarantee 100% accuracy of threat detection"
+      },
+      "falsePositives": {
+        "title": "False Positives",
+        "content": "Legitimate files may be flagged as suspicious"
+      },
+      "falseNegatives": {
+        "title": "False Negatives",
+        "content": "Some threats may not be detected"
+      },
+      "fileSize": {
+        "title": "File Size",
+        "content": "Maximum file size is 500MB"
+      },
+      "fileTypes": {
+        "title": "File Types",
+        "content": "Only .dll files are supported"
+      },
+      "rateLimits": {
+        "title": "Rate Limits",
+        "content": "Upload and analysis requests are rate-limited"
+      }
+    },
+    "dataHandling": {
+      "title": "5. Data Handling",
+      "noFileStorage": {
+        "title": "No File Storage",
+        "content": "Plugin files are processed in memory and immediately discarded"
+      },
+      "metadataOnly": {
+        "title": "Metadata Only",
+        "content": "Only file metadata (hash, name, size, scan results) is stored"
+      },
+      "noContentAnalysis": {
+        "title": "No Content Analysis",
+        "content": "We do not store or analyze the actual code content"
+      },
+      "analyticsData": {
+        "title": "Analytics Data",
+        "content": "Aggregated statistics are collected for service improvement"
+      }
+    },
+    "intellectualProperty": {
+      "title": "6. Intellectual Property",
+      "yourFiles": {
+        "title": "Your Files",
+        "content": "You retain all rights to your uploaded files"
+      },
+      "ourService": {
+        "title": "Our Service",
+        "content": "Safeturned and its analysis algorithms are our intellectual property"
+      },
+      "openSource": {
+        "title": "Open Source",
+        "content": "The service is open source and available under appropriate licenses"
+      },
+      "noClaims": {
+        "title": "No Claims",
+        "content": "We make no claims on your intellectual property"
+      }
+    },
+    "disclaimers": {
+      "title": "7. Disclaimers",
+      "important": "Important Disclaimers",
+      "noWarranty": {
+        "title": "No Warranty",
+        "content": "The service is provided \"as is\" without any warranties"
+      },
+      "noLiability": {
+        "title": "No Liability",
+        "content": "We are not liable for any damages arising from use of the service"
+      },
+      "securityDecisions": {
+        "title": "Security Decisions",
+        "content": "You are responsible for your own security decisions"
+      },
+      "thirdPartyContent": {
+        "title": "Third-Party Content",
+        "content": "We are not responsible for the content of analyzed files"
+      },
+      "serviceAvailability": {
+        "title": "Service Availability",
+        "content": "We do not guarantee uninterrupted service availability"
+      }
+    },
+    "prohibitedUses": {
+      "title": "8. Prohibited Uses",
+      "illegalActivities": {
+        "title": "Illegal Activities",
+        "content": "Using the service for illegal purposes"
+      },
+      "spam": {
+        "title": "Spam",
+        "content": "Excessive or automated requests"
+      },
+      "harassment": {
+        "title": "Harassment",
+        "content": "Using the service to harass or harm others"
+      },
+      "reverseEngineering": {
+        "title": "Reverse Engineering",
+        "content": "Attempting to reverse engineer our systems"
+      },
+      "bypassingSecurity": {
+        "title": "Bypassing Security",
+        "content": "Attempting to bypass rate limits or security measures"
+      }
+    },
+    "termination": {
+      "title": "9. Termination",
+      "content": "We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms."
+    },
+    "changes": {
+      "title": "10. Changes to Terms",
+      "content": "We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect."
+    },
+    "governingLaw": {
+      "title": "11. Governing Law",
+      "content": "These Terms shall be interpreted and governed by the laws of the jurisdiction in which the service operates, without regard to its conflict of law provisions."
+    },
+    "contact": {
+      "title": "12. Contact Information",
+      "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
+    },
+    "lastUpdated": "Last updated"
   }
 } 
