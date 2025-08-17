@@ -80,6 +80,6 @@ export const config = {
          * - favicon.ico (favicon file)
          * - favicon.jpg (favicon file)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico|favicon.jpg).*)',
+        '/((?!api|_next/static|_next/image|favicon).*)',
     ],
 }; 

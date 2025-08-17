@@ -38,17 +38,19 @@ export default function ResultPage() {
     useEffect(() => {
         if (hash) {
             // First check if we have a fresh upload result in sessionStorage
-            const uploadResult = sessionStorage.getItem('uploadResult');
-            if (uploadResult) {
-                try {
-                    const data = JSON.parse(uploadResult);
-                    setAnalyticsData(data);
-                    setLoading(false);
-                    // Clear the sessionStorage after using it
-                    sessionStorage.removeItem('uploadResult');
-                    return;
-                } catch (err) {
-                    sessionStorage.removeItem('uploadResult');
+            if (typeof window !== 'undefined') {
+                const uploadResult = sessionStorage.getItem('uploadResult');
+                if (uploadResult) {
+                    try {
+                        const data = JSON.parse(uploadResult);
+                        setAnalyticsData(data);
+                        setLoading(false);
+                        // Clear the sessionStorage after using it
+                        sessionStorage.removeItem('uploadResult');
+                        return;
+                    } catch (err) {
+                        sessionStorage.removeItem('uploadResult');
+                    }
                 }
             }
             
@@ -154,7 +156,9 @@ export default function ResultPage() {
             
             // The upload response contains the analysis results directly
             // Store the result in sessionStorage so the results page can access it
-            sessionStorage.setItem('uploadResult', JSON.stringify(result));
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('uploadResult', JSON.stringify(result));
+            }
             
             // Use the ID from the API response
             let hash;
@@ -173,7 +177,9 @@ export default function ResultPage() {
             // Check if we're already on the correct page
             if (hash === params.hash) {
                 // Store the result and refresh the page data
-                sessionStorage.setItem('uploadResult', JSON.stringify(result));
+                if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('uploadResult', JSON.stringify(result));
+                }
                 // Force a page refresh to show the new data
                 window.location.reload();
             } else {

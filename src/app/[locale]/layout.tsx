@@ -11,9 +11,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     const { locale } = await params;
     
     return (
-        <html lang={locale}>
-            <body>{children}</body>
-        </html>
+        <div data-locale={locale}>
+            {children}
+        </div>
     );
 }
 
