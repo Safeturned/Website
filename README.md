@@ -11,7 +11,7 @@ Safeturned is a security tool designed specifically for Unturned server administ
 The application provides several key capabilities:
 
 - Code Analysis - Deep static analysis of plugin source code for suspicious patterns
-- Threat Detection - Detection of backdoors, trojans and other malicious components  
+- Threat Detection - Detection of backdoors 
 - Fast Scanning - Analysis results in seconds with detailed reports
 - Mobile Friendly - Responsive design that works on all devices
 - Multi-language Support - Available in English and Russian
