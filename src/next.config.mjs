@@ -13,9 +13,7 @@ const nextConfig = {
     
     // Ensure fresh builds with timestamp
     generateBuildId: async () => {
-        const timestamp = Date.now();
-        console.log(`Generating build ID: build-${timestamp}`);
-        return `build-${timestamp}`;
+        return `build-${Date.now()}`;
     },
     
     // Disable static optimization for pages with dynamic content
@@ -25,11 +23,6 @@ const nextConfig = {
     env: {
         BUILD_TIME: Date.now().toString(),
     },
-    
-    // Disable static generation completely
-    staticPageGenerationTimeout: 0,
-    
-
 };
 
 export default nextConfig;

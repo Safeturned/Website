@@ -18,7 +18,7 @@ The application provides several key capabilities:
 
 ## Tech Stack
 
-- Frontend: Next.js 14 with App Router
+- Frontend: Next.js 15 with App Router
 - Styling: Tailwind CSS
 - Language: TypeScript
 - Deployment: Docker ready
@@ -27,8 +27,7 @@ The application provides several key capabilities:
 
 ### Prerequisites
 
-Node.js 18+ or Bun
-npm, yarn, or bun package manager
+Node.js 20+ and npm
 
 ### Installation
 
@@ -40,20 +39,13 @@ cd WebSite
 
 2. Install dependencies:
 ```bash
+cd src
 npm install
-# or
-yarn install
-# or
-bun install
 ```
 
 3. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-bun dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
@@ -63,7 +55,9 @@ bun dev
 You can also run the application using Docker:
 
 ```bash
-docker-compose up
+cd src
+docker build -t safeturned-website .
+docker run -p 3000:3000 safeturned-website
 ```
 
 ## How it Works
