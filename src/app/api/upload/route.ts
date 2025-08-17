@@ -1,8 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { storeAnalysisResult, storeFile } from '../storage';
+import { createRateLimiter, getClientIP } from '../../../lib/rateLimit';
+
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const ALLOWED_FILE_TYPES = ['.dll'];
+
+// Rate limiting: 10 uploads per minute per IP
+const uploadRateLimit = createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 10
+});
 
 export async function POST(request: NextRequest) {
     try {
+        // Apply rate limiting
+        const clientIP = getClientIP(request);
+        const rateLimitResult = uploadRateLimit(clientIP);
+        
+        if (!rateLimitResult.allowed) {
+            return NextResponse.json(
+                { 
+                    error: 'Rate limit exceeded. Please try again later.',
+                    retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+                },
+                { 
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Limit': '10',
+                        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+                        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+                        'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
+                    }
+                }
+            );
+        }
+
         const formData = await request.formData();
         const forceAnalyze = formData.get('forceAnalyze') === 'true';
         const file = formData.get('file') as File;
@@ -10,6 +42,32 @@ export async function POST(request: NextRequest) {
         if (!file) {
             return NextResponse.json(
                 { error: 'No file provided' },
+                { status: 400 }
+            );
+        }
+
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+            return NextResponse.json(
+                { error: `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB` },
+                { status: 400 }
+            );
+        }
+
+        // Validate file type
+        const fileName = file.name.toLowerCase();
+        const isValidFileType = ALLOWED_FILE_TYPES.some(ext => fileName.endsWith(ext));
+        if (!isValidFileType) {
+            return NextResponse.json(
+                { error: `Invalid file type. Only ${ALLOWED_FILE_TYPES.join(', ')} files are allowed` },
+                { status: 400 }
+            );
+        }
+
+        // Validate file name
+        if (!fileName || fileName.length > 255) {
+            return NextResponse.json(
+                { error: 'Invalid file name' },
                 { status: 400 }
             );
         }
@@ -76,7 +134,7 @@ export async function POST(request: NextRequest) {
             const errorText = await response.text();
             console.error('API upload failed:', response.status, errorText);
             return NextResponse.json(
-                { error: `Upload failed: ${response.status} ${response.statusText} - ${errorText}` },
+                { error: `Upload failed: ${response.status} ${response.statusText}` },
                 { status: response.status }
             );
         }

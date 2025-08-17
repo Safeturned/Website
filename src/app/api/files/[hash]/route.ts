@@ -1,21 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnalysisResult, storeAnalysisResult } from '../../storage';
+import { createRateLimiter, getClientIP } from '../../../../lib/rateLimit';
+
+// Rate limiting: 100 requests per minute per IP
+const filesRateLimit = createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100
+});
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ hash: string }> }) {
     try {
+        // Apply rate limiting
+        const clientIP = getClientIP(request);
+        const rateLimitResult = filesRateLimit(clientIP);
+        
+        if (!rateLimitResult.allowed) {
+            return NextResponse.json(
+                { 
+                    error: 'Rate limit exceeded. Please try again later.',
+                    retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+                },
+                { 
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Limit': '100',
+                        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+                        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+                        'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
+                    }
+                }
+            );
+        }
+
         const { hash } = await params;
         
-        console.log(`[Files API] Looking for hash: ${hash}`);
-        
+        // Validate hash parameter
+        if (!hash || typeof hash !== 'string' || hash.length < 10) {
+            return NextResponse.json(
+                { error: 'Invalid hash parameter' },
+                { status: 400 }
+            );
+        }
+
         // First try to get from local storage
         let result = getAnalysisResult(hash);
 
         if (result) {
-            console.log(`[Files API] Found in local storage: ${hash}`);
             return NextResponse.json(result);
         }
-
-        console.log(`[Files API] Not found in local storage, trying API: ${hash}`);
 
         // If not found locally, try to fetch from upstream API
         try {
@@ -78,21 +110,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '') // Standard to URL-safe
             ];
 
-            console.log(`[Files API] Trying hash formats:`, hashFormats);
-
             for (const hashFormat of hashFormats) {
                 const apiUrlWithHash = `${apiUrl}/v1.0/files/${hashFormat}`;
-                console.log(`[Files API] Trying API URL: ${apiUrlWithHash}`);
                 
                 const response = await fetch(apiUrlWithHash, {
                     headers
                 });
                 
-                console.log(`[Files API] API response status: ${response.status} for ${hashFormat}`);
-                
                 if (response.ok) {
                     const upstreamResult = await response.json();
-                    console.log(`[Files API] Found in API, storing locally: ${hash}`);
                     
                     // Store the result locally for future requests (use original hash)
                     storeAnalysisResult(hash, upstreamResult);
@@ -100,20 +126,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     return NextResponse.json(upstreamResult);
                 }
             }
-            
-            console.log(`[Files API] Not found in API for any hash format`);
         } catch (upstreamError) {
-            console.error(`[Files API] Error fetching from API:`, upstreamError);
+            console.error('Error fetching from API:', upstreamError);
             // Silently fail and continue to return 404
         }
 
-        console.log(`[Files API] Returning 404 for hash: ${hash}`);
         return NextResponse.json(
             { error: 'Analysis not found' },
             { status: 404 }
         );
     } catch (error) {
-        console.error(`[Files API] Internal error:`, error);
+        console.error('Internal error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 } 

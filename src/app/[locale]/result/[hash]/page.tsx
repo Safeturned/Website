@@ -32,6 +32,7 @@ export default function ResultPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [isReanalyzing, setIsReanalyzing] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
 
     useEffect(() => {
@@ -55,6 +56,16 @@ export default function ResultPage() {
             fetchAnalysisResult(hash);
         }
     }, [hash]);
+
+    // Auto-hide notifications after 5 seconds
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     // Drag and drop handlers
     const handleDragEnter = (e: React.DragEvent) => {
@@ -96,13 +107,14 @@ export default function ResultPage() {
             const file = files[0];
             if (file.name.toLowerCase().endsWith('.dll')) {
                 if (file.size > 500 * 1024 * 1024) {
-                    alert(t('errors.fileTooLarge'));
+                    setNotification({ message: t('errors.fileTooLarge'), type: 'error' });
                     return;
                 }
                 setDragFile(file);
                 setShowDragUpload(true);
+                setError(null);
             } else {
-                alert('Please select a .dll file');
+                setNotification({ message: 'Please select a .dll file', type: 'error' });
             }
         }
     };
@@ -121,6 +133,7 @@ export default function ResultPage() {
         if (!dragFile) return;
         
         setIsUploading(true);
+        setError(null);
         
         try {
             const formData = new FormData();
@@ -169,9 +182,14 @@ export default function ResultPage() {
             }
             return;
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Unknown error occurred');
+            setNotification({ 
+                message: err instanceof Error ? err.message : 'Unknown error occurred', 
+                type: 'error' 
+            });
         } finally {
             setIsUploading(false);
+            setShowDragUpload(false);
+            setDragFile(null);
         }
     };
 
@@ -180,10 +198,39 @@ export default function ResultPage() {
         setShowDragUpload(false);
     };
 
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: t('results.shareTitle'),
+                    text: t('results.shareText'),
+                    url: window.location.href,
+                });
+            } else {
+                await handleCopyLink();
+            }
+        } catch (err) {
+            // User cancelled or error occurred
+            if (err instanceof Error && err.name !== 'AbortError') {
+                setNotification({ message: 'Failed to share', type: 'error' });
+            }
+        }
+    };
+
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            setNotification({ message: t('results.linkCopied'), type: 'success' });
+        } catch (err) {
+            setNotification({ message: 'Failed to copy link', type: 'error' });
+        }
+    };
+
     const handleReanalyze = async () => {
         if (!analyticsData) return;
         
         setIsReanalyzing(true);
+        setError(null);
         
         try {
             // Call the backend to reanalyze the existing file
@@ -211,7 +258,10 @@ export default function ResultPage() {
             // Success - the UI will automatically update with new data
             
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Reanalysis failed');
+            setNotification({ 
+                message: err instanceof Error ? err.message : 'Reanalysis failed', 
+                type: 'error' 
+            });
         } finally {
             setIsReanalyzing(false);
         }
@@ -520,28 +570,7 @@ export default function ResultPage() {
                     <p className="text-gray-400 mb-3 md:mb-4 text-sm md:text-base">{t('results.shareDescription')}</p>
                     <div className="flex justify-center gap-3 md:gap-4">
                         <button
-                            onClick={() => {
-                                const shareUrl = `${window.location.origin}/${params.locale}/result/${hash}`;
-                                
-                                // Only use native share API on mobile devices
-                                if (navigator.share && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                                    navigator.share({
-                                        title: `${t('results.shareTitle')} - ${analyticsData.fileName}`,
-                                        text: `${t('results.shareText')} ${analyticsData.fileName} (${getRiskLevel(analyticsData.score)})`,
-                                        url: shareUrl,
-                                    }).catch((error) => {
-                                        // Only fall back to clipboard if share was cancelled by user
-                                        if (error.name !== 'AbortError') {
-                                            navigator.clipboard.writeText(shareUrl);
-                                            alert(t('results.linkCopied'));
-                                        }
-                                    });
-                                } else {
-                                    // Fallback for devices without native share
-                                    navigator.clipboard.writeText(shareUrl);
-                                    alert(t('results.linkCopied'));
-                                }
-                            }}
+                            onClick={handleShare}
                             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 text-sm md:text-base"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -620,6 +649,17 @@ export default function ResultPage() {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Notification */}
+            {notification && (
+                <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-3 rounded-lg shadow-lg z-50 ${
+                    notification.type === 'success' 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-red-500 text-white'
+                }`}>
+                    {notification.message}
                 </div>
             )}
         </div>
