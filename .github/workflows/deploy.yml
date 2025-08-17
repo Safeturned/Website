@@ -164,20 +164,20 @@ jobs:
       - name: Copy files to server
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_HOST || secrets.PROD_SERVER_HOST }}
-          port: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PORT || secrets.PROD_SSH_PORT }}
-          username: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_USER || secrets.PROD_SERVER_USER }}
-          key: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PRIVATE_KEY || secrets.PROD_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "./deploy/*"
           target: ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_HOST || secrets.PROD_SERVER_HOST }}
-          port: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PORT || secrets.PROD_SSH_PORT }}
-          username: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_USER || secrets.PROD_SERVER_USER }}
-          key: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PRIVATE_KEY || secrets.PROD_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "=== Starting website deployment ==="
             cd ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
