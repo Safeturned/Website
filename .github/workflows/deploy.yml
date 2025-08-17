@@ -2,8 +2,14 @@ name: Deploy Website
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - '*.*.*'  # Triggers on version tags like 1.0.0, 2.1.3, etc.
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
 
 env:
   DOCKER_REGISTRY: ghcr.io
@@ -17,136 +23,192 @@ jobs:
       packages: write
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: src/package-lock.json
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            # Extract version from tag (no prefix to remove)
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          
+          # Validate SemVer format (major.minor.patch only)
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid SemVer format: $VERSION"
+            echo "Expected format: major.minor.patch"
+            echo "Examples: 1.0.0, 2.1.3, 1.0.1"
+            exit 1
+          fi
+          
+          # Extract components for Docker tagging
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          
+          CLEAN_VERSION=$VERSION
+          
+          echo "version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
+          echo "patch=$PATCH" >> $GITHUB_OUTPUT
+          echo "full_version=$VERSION" >> $GITHUB_OUTPUT
+          
+          echo "✅ Valid SemVer: $VERSION"
+          echo "📦 Docker version: $CLEAN_VERSION"
+          echo "🔢 Components: $MAJOR.$MINOR.$PATCH"
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Determine branch and environment
+        id: branch
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "branch=main" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            echo "branch=dev" >> $GITHUB_OUTPUT
+            echo "environment=development" >> $GITHUB_OUTPUT
+          else
+            echo "branch=main" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
+          fi
+          echo "Branch: ${{ steps.branch.outputs.branch }}"
+          echo "Environment: ${{ steps.branch.outputs.environment }}"
 
-    - name: Login to GHCR
-      run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
 
-    - name: Build and push Docker image
-      run: |
-        cd src
-        
-        # Build the Docker image with no cache to ensure fresh build
-        docker build --no-cache -t "ghcr.io/safeturned/website:latest" .
-        docker tag "ghcr.io/safeturned/website:latest" "ghcr.io/safeturned/website:v${{ github.run_number }}"
-        
-        # Push both latest and versioned tags
-        docker push "ghcr.io/safeturned/website:latest"
-        docker push "ghcr.io/safeturned/website:v${{ github.run_number }}"
-        
-        echo "✅ Images built and pushed successfully"
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Create deployment package
-      run: |
-        mkdir -p ./deploy
-        
-        cp ./src/docker-compose.yaml ./deploy/
-        
-        cat > ./deploy/deploy.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        echo "Starting website deployment..."
-        
-        # Stop and remove containers
-        docker compose -f docker-compose.yaml down || true
-        
-        # Remove old images to force fresh pull
-        docker rmi ghcr.io/safeturned/website:latest || true
-        
-        # Clear all unused images and containers
-        docker system prune -f || true
-        
-        echo "Pulling latest image from registry..."
-        docker pull ghcr.io/safeturned/website:latest || echo "Image pull failed, will build locally"
-        
-        # Start the new containers
-        docker compose -f docker-compose.yaml up -d
-        
-        # Clear Docker build cache
-        docker builder prune -f || true
-        
-        # Force restart to ensure fresh content
-        docker compose -f docker-compose.yaml restart
-        
-        # Wait for container to be ready
-        sleep 10
-        
-        echo "Website deployment completed successfully!"
-        EOF
-        
-        chmod +x ./deploy/deploy.sh
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-    - name: Copy files to server
-      uses: appleboy/scp-action@v1
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        port: ${{ secrets.SSH_PORT }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "./deploy/*"
-        target: "/opt/safeturned-website/deploy"
+      - name: Build and push Docker image
+        run: |
+          cd src
+          
+          VERSION="${{ steps.version.outputs.version }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          MAJOR="${{ steps.version.outputs.major }}"
+          MINOR="${{ steps.version.outputs.minor }}"
+          PATCH="${{ steps.version.outputs.patch }}"
+          FULL_VERSION="${{ steps.version.outputs.full_version }}"
+          
+          docker build --no-cache -t "ghcr.io/safeturned/website:v${VERSION}" .
+          
+          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:${BRANCH}-v${VERSION}"
+          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:v${MAJOR}.${MINOR}"
+          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:v${MAJOR}"
+          
+          docker push "ghcr.io/safeturned/website:v${VERSION}"
+          docker push "ghcr.io/safeturned/website:${BRANCH}-v${VERSION}"
+          docker push "ghcr.io/safeturned/website:v${MAJOR}.${MINOR}"
+          docker push "ghcr.io/safeturned/website:v${MAJOR}"
+          
+          echo "✅ Images built and pushed successfully"
+          echo "📦 Main image: ghcr.io/safeturned/website:v${VERSION}"
+          echo "🌿 Branch image: ghcr.io/safeturned/website:${BRANCH}-v${VERSION}"
+          echo "📋 Minor version: ghcr.io/safeturned/website:v${MAJOR}.${MINOR}"
+          echo "🏷️  Major version: ghcr.io/safeturned/website:v${MAJOR}"
+          echo "🔢 Full SemVer: $FULL_VERSION"
 
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        port: ${{ secrets.SSH_PORT }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          echo "=== Starting website deployment ==="
+      - name: Create deployment package
+        run: |
+          mkdir -p ./deploy
           
-          # Go to the deploy directory where files are copied
-          cd /opt/safeturned-website/deploy
+          VERSION="${{ steps.version.outputs.version }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          ENVIRONMENT="${{ steps.branch.outputs.environment }}"
           
-          # List files to debug
-          echo "Files in directory:"
-          ls -la
+          cp ./src/docker-compose.yaml ./deploy/
           
-          # Make deploy script executable
-          chmod +x deploy.sh
+          cat > ./deploy/docker-compose.override.yaml << EOF
+          services:
+            website:
+              image: ghcr.io/safeturned/website:v${VERSION}
+              environment:
+                - NODE_ENV=${ENVIRONMENT}
+                - APP_VERSION=${VERSION}
+                - APP_BRANCH=${BRANCH}
+                - IS_PRODUCTION=${{ steps.branch.outputs.environment == 'production' && 'true' || 'false' }}
+              labels:
+                - "version=${VERSION}"
+                - "branch=${BRANCH}"
+                - "environment=${ENVIRONMENT}"
+                - "major=${{ steps.version.outputs.major }}"
+                - "minor=${{ steps.version.outputs.minor }}"
+                - "patch=${{ steps.version.outputs.patch }}"
+          EOF
           
-          # Run deployment
-          ./deploy.sh
+          cat > ./deploy/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          VERSION="$1"
+          BRANCH="$2"
+          ENVIRONMENT="$3"
+          if [ -z "$VERSION" ] || [ -z "$BRANCH" ] || [ -z "$ENVIRONMENT" ]; then
+              echo "Usage: $0 <version> <branch> <environment>"
+              exit 1
+          fi
+          echo "Starting website deployment..."
+          echo "Version: $VERSION"
+          echo "Branch: $BRANCH"
+          echo "Environment: $ENVIRONMENT"
+          docker compose -f docker-compose.yaml -f docker-compose.override.yaml down || true
+          docker rmi ghcr.io/safeturned/website:v${VERSION} || true
+          docker rmi ghcr.io/safeturned/website:${BRANCH}-v${VERSION} || true
+          docker system prune -f || true
+          docker pull ghcr.io/safeturned/website:v${VERSION} || echo "Image pull failed, will build locally"
+          docker compose -f docker-compose.yaml -f docker-compose.override.yaml up -d
+          docker builder prune -f || true
+          docker compose -f docker-compose.yaml -f docker-compose.override.yaml restart
+          sleep 10
+          docker compose -f docker-compose.yaml -f docker-compose.override.yaml ps
+          echo "Website deployment completed successfully!"
+          echo "Deployed version: $VERSION"
+          echo "Environment: $ENVIRONMENT"
+          EOF
           
-          # Wait a moment for containers to start
-          sleep 5
-          
-          # Check if containers are running
-          docker compose -f docker-compose.yaml ps
-          
-          # Show logs to verify deployment
-          docker compose -f docker-compose.yaml logs --tail=20
-          
-          echo "=== Website deployment completed ==="
+          chmod +x ./deploy/deploy.sh
 
-    #- name: Create Release
-    #  if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    #  uses: actions/create-release@v1
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #    tag_name: website-v${{ github.run_number }}
-    #    release_name: Website Release v${{ github.run_number }}
-    #    body: |
-    #      ## Website Deployment
-    #      - Built from commit: ${{ github.sha }}
-    #      - Image: ghcr.io/safeturned/website:v${{ github.run_number }}
-    #      - Deployed to server behind Cloudflare and nginx
-    #    draft: false
-    #    prerelease: false
+      - name: Copy files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_HOST || secrets.PROD_SERVER_HOST }}
+          port: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PORT || secrets.PROD_SSH_PORT }}
+          username: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_USER || secrets.PROD_SERVER_USER }}
+          key: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PRIVATE_KEY || secrets.PROD_SSH_PRIVATE_KEY }}
+          source: "./deploy/*"
+          target: ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_HOST || secrets.PROD_SERVER_HOST }}
+          port: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PORT || secrets.PROD_SSH_PORT }}
+          username: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SERVER_USER || secrets.PROD_SERVER_USER }}
+          key: ${{ steps.branch.outputs.branch == 'dev' && secrets.DEV_SSH_PRIVATE_KEY || secrets.PROD_SSH_PRIVATE_KEY }}
+          script: |
+            echo "=== Starting website deployment ==="
+            cd ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
+            echo "Files in directory:"
+            ls -la
+            chmod +x deploy.sh
+            ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}"
+            sleep 5
+            docker compose -f docker-compose.yaml -f docker-compose.override.yaml ps
+            docker compose -f docker-compose.yaml -f docker-compose.override.yaml logs --tail=20
+            echo "=== Website deployment completed ==="
+            echo "Version: ${{ steps.version.outputs.version }}"
+            echo "Branch: ${{ steps.branch.outputs.branch }}"
+            echo "Environment: ${{ steps.branch.outputs.environment }}"
