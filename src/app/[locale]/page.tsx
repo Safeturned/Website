@@ -245,7 +245,7 @@ export default function Page() {
             >
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div
-                        className={`flex items-center space-x-3 transition-all duration-1000 delay-200 ${
+                        className={`flex items-center space-x-3 md:space-x-3 space-x-4 transition-all duration-1000 delay-200 ${
                             isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'
                         }`}
                     >
@@ -341,7 +341,7 @@ export default function Page() {
                 <div className="max-w-6xl mx-auto text-center">
                     <div className="mb-8">
                         <h1
-                            className={`text-5xl md:text-7xl font-bold mb-6 text-white transition-all duration-1000 delay-500 ${
+                            className={`text-4xl md:text-5xl lg:text-7xl font-bold mb-6 text-white transition-all duration-1000 delay-500 ${
                                 isLoaded
                                     ? 'translate-y-0 opacity-100 scale-100'
                                     : 'translate-y-20 opacity-0 scale-95'
@@ -365,7 +365,7 @@ export default function Page() {
                                 ))}
                         </h1>
                         <p
-                            className={`text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto transition-all duration-1000 delay-700 ${
+                            className={`text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto transition-all duration-1000 delay-700 ${
                                 isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                             }`}
                         >
@@ -381,10 +381,10 @@ export default function Page() {
                                 : 'translate-y-20 opacity-0 scale-95'
                         }`}
                     >
-                        <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-105">
+                        <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-4 md:p-8 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-105">
                                                         {!showConfirmUpload ? (
                                 <div
-                                    className="border-2 border-dashed border-purple-500/50 rounded-xl p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group relative"
+                                    className="border-2 border-dashed border-purple-500/50 rounded-xl p-4 md:p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group relative"
                                     onClick={handleScan}
                                 >
                                     <input
@@ -396,7 +396,7 @@ export default function Page() {
                                     />
 
                                     <svg
-                                        className="w-12 h-12 text-purple-400 mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:text-pink-400"
+                                        className="w-8 h-8 md:w-12 md:h-12 text-purple-400 mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:text-pink-400"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -408,8 +408,8 @@ export default function Page() {
                                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                                         />
                                     </svg>
-                                    <p className="text-lg mb-2">{t('hero.uploadTitle')}</p>
-                                    <p className="text-gray-400 text-sm mb-4">
+                                    <p className="text-base md:text-lg mb-2">{t('hero.uploadTitle')}</p>
+                                    <p className="text-gray-400 text-xs md:text-sm mb-4">
                                         {t('hero.uploadSubtitle')}
                                     </p>
                                     <button
@@ -417,7 +417,7 @@ export default function Page() {
                                             e.stopPropagation();
                                             handleScan();
                                         }}
-                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 text-sm md:text-base"
                                     >
                                         {t('hero.scanButton')}
                                     </button>
@@ -516,33 +516,33 @@ export default function Page() {
 
                     {/* Stats */}
                     <div
-                        className={`grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1100 ${
+                        className={`grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1100 ${
                             isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'
                         }`}
                     >
-                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-purple-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 group cursor-pointer">
-                            <div className="text-3xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 md:p-6 hover:bg-slate-800/50 hover:border-purple-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 group cursor-pointer">
+                            <div className="text-2xl md:text-3xl font-bold text-purple-400 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 {systemAnalytics ? systemAnalytics.totalFilesScanned.toLocaleString() : '...'}
                             </div>
-                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
+                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300 text-sm md:text-base">
                                 {t('stats.checkedPlugins')}
                             </div>
                         </div>
-                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-red-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group cursor-pointer">
-                            <div className="text-3xl font-bold text-red-400 mb-2 group-hover:scale-110 transition-transform duration-300">
+                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 md:p-6 hover:bg-slate-800/50 hover:border-red-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group cursor-pointer">
+                            <div className="text-2xl md:text-3xl font-bold text-red-400 mb-2 group-hover:scale-110 transition-transform duration-300">
                                 {systemAnalytics ? systemAnalytics.totalThreatsDetected.toLocaleString() : '...'}
                             </div>
-                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
+                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300 text-sm md:text-base">
                                 {t('stats.threatsDetected')}
                             </div>
                         </div>
-                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 hover:bg-slate-800/50 hover:border-green-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 group cursor-pointer">
+                        <div className="bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 md:p-6 hover:bg-slate-800/50 hover:border-green-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 group cursor-pointer">
                             <div
-                                className={`text-3xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300 ${systemAnalytics ? (systemAnalytics.detectionAccuracy >= 95 ? 'text-green-400' : systemAnalytics.detectionAccuracy >= 80 ? 'text-yellow-400' : 'text-red-400') : 'text-gray-400'}`}
+                                className={`text-2xl md:text-3xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300 ${systemAnalytics ? (systemAnalytics.detectionAccuracy >= 95 ? 'text-green-400' : systemAnalytics.detectionAccuracy >= 80 ? 'text-yellow-400' : 'text-red-400') : 'text-gray-400'}`}
                             >
                                 {systemAnalytics ? `${systemAnalytics.detectionAccuracy.toFixed(1)}%` : '...'}
                             </div>
-                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300">
+                            <div className="text-gray-300 group-hover:text-white transition-colors duration-300 text-sm md:text-base">
                                 {t('stats.detectionAccuracy')}
                             </div>
                         </div>
@@ -551,19 +551,19 @@ export default function Page() {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="px-6 py-20 bg-slate-800/20">
+            <section id="features" className="px-6 py-12 md:py-20 bg-slate-800/20">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-4xl font-bold text-center mb-16 opacity-0 animate-fadeInUp">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-16 opacity-0 animate-fadeInUp">
                         {t('features.title')}
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                         <div
-                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 hover:bg-slate-800/70 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20 opacity-0 animate-slideInLeft group cursor-pointer"
+                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-4 md:p-6 hover:bg-slate-800/70 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20 opacity-0 animate-slideInLeft group cursor-pointer"
                             style={{ animationDelay: '0.2s' }}
                         >
-                            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                                 <svg
-                                    className="w-6 h-6 text-white"
+                                    className="w-5 h-5 md:w-6 md:h-6 text-white"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -574,20 +574,20 @@ export default function Page() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold mb-3 group-hover:text-purple-300 transition-colors duration-300">
+                            <h3 className="text-lg md:text-xl font-semibold mb-3 group-hover:text-purple-300 transition-colors duration-300">
                                 {t('features.codeAnalysis')}
                             </h3>
-                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                 {t('features.codeAnalysisDescription')}
                             </p>
                         </div>
                         <div
-                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 hover:bg-slate-800/70 hover:border-pink-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-pink-500/20 opacity-0 animate-slideInUp group cursor-pointer"
+                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-4 md:p-6 hover:bg-slate-800/70 hover:border-pink-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-pink-500/20 opacity-0 animate-slideInUp group cursor-pointer"
                             style={{ animationDelay: '0.4s' }}
                         >
-                            <div className="w-12 h-12 bg-pink-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-pink-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                                 <svg
-                                    className="w-6 h-6 text-white"
+                                    className="w-5 h-5 md:w-6 md:h-6 text-white"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -598,20 +598,20 @@ export default function Page() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold mb-3 group-hover:text-pink-300 transition-colors duration-300">
+                            <h3 className="text-lg md:text-xl font-semibold mb-3 group-hover:text-pink-300 transition-colors duration-300">
                                 {t('features.threatDetection')}
                             </h3>
-                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                 {t('features.threatDetectionDescription')}
                             </p>
                         </div>
                         <div
-                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 hover:bg-slate-800/70 hover:border-green-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/20 opacity-0 animate-slideInRight group cursor-pointer"
+                            className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-4 md:p-6 hover:bg-slate-800/70 hover:border-green-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/20 opacity-0 animate-slideInRight group cursor-pointer"
                             style={{ animationDelay: '0.6s' }}
                         >
-                            <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                                 <svg
-                                    className="w-6 h-6 text-white"
+                                    className="w-5 h-5 md:w-6 md:h-6 text-white"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -622,10 +622,10 @@ export default function Page() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold mb-3 group-hover:text-green-300 transition-colors duration-300">
+                            <h3 className="text-lg md:text-xl font-semibold mb-3 group-hover:text-green-300 transition-colors duration-300">
                                 {t('features.fastCheck')}
                             </h3>
-                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                            <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                 {t('features.fastCheckDescription')}
                             </p>
                         </div>
@@ -634,56 +634,56 @@ export default function Page() {
             </section>
 
             {/* How it works */}
-            <section id="how-it-works" className="px-6 py-20">
+            <section id="how-it-works" className="px-6 py-12 md:py-20">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold mb-16 opacity-0 animate-fadeInUp">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-16 opacity-0 animate-fadeInUp">
                         {t('howItWorks.title')}
                     </h2>
-                    <div className="space-y-12">
+                    <div className="space-y-8 md:space-y-12">
                         <div
-                            className="flex flex-col md:flex-row items-center gap-8 opacity-0 animate-slideInLeft group hover:scale-105 transition-all duration-300"
+                            className="flex flex-col md:flex-row items-center gap-6 md:gap-8 opacity-0 animate-slideInLeft group hover:scale-105 transition-all duration-300"
                             style={{ animationDelay: '0.2s' }}
                         >
-                            <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-purple-500/50">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-600 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-purple-500/50">
                                 1
                             </div>
-                            <div className="flex-1 text-left">
-                                <h3 className="text-xl font-semibold mb-2 group-hover:text-purple-300 transition-colors duration-300">
+                            <div className="flex-1 text-center md:text-left">
+                                <h3 className="text-lg md:text-xl font-semibold mb-2 group-hover:text-purple-300 transition-colors duration-300">
                                     {t('howItWorks.step1.title')}
                                 </h3>
-                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                     {t('howItWorks.step1.description')}
                                 </p>
                             </div>
                         </div>
                         <div
-                            className="flex flex-col md:flex-row items-center gap-8 opacity-0 animate-slideInRight group hover:scale-105 transition-all duration-300"
+                            className="flex flex-col md:flex-row items-center gap-6 md:gap-8 opacity-0 animate-slideInRight group hover:scale-105 transition-all duration-300"
                             style={{ animationDelay: '0.4s' }}
                         >
-                            <div className="w-16 h-16 bg-pink-600 rounded-full flex items-center justify-center text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-pink-500/50">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-pink-600 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-pink-500/50">
                                 2
                             </div>
-                            <div className="flex-1 text-left">
-                                <h3 className="text-xl font-semibold mb-2 group-hover:text-pink-300 transition-colors duration-300">
+                            <div className="flex-1 text-center md:text-left">
+                                <h3 className="text-lg md:text-xl font-semibold mb-2 group-hover:text-pink-300 transition-colors duration-300">
                                     {t('howItWorks.step2.title')}
                                 </h3>
-                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                     {t('howItWorks.step2.description')}
                                 </p>
                             </div>
                         </div>
                         <div
-                            className="flex flex-col md:flex-row items-center gap-8 opacity-0 animate-slideInLeft group hover:scale-105 transition-all duration-300"
+                            className="flex flex-col md:flex-row items-center gap-6 md:gap-8 opacity-0 animate-slideInLeft group hover:scale-105 transition-all duration-300"
                             style={{ animationDelay: '0.6s' }}
                         >
-                            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-green-500/50">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-green-600 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg shadow-green-500/50">
                                 3
                             </div>
-                            <div className="flex-1 text-left">
-                                <h3 className="text-xl font-semibold mb-2 group-hover:text-green-300 transition-colors duration-300">
+                            <div className="flex-1 text-center md:text-left">
+                                <h3 className="text-lg md:text-xl font-semibold mb-2 group-hover:text-green-300 transition-colors duration-300">
                                     {t('howItWorks.step3.title')}
                                 </h3>
-                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">
+                                <p className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
                                     {t('howItWorks.step3.description')}
                                 </p>
                             </div>
@@ -693,9 +693,9 @@ export default function Page() {
             </section>
 
             {/* Footer */}
-            <footer id="contact" className="px-6 py-12 border-t border-purple-800/30">
+            <footer id="contact" className="px-6 py-8 md:py-12 border-t border-purple-800/30">
                 <div className="max-w-6xl mx-auto text-center">
-                    <div className="mb-8 opacity-0 animate-fadeInUp">
+                    <div className="mb-6 md:mb-8 opacity-0 animate-fadeInUp">
                         <div className="flex items-center justify-center space-x-3 mb-4">
                             <div 
                                 className="w-8 h-8 transform hover:scale-110 hover:rotate-12 transition-all duration-300 select-none"
@@ -713,20 +713,20 @@ export default function Page() {
                                     onDragStart={(e) => e.preventDefault()}
                                 />
                             </div>
-                            <span className="text-xl font-bold hover:text-purple-300 transition-colors duration-300">
+                            <span className="text-lg md:text-xl font-bold hover:text-purple-300 transition-colors duration-300">
                                 {t('hero.title')}
                             </span>
                         </div>
-                        <p className="text-gray-400 mb-6 hover:text-gray-300 transition-colors duration-300">
+                        <p className="text-gray-400 mb-4 md:mb-6 hover:text-gray-300 transition-colors duration-300 text-sm md:text-base">
                             {t('footer.protectionMessage')}
                         </p>
                     </div>
-                                         <div className="text-gray-500 text-sm hover:text-gray-400 transition-colors duration-300 mb-4">
-                         © {new Date().getFullYear()} Safeturned. {t('footer.allRightsReserved')}.
-                     </div>
-                     <div className="text-gray-600 text-xs max-w-2xl mx-auto leading-relaxed">
-                         {t('footer.disclaimer')}
-                     </div>
+                    <div className="text-gray-500 text-xs md:text-sm hover:text-gray-400 transition-colors duration-300 mb-3 md:mb-4">
+                        © {new Date().getFullYear()} Safeturned. {t('footer.allRightsReserved')}.
+                    </div>
+                    <div className="text-gray-600 text-xs max-w-2xl mx-auto leading-relaxed">
+                        {t('footer.disclaimer')}
+                    </div>
                 </div>
             </footer>
 

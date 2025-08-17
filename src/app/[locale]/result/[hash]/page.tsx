@@ -31,6 +31,7 @@ export default function ResultPage() {
     const [showDragUpload, setShowDragUpload] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isReanalyzing, setIsReanalyzing] = useState(false);
+    const [showSearchBar, setShowSearchBar] = useState(false);
 
 
     useEffect(() => {
@@ -330,27 +331,81 @@ export default function ResultPage() {
             {/* Hash Search Bar */}
             <div className="px-6 py-6 bg-slate-800/20 border-b border-purple-800/30">
                 <div className="max-w-4xl mx-auto">
-                    <form onSubmit={handleHashSearch} className="flex gap-4">
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                value={searchHash}
-                                onChange={(e) => setSearchHash(e.target.value)}
-                                placeholder={t('results.searchPlaceholder')}
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors"
-                            />
+                    {/* Desktop Search Bar */}
+                    <div className="hidden md:block">
+                        <form onSubmit={handleHashSearch} className="flex gap-4">
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    value={searchHash}
+                                    onChange={(e) => setSearchHash(e.target.value)}
+                                    placeholder={t('results.searchPlaceholder')}
+                                    className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300"
+                            >
+                                {t('results.search')}
+                            </button>
+                        </form>
+                        <div className="mt-3 text-center">
+                            <p className="text-sm text-gray-400">
+                                {t('dragDrop.tip')}
+                            </p>
                         </div>
-                        <button
-                            type="submit"
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300"
-                        >
-                            {t('results.search')}
-                        </button>
-                    </form>
-                    <div className="mt-3 text-center">
-                        <p className="text-sm text-gray-400">
-                            {t('dragDrop.tip')}
-                        </p>
+                    </div>
+
+                    {/* Mobile Search Bar */}
+                    <div className="md:hidden">
+                        {/* Search Toggle Button */}
+                        {!showSearchBar && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => setShowSearchBar(true)}
+                                    className="flex items-center space-x-2 bg-slate-800/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white hover:bg-slate-800/70 transition-all duration-300"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <span>{t('results.search')}</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Collapsible Search Form */}
+                        {showSearchBar && (
+                            <div className="space-y-3">
+                                <form onSubmit={handleHashSearch} className="flex gap-2">
+                                    <div className="flex-1">
+                                        <input
+                                            type="text"
+                                            value={searchHash}
+                                            onChange={(e) => setSearchHash(e.target.value)}
+                                            placeholder={t('results.searchPlaceholder')}
+                                            className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 py-3 rounded-lg font-medium transition-all duration-300"
+                                    >
+                                        {t('results.search')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSearchBar(false)}
+                                        className="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-lg font-medium transition-all duration-300"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -359,58 +414,58 @@ export default function ResultPage() {
             <div className="max-w-4xl mx-auto px-6 py-8">
                 {/* File Info Header */}
                 <div className="bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 mb-8">
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-white mb-2">{analyticsData.fileName}</h1>
-                            <p className="text-gray-400">SHA-256: {hash}</p>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
+                        <div className="flex-1">
+                            <h1 className="text-xl md:text-2xl font-bold text-white mb-2 break-words">{analyticsData.fileName}</h1>
+                            <p className="text-gray-400 text-sm md:text-base break-all">SHA-256: {hash}</p>
                         </div>
-                                                 <div className={`text-center ${getRiskColor(analyticsData.score)}`}>
-                             <div className="relative w-24 h-24 mx-auto">
-                                 {/* Circular progress background */}
-                                 <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-                                     <circle
-                                         cx="50"
-                                         cy="50"
-                                         r="40"
-                                         stroke="currentColor"
-                                         strokeWidth="8"
-                                         fill="none"
-                                         opacity="0.2"
-                                     />
-                                                                           <circle
-                                          cx="50"
-                                          cy="50"
-                                          r="40"
-                                          stroke="currentColor"
-                                          strokeWidth="8"
-                                          fill="none"
-                                          strokeDasharray={`${((100 - analyticsData.score) / 100) * 251.2} 251.2`}
-                                          strokeLinecap="round"
-                                          className="transition-all duration-1000 ease-out"
-                                      />
-                                 </svg>
-                                 {/* Score text in center */}
-                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                     <div className="text-lg font-bold">{analyticsData.score}</div>
-                                     <div className="text-xs opacity-75">/100</div>
-                                 </div>
-                             </div>
-                             <div className="text-sm break-words max-w-24 mt-2">{getRiskLevel(analyticsData.score)}</div>
-                         </div>
+                        <div className={`text-center ${getRiskColor(analyticsData.score)}`}>
+                            <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto">
+                                {/* Circular progress background */}
+                                <svg className="w-20 h-20 md:w-24 md:h-24 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        stroke="currentColor"
+                                        strokeWidth="8"
+                                        fill="none"
+                                        opacity="0.2"
+                                    />
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        stroke="currentColor"
+                                        strokeWidth="8"
+                                        fill="none"
+                                        strokeDasharray={`${((100 - analyticsData.score) / 100) * 251.2} 251.2`}
+                                        strokeLinecap="round"
+                                        className="transition-all duration-1000 ease-out"
+                                    />
+                                </svg>
+                                {/* Score text in center */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <div className="text-base md:text-lg font-bold">{analyticsData.score}</div>
+                                    <div className="text-xs opacity-75">/100</div>
+                                </div>
+                            </div>
+                            <div className="text-xs md:text-sm break-words max-w-20 md:max-w-24 mt-2">{getRiskLevel(analyticsData.score)}</div>
+                        </div>
                     </div>
                     
-                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                         <div>
-                             <span className="text-gray-400">{t('results.fileSize')}:</span>
-                             <span className="ml-2 text-white">{formatFileSize(analyticsData.fileSizeBytes)}</span>
-                         </div>
-                                                   <div>
-                              <span className="text-gray-400">{t('results.lastAnalysisDate')}:</span>
-                              <span className="ml-2 text-white">
-                                  {new Date(analyticsData.lastScanned).toLocaleString()}
-                              </span>
-                          </div>
-                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span className="text-gray-400">{t('results.fileSize')}:</span>
+                            <span className="ml-2 text-white">{formatFileSize(analyticsData.fileSizeBytes)}</span>
+                        </div>
+                        <div>
+                            <span className="text-gray-400">{t('results.lastAnalysisDate')}:</span>
+                            <span className="ml-2 text-white">
+                                {new Date(analyticsData.lastScanned).toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Analysis Results */}
@@ -422,9 +477,9 @@ export default function ResultPage() {
                             <h3 className="font-semibold mb-3 text-white">{t('results.checkedItemsTitle')}</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {analyticsData.checked.map((item, index) => (
-                                    <div key={index} className="flex items-center text-sm">
-                                        <span className="text-yellow-400 mr-2">•</span>
-                                        <span className="text-gray-300">{item}</span>
+                                    <div key={index} className="flex items-start text-sm">
+                                        <span className="text-yellow-400 mr-2 mt-0.5 flex-shrink-0">•</span>
+                                        <span className="text-gray-300 break-words">{item}</span>
                                     </div>
                                 ))}
                             </div>
@@ -438,14 +493,14 @@ export default function ResultPage() {
                                            {/* Reanalyze Button */}
                       <div className="mt-6 pt-6 border-t border-purple-500/30">
                           <div className="text-center">
-                              <p className="text-gray-400 mb-4">{t('results.reanalyzeDescription')}</p>
+                              <p className="text-gray-400 mb-4 text-sm md:text-base">{t('results.reanalyzeDescription')}</p>
                               <button
                                   onClick={handleReanalyze}
                                   disabled={isReanalyzing}
-                                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 mx-auto"
+                                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 mx-auto text-sm md:text-base"
                               >
                                   {isReanalyzing ? (
-                                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <svg className="animate-spin -ml-1 mr-2 md:mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                       </svg>
@@ -461,9 +516,9 @@ export default function ResultPage() {
                  </div>
 
                 {/* Share Section - Mobile Only */}
-                <div className="mt-8 text-center md:hidden">
-                    <p className="text-gray-400 mb-4">{t('results.shareDescription')}</p>
-                    <div className="flex justify-center gap-4">
+                <div className="mt-6 md:mt-8 text-center md:hidden">
+                    <p className="text-gray-400 mb-3 md:mb-4 text-sm md:text-base">{t('results.shareDescription')}</p>
+                    <div className="flex justify-center gap-3 md:gap-4">
                         <button
                             onClick={() => {
                                 const shareUrl = `${window.location.origin}/${params.locale}/result/${hash}`;
@@ -487,7 +542,7 @@ export default function ResultPage() {
                                     alert(t('results.linkCopied'));
                                 }
                             }}
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2"
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 text-sm md:text-base"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
