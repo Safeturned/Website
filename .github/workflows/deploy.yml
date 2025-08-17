@@ -77,30 +77,20 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         run: |
           cd src
           
           VERSION="${{ steps.version.outputs.version }}"
-          BRANCH="${{ steps.branch.outputs.branch }}"
-          MAJOR="${{ steps.version.outputs.major }}"
-          MINOR="${{ steps.version.outputs.minor }}"
-          PATCH="${{ steps.version.outputs.patch }}"
-          FULL_VERSION="${{ steps.version.outputs.full_version }}"
           
           docker build --no-cache -t "ghcr.io/safeturned/website:v${VERSION}" .
-          
-          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:${BRANCH}-v${VERSION}"
-          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:v${MAJOR}.${MINOR}"
-          docker tag "ghcr.io/safeturned/website:v${VERSION}" "ghcr.io/safeturned/website:v${MAJOR}"
-          
           docker push "ghcr.io/safeturned/website:v${VERSION}"
-          docker push "ghcr.io/safeturned/website:${BRANCH}-v${VERSION}"
-          docker push "ghcr.io/safeturned/website:v${MAJOR}.${MINOR}"
-          docker push "ghcr.io/safeturned/website:v${MAJOR}"
 
       - name: Create deployment package
         run: |
@@ -110,7 +100,8 @@ jobs:
           BRANCH="${{ steps.branch.outputs.branch }}"
           ENVIRONMENT="${{ steps.branch.outputs.environment }}"
           
-          cp ./src/docker-compose.yaml ./deploy/
+          # Copy docker-compose.yaml and replace version placeholder
+          sed "s/VERSION_PLACEHOLDER/v${VERSION}/g" ./src/docker-compose.yaml > ./deploy/docker-compose.yaml
           
           cat > ./deploy/docker-compose.override.yaml << EOF
           services:
@@ -147,14 +138,11 @@ jobs:
               echo "Usage: $0 <version> <branch> <environment>"
               exit 1
           fi
+          echo "Deploying version: $VERSION, branch: $BRANCH, environment: $ENVIRONMENT"
+          
           docker compose -f docker-compose.yaml -f docker-compose.override.yaml down || true
-          docker rmi ghcr.io/safeturned/website:v${VERSION} || true
-          docker rmi ghcr.io/safeturned/website:${BRANCH}-v${VERSION} || true
-          docker system prune -f || true
-          docker pull ghcr.io/safeturned/website:v${VERSION} || echo "Image pull failed, will build locally"
+          docker pull ghcr.io/safeturned/website:v${VERSION}
           docker compose -f docker-compose.yaml -f docker-compose.override.yaml up -d
-          docker builder prune -f || true
-          docker compose -f docker-compose.yaml -f docker-compose.override.yaml restart
           sleep 10
           docker compose -f docker-compose.yaml -f docker-compose.override.yaml ps
           EOF

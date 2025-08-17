@@ -1,6 +1,6 @@
 services:
   website:
-    image: ghcr.io/safeturned/website:latest
+    image: ghcr.io/safeturned/website:VERSION_PLACEHOLDER
     ports:
       - "3000:3000"
     environment:
