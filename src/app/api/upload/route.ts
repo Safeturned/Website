@@ -50,6 +50,15 @@ export async function POST(request: NextRequest) {
             headers['Referer'] = referer;
         }
 
+        // Forward the real user IP for rate limiting
+        const forwardedFor = request.headers.get('x-forwarded-for') || 
+                           request.headers.get('x-real-ip') || 
+                           request.headers.get('cf-connecting-ip');
+        
+        if (forwardedFor) {
+            headers['X-Forwarded-For'] = forwardedFor;
+        }
+
         const response = await fetch(`${apiUrl}/v1.0/files`, {
             method: 'POST',
             headers,

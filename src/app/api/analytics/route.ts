@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         // Get API key and URL from environment variables
         const apiKey = process.env.SAFETURNED_API_KEY;
@@ -27,7 +27,10 @@ export async function GET() {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-API-Key': apiKey
+                'X-API-Key': apiKey,
+                'X-Forwarded-For': request.headers.get('x-forwarded-for') || 
+                                  request.headers.get('x-real-ip') || 
+                                  request.headers.get('cf-connecting-ip') || ''
             },
         });
 
