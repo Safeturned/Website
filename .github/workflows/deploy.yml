@@ -55,14 +55,14 @@ jobs:
       - name: Determine branch and environment
         id: branch
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/master" ]; then
-            echo "branch=main" >> $GITHUB_OUTPUT
+          if [ "${{ github.ref }}" = "refs/heads/master" ] || [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "branch=master" >> $GITHUB_OUTPUT
             echo "environment=production" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
             echo "branch=dev" >> $GITHUB_OUTPUT
             echo "environment=development" >> $GITHUB_OUTPUT
           else
-            echo "branch=main" >> $GITHUB_OUTPUT
+            echo "branch=master" >> $GITHUB_OUTPUT
             echo "environment=production" >> $GITHUB_OUTPUT
           fi
 
