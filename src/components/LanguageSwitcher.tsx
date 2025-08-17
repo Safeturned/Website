@@ -41,7 +41,7 @@ export default function LanguageSwitcher() {
                 title={`Current: ${currentLanguage.name} (${currentLanguage.code})`}
             >
                 <span className="text-lg" title="Flag">{currentLanguage.flag}</span>
-                <span className="text-sm font-medium" title="Language Name">{currentLanguage.name}</span>
+                <span className="text-sm font-medium hidden sm:inline" title="Language Name">{currentLanguage.name}</span>
                 <svg
                     className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -58,7 +58,7 @@ export default function LanguageSwitcher() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-xl z-50">
+                <div className="absolute mt-2 w-48 bg-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-xl z-50 right-0 sm:right-0 md:right-0 lg:right-0 xl:right-0 max-w-[calc(100vw-2rem)]">
                     <div className="py-1">
                         {languages.map((language) => (
                             <button
