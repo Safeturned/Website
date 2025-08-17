@@ -1,8 +1,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* ./
-RUN if [ -f yarn.lock ]; then corepack enable && yarn install --frozen-lockfile; \
-    else npm install; fi
+COPY package.json package-lock.json* ./
+RUN npm install
 
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -12,8 +11,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Force fresh build by adding timestamp and clearing cache
 RUN echo "Build timestamp: $(date)" && \
     rm -rf .next && \
-    if [ -f yarn.lock ]; then corepack enable && yarn build; \
-    else npm run build; fi
+    npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
