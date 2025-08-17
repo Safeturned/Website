@@ -176,7 +176,4 @@ jobs:
             ls -la
             chmod +x deploy.sh
             ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}"
-            sleep 5
-            docker compose -f docker-compose.yaml -f docker-compose.override.yaml ps
-            docker compose -f docker-compose.yaml -f docker-compose.override.yaml logs --tail=20
             echo "=== Website deployment completed ==="
