@@ -66,17 +66,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 headers['X-Forwarded-For'] = existingForwardedFor;
             }
 
-            const response = await fetch(`${apiUrl}/v1.0/files/${hash}`, {
-                headers
-            });
-            
-            if (response.ok) {
-                const upstreamResult = await response.json();
+            // Try different hash formats when fetching from API
+            const hashFormats = [
+                hash, // Original hash
+                hash.replace(/-/g, '+').replace(/_/g, '/'), // URL-safe to standard
+                hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '') // Standard to URL-safe
+            ];
+
+            for (const hashFormat of hashFormats) {
+                const response = await fetch(`${apiUrl}/v1.0/files/${hashFormat}`, {
+                    headers
+                });
                 
-                // Store the result locally for future requests
-                storeAnalysisResult(hash, upstreamResult);
-                
-                return NextResponse.json(upstreamResult);
+                if (response.ok) {
+                    const upstreamResult = await response.json();
+                    
+                    // Store the result locally for future requests (use original hash)
+                    storeAnalysisResult(hash, upstreamResult);
+                    
+                    return NextResponse.json(upstreamResult);
+                }
             }
         } catch (upstreamError) {
             // Silently fail and continue to return 404

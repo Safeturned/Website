@@ -31,8 +31,27 @@ export function storeFile(id: string, fileData: ArrayBuffer, fileName: string, m
 }
 
 export function getAnalysisResult(id: string) {
-    const result = analysisResults.get(id);
-    return result;
+    // Try the original ID first
+    let result = analysisResults.get(id);
+    if (result) {
+        return result;
+    }
+
+    // Try URL-safe to standard conversion
+    const standardHash = id.replace(/-/g, '+').replace(/_/g, '/');
+    result = analysisResults.get(standardHash);
+    if (result) {
+        return result;
+    }
+
+    // Try standard to URL-safe conversion
+    const urlSafeHash = id.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    result = analysisResults.get(urlSafeHash);
+    if (result) {
+        return result;
+    }
+
+    return null;
 }
 
 export function getStoredFile(id: string) {
