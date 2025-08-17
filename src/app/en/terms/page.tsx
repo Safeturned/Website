@@ -131,7 +131,7 @@ export default function TermsPage() {
                             <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
                                 <h3 className="font-semibold text-red-300 mb-2">Important Disclaimers</h3>
                                 <ul className="list-disc list-inside space-y-1 ml-4">
-                                    <li><strong>No Warranty</strong> - The service is provided "as is" without any warranties</li>
+                                    <li><strong>No Warranty</strong> - The service is provided &ldquo;as is&rdquo; without any warranties</li>
                                     <li><strong>No Liability</strong> - We are not liable for any damages arising from use of the service</li>
                                     <li><strong>Security Decisions</strong> - You are responsible for your own security decisions</li>
                                     <li><strong>Third-Party Content</strong> - We are not responsible for the content of analyzed files</li>

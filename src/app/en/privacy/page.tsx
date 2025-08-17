@@ -97,7 +97,7 @@ export default function PrivacyPage() {
                                     <li><strong>File hash</strong> - SHA-256 hash to identify duplicate files</li>
                                     <li><strong>File name</strong> - Original filename for reference</li>
                                     <li><strong>File size</strong> - Size in bytes for analysis</li>
-                                    <li><strong>Detection type</strong> - Type of file detected (e.g., "Assembly")</li>
+                                    <li><strong>Detection type</strong> - Type of file detected (e.g., &ldquo;Assembly&rdquo;)</li>
                                     <li><strong>Scan results</strong> - Security score and threat detection results</li>
                                     <li><strong>Scan timestamps</strong> - When the file was first and last scanned</li>
                                     <li><strong>Scan count</strong> - How many times the file has been analyzed</li>
@@ -162,7 +162,7 @@ export default function PrivacyPage() {
 
                         <section>
                             <h2 className="text-xl font-semibold mb-3 text-white">9. Your Rights</h2>
-                            <p>Since we don't collect personal information, traditional privacy rights don't apply. However, you can:</p>
+                            <p>Since we don&apos;t collect personal information, traditional privacy rights don&apos;t apply. However, you can:</p>
                             <ul className="list-disc list-inside space-y-2 ml-4">
                                 <li><strong>Stop using the service</strong> - No account required, simply stop uploading files</li>
                                 <li><strong>Contact us</strong> - For questions about our privacy practices</li>
