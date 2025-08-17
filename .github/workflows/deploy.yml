@@ -174,10 +174,6 @@ jobs:
             echo "=== Starting website deployment ==="
             cd ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
             ls -la
-            echo "=== Environment file contents ==="
-            cat .env
-            echo "=== Docker Compose Override ==="
-            cat docker-compose.override.yaml
             chmod +x deploy.sh
             ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}"
             sleep 5
