@@ -5,12 +5,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     try {
         const { hash } = await params;
         
+        console.log(`[Files API] Looking for hash: ${hash}`);
+        
         // First try to get from local storage
         let result = getAnalysisResult(hash);
 
         if (result) {
+            console.log(`[Files API] Found in local storage: ${hash}`);
             return NextResponse.json(result);
         }
+
+        console.log(`[Files API] Not found in local storage, trying API: ${hash}`);
 
         // If not found locally, try to fetch from upstream API
         try {
@@ -73,13 +78,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '') // Standard to URL-safe
             ];
 
+            console.log(`[Files API] Trying hash formats:`, hashFormats);
+
             for (const hashFormat of hashFormats) {
-                const response = await fetch(`${apiUrl}/v1.0/files/${hashFormat}`, {
+                const apiUrlWithHash = `${apiUrl}/v1.0/files/${hashFormat}`;
+                console.log(`[Files API] Trying API URL: ${apiUrlWithHash}`);
+                
+                const response = await fetch(apiUrlWithHash, {
                     headers
                 });
                 
+                console.log(`[Files API] API response status: ${response.status} for ${hashFormat}`);
+                
                 if (response.ok) {
                     const upstreamResult = await response.json();
+                    console.log(`[Files API] Found in API, storing locally: ${hash}`);
                     
                     // Store the result locally for future requests (use original hash)
                     storeAnalysisResult(hash, upstreamResult);
@@ -87,15 +100,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     return NextResponse.json(upstreamResult);
                 }
             }
+            
+            console.log(`[Files API] Not found in API for any hash format`);
         } catch (upstreamError) {
+            console.error(`[Files API] Error fetching from API:`, upstreamError);
             // Silently fail and continue to return 404
         }
 
+        console.log(`[Files API] Returning 404 for hash: ${hash}`);
         return NextResponse.json(
             { error: 'Analysis not found' },
             { status: 404 }
         );
     } catch (error) {
+        console.error(`[Files API] Internal error:`, error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 } 
