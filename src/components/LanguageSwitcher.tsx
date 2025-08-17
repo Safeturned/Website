@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from '../hooks/useTranslation';
 
 const languages: Array<{ code: 'ru' | 'en'; name: string; flag: string }> = [
@@ -17,8 +18,14 @@ export default function LanguageSwitcher() {
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+            const target = event.target as Node;
+            // Check if click is outside both the button and the portal dropdown
+            if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+                // Also check if the click is on a language option button
+                const isLanguageButton = (target as Element).closest('[data-language-button]');
+                if (!isLanguageButton) {
+                    setIsOpen(false);
+                }
             }
         }
 
@@ -32,6 +39,24 @@ export default function LanguageSwitcher() {
         changeLanguage(langCode);
         setIsOpen(false);
     };
+
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useLayoutEffect(() => {
+        if (isOpen && dropdownRef.current && isMounted) {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            setDropdownPosition({
+                top: rect.bottom + window.scrollY,
+                left: rect.right - 192, // 192px = w-48
+                width: rect.width
+            });
+        }
+    }, [isOpen, isMounted]);
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -57,12 +82,19 @@ export default function LanguageSwitcher() {
                 </svg>
             </button>
 
-            {isOpen && (
-                <div className="absolute mt-2 w-48 bg-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-xl z-50 right-0 sm:right-0 md:right-0 lg:right-0 xl:right-0 max-w-[calc(100vw-2rem)]">
+            {isOpen && isMounted && createPortal(
+                <div 
+                    className="fixed w-48 bg-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-xl z-[999999] max-w-[calc(100vw-2rem)]"
+                    style={{
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`
+                    }}
+                >
                     <div className="py-1">
                         {languages.map((language) => (
                             <button
                                 key={language.code}
+                                data-language-button
                                 onClick={() => handleLanguageChange(language.code)}
                                 className={`w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-purple-500/20 transition-colors duration-200 ${
                                     locale === language.code
@@ -89,7 +121,8 @@ export default function LanguageSwitcher() {
                             </button>
                         ))}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

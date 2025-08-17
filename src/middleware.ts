@@ -6,6 +6,23 @@ const defaultLocale = 'ru';
 export function middleware(request: NextRequest) {
     // Check if there is any supported locale in the pathname
     const pathname = request.nextUrl.pathname;
+    
+    // Handle URLs with "undefined" segments
+    if (pathname.includes('/undefined')) {
+        const locale = getLocale(request);
+        const cleanPathname = pathname.replace(/\/undefined/g, '');
+        const response = NextResponse.redirect(
+            new URL(`/${locale}${cleanPathname}`, request.url)
+        );
+        
+        // Add cache-busting headers
+        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+        
+        return response;
+    }
+    
     const pathnameIsMissingLocale = locales.every(
         (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
     );
@@ -13,8 +30,10 @@ export function middleware(request: NextRequest) {
     // Redirect if there is no locale
     if (pathnameIsMissingLocale) {
         const locale = getLocale(request);
+        // Clean up the pathname to remove any undefined segments
+        const cleanPathname = pathname.replace(/\/undefined/g, '');
         const response = NextResponse.redirect(
-            new URL(`/${locale}${pathname}`, request.url)
+            new URL(`/${locale}${cleanPathname}`, request.url)
         );
         
         // Add cache-busting headers

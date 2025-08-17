@@ -102,5 +102,17 @@
     "longRunningTitle": "Analysis in Progress",
     "longRunningDescription": "Your file has been processing for {{elapsedTime}} seconds. This is normal for complex files.",
     "estimatedTime": "Estimated completion: 1-2 minutes"
+  },
+  "consent": {
+    "prefix": "By submitting data above, you are agreeing to our ",
+    "termsOfService": "Terms of Service",
+    "and": " and ",
+    "privacyNotice": "Privacy Notice",
+    "suffix": ". Please do not submit any personal information; we are not responsible for the contents of your submission. ",
+    "learnMore": "Learn more",
+    "suffix2": "."
+  },
+  "analytics": {
+    "lastUpdated": "Last updated"
   }
 } 

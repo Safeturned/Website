@@ -12,8 +12,17 @@ export function useTranslation() {
     const supportedLocales = ['ru', 'en'] as const;
 
     const locale = useMemo(() => {
-        const firstSegment = pathname?.split('/')[1] || '';
-        return supportedLocales.includes(firstSegment as any) ? (firstSegment as 'ru' | 'en') : 'ru';
+        if (!pathname) return 'en';
+        
+        // Clean the pathname to remove any undefined segments
+        const cleanPathname = pathname.replace(/\/undefined/g, '');
+        const segments = cleanPathname.split('/').filter(Boolean);
+        const firstSegment = segments[0] || '';
+        
+        const detectedLocale = supportedLocales.includes(firstSegment as any) ? (firstSegment as 'ru' | 'en') : 'en';
+        
+        // Ensure we always return a valid locale
+        return detectedLocale || 'en';
     }, [pathname]);
 
     const messages = locale === 'ru' ? (ru as Record<string, any>) : (en as Record<string, any>);
