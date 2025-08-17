@@ -1,12 +1,12 @@
-# Onlook Starter Template
+# Safeturned Website
 
 <p align="center">
   <img src="app/favicon.ico" />
 </p>
 
-This is an [Onlook](https://onlook.com/) project set up with
+This is the Safeturned website built with
 [Next.js](https://nextjs.org/), [TailwindCSS](https://tailwindcss.com/) and
-[ShadCN](https://ui.shadcn.com).
+[TypeScript](https://www.typescriptlang.org/).
 
 ## Getting Started
 
@@ -22,4 +22,4 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in Onlook to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
