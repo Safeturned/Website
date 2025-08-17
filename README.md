@@ -18,10 +18,10 @@ The application provides several key capabilities:
 
 ## Tech Stack
 
-Frontend: Next.js 14 with App Router
-Styling: Tailwind CSS
-Language: TypeScript
-Deployment: Docker ready
+- Frontend: Next.js 14 with App Router
+- Styling: Tailwind CSS
+- Language: TypeScript
+- Deployment: Docker ready
 
 ## Getting Started
 
