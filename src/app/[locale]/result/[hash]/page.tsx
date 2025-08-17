@@ -181,7 +181,9 @@ export default function ResultPage() {
                     sessionStorage.setItem('uploadResult', JSON.stringify(result));
                 }
                 // Force a page refresh to show the new data
-                window.location.reload();
+                if (typeof window !== 'undefined') {
+                    window.location.reload();
+                }
             } else {
                 // Redirect to results page
                 router.push(`/${params.locale}/result/${hash}`);
@@ -206,7 +208,7 @@ export default function ResultPage() {
 
     const handleShare = async () => {
         try {
-            if (navigator.share) {
+            if (typeof window !== 'undefined' && navigator.share) {
                 await navigator.share({
                     title: t('results.shareTitle'),
                     text: t('results.shareText'),
@@ -225,8 +227,10 @@ export default function ResultPage() {
 
     const handleCopyLink = async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
-            setNotification({ message: t('results.linkCopied'), type: 'success' });
+            if (typeof window !== 'undefined') {
+                await navigator.clipboard.writeText(window.location.href);
+                setNotification({ message: t('results.linkCopied'), type: 'success' });
+            }
         } catch (err) {
             setNotification({ message: 'Failed to copy link', type: 'error' });
         }
