@@ -73,12 +73,13 @@ export default function ResultPage() {
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
         setDragEnterCount(prev => prev + 1);
-        setIsDragOver(true);
+        // Add a small delay to prevent rapid blinking
+        setTimeout(() => setIsDragOver(true), 50);
     };
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragOver(true);
+        // Don't set drag over here to prevent rapid state changes
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
@@ -363,11 +364,6 @@ export default function ResultPage() {
     return (
         <div 
             className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative"
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDragEnd={handleDragEnd}
-            onDrop={handleDrop}
         >
             {/* Header */}
             <nav className="px-6 py-4 border-b border-purple-800/30 backdrop-blur-sm">
@@ -414,6 +410,23 @@ export default function ResultPage() {
                             <p className="text-sm text-gray-400">
                                 {t('dragDrop.tip')}
                             </p>
+                        </div>
+                        
+                        {/* Drag Drop Area */}
+                        <div 
+                            className="mt-4 border-2 border-dashed border-purple-500/30 rounded-lg p-4 hover:border-purple-400/50 transition-all duration-300 cursor-pointer"
+                            onDragEnter={handleDragEnter}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDragEnd={handleDragEnd}
+                            onDrop={handleDrop}
+                        >
+                            <div className="text-center">
+                                <svg className="w-8 h-8 text-purple-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p className="text-sm text-gray-300">Drop a .dll file here to analyze</p>
+                            </div>
                         </div>
                     </div>
 

@@ -102,12 +102,13 @@ export default function Page() {
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
         setDragEnterCount(prev => prev + 1);
-        setIsDragOver(true);
+        // Add a small delay to prevent rapid blinking
+        setTimeout(() => setIsDragOver(true), 50);
     };
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragOver(true);
+        // Don't set drag over here to prevent rapid state changes
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
@@ -230,11 +231,6 @@ export default function Page() {
     return (
         <div 
             className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative"
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDragEnd={handleDragEnd}
-            onDrop={handleDrop}
         >
             {/* Header */}
             <nav
@@ -415,6 +411,11 @@ export default function Page() {
                                 <div
                                     className="border-2 border-dashed border-purple-500/50 rounded-xl p-4 md:p-8 hover:border-purple-400/70 transition-all duration-300 cursor-pointer hover:bg-purple-500/5 group relative"
                                     onClick={handleScan}
+                                    onDragEnter={handleDragEnter}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDragEnd={handleDragEnd}
+                                    onDrop={handleDrop}
                                 >
                                     <input
                                         ref={fileInputRef}
