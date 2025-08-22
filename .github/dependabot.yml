@@ -2,7 +2,7 @@ version: 2
 updates:
   # npm packages
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/src"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -26,7 +26,7 @@ updates:
 
   # Docker base images
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/src"
     schedule:
       interval: "weekly"
       day: "monday"
