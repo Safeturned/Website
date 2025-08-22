@@ -1,155 +1,222 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@reference {
-    @import "tailwindcss";
+@theme {
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
 }
 
-@keyframes slideInUp {
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@layer utilities {
+  @reference {
+    @import 'tailwindcss';
+  }
+
+  @keyframes slideInUp {
     from {
-        opacity: 0;
-        transform: translateY(30px);
+      opacity: 0;
+      transform: translateY(30px);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0);
     }
-}
+  }
 
-@keyframes slideInLeft {
+  @keyframes slideInLeft {
     from {
-        opacity: 0;
-        transform: translateX(-30px);
+      opacity: 0;
+      transform: translateX(-30px);
     }
     to {
-        opacity: 1;
-        transform: translateX(0);
+      opacity: 1;
+      transform: translateX(0);
     }
-}
+  }
 
-@keyframes slideInRight {
+  @keyframes slideInRight {
     from {
-        opacity: 0;
-        transform: translateX(30px);
+      opacity: 0;
+      transform: translateX(30px);
     }
     to {
-        opacity: 1;
-        transform: translateX(0);
+      opacity: 1;
+      transform: translateX(0);
     }
-}
+  }
 
-@keyframes fadeInUp {
+  @keyframes fadeInUp {
     from {
-        opacity: 0;
-        transform: translateY(20px);
+      opacity: 0;
+      transform: translateY(20px);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0);
     }
-}
+  }
 
-@keyframes bounceIn {
+  @keyframes bounceIn {
     0% {
-        opacity: 0;
-        transform: scale(0.3);
+      opacity: 0;
+      transform: scale(0.3);
     }
     50% {
-        opacity: 1;
-        transform: scale(1.05);
+      opacity: 1;
+      transform: scale(1.05);
     }
     70% {
-        transform: scale(0.9);
+      transform: scale(0.9);
     }
     100% {
-        opacity: 1;
-        transform: scale(1);
+      opacity: 1;
+      transform: scale(1);
     }
-}
+  }
 
-.animate-slideInUp {
+  .animate-slideInUp {
     animation: slideInUp 0.8s ease-out forwards;
-}
+  }
 
-.animate-slideInLeft {
+  .animate-slideInLeft {
     animation: slideInLeft 0.8s ease-out forwards;
-}
+  }
 
-.animate-slideInRight {
+  .animate-slideInRight {
     animation: slideInRight 0.8s ease-out forwards;
-}
+  }
 
-.animate-fadeInUp {
+  .animate-fadeInUp {
     animation: fadeInUp 1s ease-out 0.5s forwards;
-}
+  }
 
-.animate-bounceIn {
+  .animate-bounceIn {
     animation: bounceIn 0.8s ease-out forwards;
-}
+  }
 
-/* Smooth scroll behavior */
-html {
+  /* Smooth scroll behavior */
+  html {
     scroll-behavior: smooth;
-}
+  }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
     width: 8px;
-}
+  }
 
-::-webkit-scrollbar-track {
+  ::-webkit-scrollbar-track {
     background: rgba(30, 41, 59, 0.5);
-}
+  }
 
-::-webkit-scrollbar-thumb {
+  ::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #8b5cf6, #ec4899);
     border-radius: 4px;
-}
+  }
 
-::-webkit-scrollbar-thumb:hover {
+  ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #7c3aed, #db2777);
-}
+  }
 
-/* Glow effect for buttons */
-.glow-on-hover {
+  /* Glow effect for buttons */
+  .glow-on-hover {
     position: relative;
     overflow: hidden;
-}
+  }
 
-.glow-on-hover::before {
+  .glow-on-hover::before {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
     transition: left 0.5s;
-}
+  }
 
-.glow-on-hover:hover::before {
+  .glow-on-hover:hover::before {
     left: 100%;
-}
+  }
 
-:root {
+  :root {
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
     --background-end-rgb: 255, 255, 255;
-}
+  }
 
-@media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) {
     :root {
-        --foreground-rgb: 255, 255, 255;
-        --background-start-rgb: 0, 0, 0;
-        --background-end-rgb: 0, 0, 0;
+      --foreground-rgb: 255, 255, 255;
+      --background-start-rgb: 0, 0, 0;
+      --background-end-rgb: 0, 0, 0;
     }
-}
-
-@layer utilities {
-    .text-balance {
-        text-wrap: balance;
-    }
+  }
 }
 
 @layer base {
