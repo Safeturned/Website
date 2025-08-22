@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@reference {
+    @import "tailwindcss";
+}
+
 @keyframes slideInUp {
     from {
         opacity: 0;
