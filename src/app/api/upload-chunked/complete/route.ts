@@ -1,39 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { storeAnalysisResult, storeFile } from '../storage';
-
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-const ALLOWED_FILE_TYPES = ['.dll'];
 
 export async function POST(request: NextRequest) {
     try {
-        const formData = await request.formData();
-        const file = formData.get('file') as File;
-
-        if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-        }
-
-        if (file.size > MAX_FILE_SIZE) {
-            return NextResponse.json(
-                { error: `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB` },
-                { status: 400 }
-            );
-        }
-
-        const fileName = file.name.toLowerCase();
-        const isValidFileType = ALLOWED_FILE_TYPES.some(ext => fileName.endsWith(ext));
-        if (!isValidFileType) {
-            return NextResponse.json(
-                {
-                    error: `Invalid file type. Only ${ALLOWED_FILE_TYPES.join(', ')} files are allowed`,
-                },
-                { status: 400 }
-            );
-        }
-
-        if (!fileName || fileName.length > 255) {
-            return NextResponse.json({ error: 'Invalid file name' }, { status: 400 });
-        }
+        const body = await request.json();
 
         const apiKey = process.env.SAFETURNED_API_KEY;
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -49,6 +18,7 @@ export async function POST(request: NextRequest) {
         }
 
         const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
             'X-API-Key': apiKey,
         };
 
@@ -74,38 +44,25 @@ export async function POST(request: NextRequest) {
             headers['X-Forwarded-For'] = existingForwardedFor;
         }
 
-        const response = await fetch(`${apiUrl}/v1.0/files`, {
+        const response = await fetch(`${apiUrl}/v1.0/files/upload/complete`, {
             method: 'POST',
             headers,
-            body: formData,
+            body: JSON.stringify(body),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('API upload failed:', response.status, errorText);
+            console.error('API complete failed:', response.status, errorText);
             return NextResponse.json(
-                { error: `Upload failed: ${response.status} ${response.statusText}` },
+                { error: `Complete failed: ${response.status} ${response.statusText}` },
                 { status: response.status }
             );
         }
 
         const result = await response.json();
-
-        const analysisId = result.fileHash
-            ? result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
-            : Date.now().toString();
-
-        storeAnalysisResult(analysisId, result);
-
-        const fileArrayBuffer = await file.arrayBuffer();
-        storeFile(analysisId, fileArrayBuffer, file.name, file.type);
-
-        return NextResponse.json({
-            ...result,
-            id: analysisId,
-        });
+        return NextResponse.json(result);
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('Complete error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

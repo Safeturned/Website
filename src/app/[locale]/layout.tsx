@@ -9,12 +9,8 @@ interface LocaleLayoutProps {
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
     const { locale } = await params;
-    
-    return (
-        <div data-locale={locale}>
-            {children}
-        </div>
-    );
+
+    return <div data-locale={locale}>{children}</div>;
 }
 
 export async function generateStaticParams() {

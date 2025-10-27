@@ -1,282 +1,307 @@
 {
-  "nav": {
-    "features": "Features",
-    "howItWorks": "How it works",
-    "contacts": "Contacts"
-  },
-  "hero": {
-    "title": "Safeturned",
-    "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
-    "uploadTitle": "Upload plugin for scanning",
-    "uploadSubtitle": "Supported files: .dll",
-    "scanButton": "Start scan",
-    "scanning": "Scanning...",
-    "maxFileSize": "Max size 500MB",
-    "fileSelected": "File selected",
-    "confirmUpload": "Confirm upload"
-  },
-  "results": {
-    "title": "Analysis Results",
-    "fileName": "File name",
-    "score": "Security score",
-    "riskLevel": "Security level",
-    "fileSize": "File size",
-    "processingTime": "Processing time",
-    "checkedItemsTitle": "Checked items:",
-    "safe": "Safe",
-    "unsafe": "Unsafe",
-    "suspicious": "Suspicious",
-    "loading": "Loading analysis...",
-    "notFound": "Analysis not found",
-    "notFoundDescription": "The requested analysis could not be found. Please check the hash or upload a new file.",
-    "backToHome": "Back to Home",
-    "searchPlaceholder": "Enter SHA-256 hash to search...",
-    "search": "Search",
-    "lastAnalysisDate": "Last Analysis Date",
-    "analysisResults": "Analysis Results",
-    "reanalyzeDescription": "Want to reanalyze this file? Click the button below to get fresh results.",
-    "reanalyzeButton": "Reanalyze",
-    "shareDescription": "Share this analysis with others",
-    "shareButton": "Share",
-    "shareTitle": "Plugin Analysis Result",
-    "shareText": "Check out this plugin analysis:",
-    "linkCopied": "Link copied to clipboard!"
-  },
-  "stats": {
-    "checkedPlugins": "Analyzed plugins",
-    "scannedFiles": "File analyzed",
-    "score": "Security score",
-    "safe": "Safe",
-    "unsafe": "Unsafe",
-    "riskLevel": "Security level",
-    "accuracy": "Detection accuracy",
-    "threatsDetected": "Threats detected",
-    "detectionAccuracy": "Detection accuracy"
-  },
-  "features": {
-    "title": "Safeturned Features",
-    "codeAnalysis": "Code Analysis",
-    "codeAnalysisDescription": "Deep static analysis of plugin source code for suspicious patterns",
-    "threatDetection": "Threat Detection",
-    "threatDetectionDescription": "Detection of backdoors, trojans and other malicious components in plugins",
-    "fastCheck": "Fast Scanning",
-    "fastCheckDescription": "Analysis results in seconds with detailed report of found issues"
-  },
-  "howItWorks": {
-    "title": "How it works",
-    "step1": {
-      "title": "Upload plugin",
-      "description": "Upload plugin file (.dll) through web interface"
+    "nav": {
+        "features": "Features",
+        "howItWorks": "How it works",
+        "contacts": "Contacts"
     },
-    "step2": {
-      "title": "Code analysis",
-      "description": "System analyzes code for suspicious functions and patterns"
+    "hero": {
+        "title": "Safeturned",
+        "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
+        "uploadTitle": "Upload plugin for scanning",
+        "uploadSubtitle": "Supported files: .dll",
+        "scanButton": "Start scan",
+        "scanning": "Scanning...",
+        "maxFileSize": "Max size 500MB",
+        "fileSelected": "File selected",
+        "confirmUpload": "Confirm upload"
     },
-    "step3": {
-      "title": "Get results",
-      "description": "Get detailed report with security assessment and recommendations"
+    "upload": {
+        "title": "Choose file to upload",
+        "subtitle": "or drag and drop here",
+        "maxSize": "Max file size: {{size}}",
+        "acceptedTypes": "Accepted types: {{types}}",
+        "fileSelected": "File selected",
+        "upload": "Upload",
+        "cancel": "Cancel",
+        "uploading": "Uploading...",
+        "uploadingChunks": "Uploading chunks... {{progress}}%"
+    },
+    "results": {
+        "title": "Analysis Results",
+        "fileName": "File name",
+        "score": "Security score",
+        "riskLevel": "Security level",
+        "fileSize": "File size",
+        "processingTime": "Processing time",
+        "checkedItemsTitle": "Checked items:",
+        "safe": "Safe",
+        "unsafe": "Unsafe",
+        "suspicious": "Suspicious",
+        "loading": "Loading analysis...",
+        "notFound": "Analysis not found",
+        "notFoundDescription": "The requested analysis could not be found. Please check the hash or upload a new file.",
+        "backToHome": "Back to Home",
+        "searchPlaceholder": "Enter SHA-256 hash to search...",
+        "search": "Search",
+        "lastAnalysisDate": "Last Analysis Date",
+        "analysisResults": "Analysis Results",
+        "reanalyzeDescription": "Want to reanalyze this file? Click the button below to get fresh results.",
+        "reanalyzeButton": "Reanalyze",
+        "shareDescription": "Share this analysis with others",
+        "shareButton": "Share",
+        "shareTitle": "Plugin Analysis Result",
+        "shareText": "Check out this plugin analysis:",
+        "linkCopied": "Link copied to clipboard!"
+    },
+    "stats": {
+        "checkedPlugins": "Analyzed plugins",
+        "scannedFiles": "File analyzed",
+        "score": "Security score",
+        "safe": "Safe",
+        "unsafe": "Unsafe",
+        "riskLevel": "Security level",
+        "accuracy": "Detection accuracy",
+        "threatsDetected": "Threats detected",
+        "detectionAccuracy": "Detection accuracy"
+    },
+    "features": {
+        "title": "Safeturned Features",
+        "codeAnalysis": "Code Analysis",
+        "codeAnalysisDescription": "Deep static analysis of plugin source code for suspicious patterns",
+        "threatDetection": "Threat Detection",
+        "threatDetectionDescription": "Detection of backdoors, trojans and other malicious components in plugins",
+        "fastCheck": "Fast Scanning",
+        "fastCheckDescription": "Analysis results in seconds with detailed report of found issues"
+    },
+    "howItWorks": {
+        "title": "How it works",
+        "step1": {
+            "title": "Upload plugin",
+            "description": "Upload plugin file (.dll) through web interface"
+        },
+        "step2": {
+            "title": "Code analysis",
+            "description": "System analyzes code for suspicious functions and patterns"
+        },
+        "step3": {
+            "title": "Get results",
+            "description": "Get detailed report with security assessment and recommendations"
+        }
+    },
+    "footer": {
+        "protectionMessage": "Protect your server from malicious plugins",
+        "allRightsReserved": "All rights reserved",
+        "disclaimer": "This site is not affiliated with Smartly Dressed Games or Unturned. Unturned® is a registered trademark or trademark of Smartly Dressed Games Ltd. in the United States, Canada, and other countries."
+    },
+    "github": {
+        "tooltip": "View on GitHub - Open Source"
+    },
+    "errors": {
+        "uploadFailed": "File upload failed",
+        "unknownError": "An unknown error occurred",
+        "fileTooLarge": "File is too large. Maximum size is 500 MB.",
+        "analysisTimeout": "Analysis is taking longer than expected (waited 2 minutes). Please try again in a few moments or check back later."
+    },
+    "dragDrop": {
+        "tip": "💡 Tip: You can also drag and drop .dll files anywhere on this page to analyze them",
+        "overlayTitle": "Drop file to analyze",
+        "overlayDescription": "Release to upload and analyze your .dll file",
+        "title": "Drop file here",
+        "subtitle": "Drag your .dll file to analyze"
+    },
+    "uploadModal": {
+        "title": "Upload file for analysis",
+        "subtitle": "Select a .dll file to analyze for security threats",
+        "chooseFile": "Choose file",
+        "dragDropHint": "Or drag and drop a file here",
+        "fileSelected": "File selected",
+        "upload": "Upload",
+        "cancel": "Cancel",
+        "uploading": "Uploading...",
+        "uploadingChunks": "Uploading large file",
+        "disclaimer": "By submitting data above, you are agreeing to our Terms of Service and Privacy Notice. Please do not submit any personal information; we are not responsible for the contents of your submission."
+    },
+    "scanning": {
+        "processing": "Processing your file",
+        "longRunning": "This is taking longer than usual",
+        "longRunningTitle": "Analysis in Progress",
+        "longRunningDescription": "Your file has been processing for {{elapsedTime}} seconds. This is normal for complex files.",
+        "estimatedTime": "Estimated completion: 1-2 minutes"
+    },
+    "consent": {
+        "prefix": "By submitting data above, you are agreeing to our ",
+        "termsOfService": "Terms of Service",
+        "and": " and ",
+        "privacyNotice": "Privacy Notice",
+        "suffix": ". Please do not submit any personal information; we are not responsible for the contents of your submission. ",
+        "learnMore": "Learn more",
+        "suffix2": "."
+    },
+    "analytics": {
+        "lastUpdated": "Last updated"
+    },
+    "terms": {
+        "title": "Terms of Service",
+        "acceptance": {
+            "title": "1. Acceptance of Terms",
+            "content": "By accessing and using Safeturned, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service."
+        },
+        "description": {
+            "title": "2. Description of Service",
+            "content": "Safeturned is a security analysis service that scans plugin files (.dll) for potential backdoors, trojans, and other malicious components. The service provides automated code analysis and threat detection for Unturned server plugins."
+        },
+        "responsibilities": {
+            "title": "3. User Responsibilities",
+            "fileOwnership": {
+                "title": "File Ownership",
+                "content": "You must only upload files that you own or have permission to analyze"
+            },
+            "noPersonalInfo": {
+                "title": "No Personal Information",
+                "content": "Do not submit any personal information or sensitive data"
+            },
+            "legalUse": {
+                "title": "Legal Use",
+                "content": "Use the service only for legitimate security analysis purposes"
+            },
+            "noMaliciousIntent": {
+                "title": "No Malicious Intent",
+                "content": "Do not use the service to analyze files with the intent to harm others"
+            },
+            "compliance": {
+                "title": "Compliance",
+                "content": "Comply with all applicable laws and regulations"
+            }
+        },
+        "limitations": {
+            "title": "4. Service Limitations",
+            "important": "Important Limitations",
+            "noGuarantees": {
+                "title": "No Guarantees",
+                "content": "We do not guarantee 100% accuracy of threat detection"
+            },
+            "falsePositives": {
+                "title": "False Positives",
+                "content": "Legitimate files may be flagged as suspicious"
+            },
+            "falseNegatives": {
+                "title": "False Negatives",
+                "content": "Some threats may not be detected"
+            },
+            "fileSize": {
+                "title": "File Size",
+                "content": "Maximum file size is 500MB"
+            },
+            "fileTypes": {
+                "title": "File Types",
+                "content": "Only .dll files are supported"
+            },
+            "rateLimits": {
+                "title": "Rate Limits",
+                "content": "Upload and analysis requests are rate-limited"
+            }
+        },
+        "dataHandling": {
+            "title": "5. Data Handling",
+            "noFileStorage": {
+                "title": "No File Storage",
+                "content": "Plugin files are processed in memory and immediately discarded"
+            },
+            "metadataOnly": {
+                "title": "Metadata Only",
+                "content": "Only file metadata (hash, name, size, scan results) is stored"
+            },
+            "noContentAnalysis": {
+                "title": "No Content Analysis",
+                "content": "We do not store or analyze the actual code content"
+            },
+            "analyticsData": {
+                "title": "Analytics Data",
+                "content": "Aggregated statistics are collected for service improvement"
+            }
+        },
+        "intellectualProperty": {
+            "title": "6. Intellectual Property",
+            "yourFiles": {
+                "title": "Your Files",
+                "content": "You retain all rights to your uploaded files"
+            },
+            "ourService": {
+                "title": "Our Service",
+                "content": "Safeturned and its analysis algorithms are our intellectual property"
+            },
+            "openSource": {
+                "title": "Open Source",
+                "content": "The service is open source and available under appropriate licenses"
+            },
+            "noClaims": {
+                "title": "No Claims",
+                "content": "We make no claims on your intellectual property"
+            }
+        },
+        "disclaimers": {
+            "title": "7. Disclaimers",
+            "important": "Important Disclaimers",
+            "noWarranty": {
+                "title": "No Warranty",
+                "content": "The service is provided \"as is\" without any warranties"
+            },
+            "noLiability": {
+                "title": "No Liability",
+                "content": "We are not liable for any damages arising from use of the service"
+            },
+            "securityDecisions": {
+                "title": "Security Decisions",
+                "content": "You are responsible for your own security decisions"
+            },
+            "thirdPartyContent": {
+                "title": "Third-Party Content",
+                "content": "We are not responsible for the content of analyzed files"
+            },
+            "serviceAvailability": {
+                "title": "Service Availability",
+                "content": "We do not guarantee uninterrupted service availability"
+            }
+        },
+        "prohibitedUses": {
+            "title": "8. Prohibited Uses",
+            "illegalActivities": {
+                "title": "Illegal Activities",
+                "content": "Using the service for illegal purposes"
+            },
+            "spam": {
+                "title": "Spam",
+                "content": "Excessive or automated requests"
+            },
+            "harassment": {
+                "title": "Harassment",
+                "content": "Using the service to harass or harm others"
+            },
+            "reverseEngineering": {
+                "title": "Reverse Engineering",
+                "content": "Attempting to reverse engineer our systems"
+            },
+            "bypassingSecurity": {
+                "title": "Bypassing Security",
+                "content": "Attempting to bypass rate limits or security measures"
+            }
+        },
+        "termination": {
+            "title": "9. Termination",
+            "content": "We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms."
+        },
+        "changes": {
+            "title": "10. Changes to Terms",
+            "content": "We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect."
+        },
+        "governingLaw": {
+            "title": "11. Governing Law",
+            "content": "These Terms shall be interpreted and governed by the laws of the jurisdiction in which the service operates, without regard to its conflict of law provisions."
+        },
+        "contact": {
+            "title": "12. Contact Information",
+            "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
+        },
+        "lastUpdated": "Last updated"
     }
-  },
-  "footer": {
-    "protectionMessage": "Protect your server from malicious plugins",
-    "allRightsReserved": "All rights reserved",
-    "disclaimer": "This site is not affiliated with Smartly Dressed Games or Unturned. Unturned® is a registered trademark or trademark of Smartly Dressed Games Ltd. in the United States, Canada, and other countries."
-  },
-  "github": {
-    "tooltip": "View on GitHub - Open Source"
-  },
-  "errors": {
-    "uploadFailed": "File upload failed",
-    "unknownError": "An unknown error occurred",
-    "fileTooLarge": "File is too large. Maximum size is 500 MB.",
-    "analysisTimeout": "Analysis is taking longer than expected (waited 2 minutes). Please try again in a few moments or check back later."
-  },
-  "dragDrop": {
-    "tip": "💡 Tip: You can also drag and drop .dll files anywhere on this page to analyze them",
-    "overlayTitle": "Drop file to analyze",
-    "overlayDescription": "Release to upload and analyze your .dll file"
-  },
-  "scanning": {
-    "processing": "Processing your file",
-    "longRunning": "This is taking longer than usual",
-    "longRunningTitle": "Analysis in Progress",
-    "longRunningDescription": "Your file has been processing for {{elapsedTime}} seconds. This is normal for complex files.",
-    "estimatedTime": "Estimated completion: 1-2 minutes"
-  },
-  "consent": {
-    "prefix": "By submitting data above, you are agreeing to our ",
-    "termsOfService": "Terms of Service",
-    "and": " and ",
-    "privacyNotice": "Privacy Notice",
-    "suffix": ". Please do not submit any personal information; we are not responsible for the contents of your submission. ",
-    "learnMore": "Learn more",
-    "suffix2": "."
-  },
-  "analytics": {
-    "lastUpdated": "Last updated"
-  },
-  "terms": {
-    "title": "Terms of Service",
-    "acceptance": {
-      "title": "1. Acceptance of Terms",
-      "content": "By accessing and using Safeturned, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service."
-    },
-    "description": {
-      "title": "2. Description of Service",
-      "content": "Safeturned is a security analysis service that scans plugin files (.dll) for potential backdoors, trojans, and other malicious components. The service provides automated code analysis and threat detection for Unturned server plugins."
-    },
-    "responsibilities": {
-      "title": "3. User Responsibilities",
-      "fileOwnership": {
-        "title": "File Ownership",
-        "content": "You must only upload files that you own or have permission to analyze"
-      },
-      "noPersonalInfo": {
-        "title": "No Personal Information",
-        "content": "Do not submit any personal information or sensitive data"
-      },
-      "legalUse": {
-        "title": "Legal Use",
-        "content": "Use the service only for legitimate security analysis purposes"
-      },
-      "noMaliciousIntent": {
-        "title": "No Malicious Intent",
-        "content": "Do not use the service to analyze files with the intent to harm others"
-      },
-      "compliance": {
-        "title": "Compliance",
-        "content": "Comply with all applicable laws and regulations"
-      }
-    },
-    "limitations": {
-      "title": "4. Service Limitations",
-      "important": "Important Limitations",
-      "noGuarantees": {
-        "title": "No Guarantees",
-        "content": "We do not guarantee 100% accuracy of threat detection"
-      },
-      "falsePositives": {
-        "title": "False Positives",
-        "content": "Legitimate files may be flagged as suspicious"
-      },
-      "falseNegatives": {
-        "title": "False Negatives",
-        "content": "Some threats may not be detected"
-      },
-      "fileSize": {
-        "title": "File Size",
-        "content": "Maximum file size is 500MB"
-      },
-      "fileTypes": {
-        "title": "File Types",
-        "content": "Only .dll files are supported"
-      },
-      "rateLimits": {
-        "title": "Rate Limits",
-        "content": "Upload and analysis requests are rate-limited"
-      }
-    },
-    "dataHandling": {
-      "title": "5. Data Handling",
-      "noFileStorage": {
-        "title": "No File Storage",
-        "content": "Plugin files are processed in memory and immediately discarded"
-      },
-      "metadataOnly": {
-        "title": "Metadata Only",
-        "content": "Only file metadata (hash, name, size, scan results) is stored"
-      },
-      "noContentAnalysis": {
-        "title": "No Content Analysis",
-        "content": "We do not store or analyze the actual code content"
-      },
-      "analyticsData": {
-        "title": "Analytics Data",
-        "content": "Aggregated statistics are collected for service improvement"
-      }
-    },
-    "intellectualProperty": {
-      "title": "6. Intellectual Property",
-      "yourFiles": {
-        "title": "Your Files",
-        "content": "You retain all rights to your uploaded files"
-      },
-      "ourService": {
-        "title": "Our Service",
-        "content": "Safeturned and its analysis algorithms are our intellectual property"
-      },
-      "openSource": {
-        "title": "Open Source",
-        "content": "The service is open source and available under appropriate licenses"
-      },
-      "noClaims": {
-        "title": "No Claims",
-        "content": "We make no claims on your intellectual property"
-      }
-    },
-    "disclaimers": {
-      "title": "7. Disclaimers",
-      "important": "Important Disclaimers",
-      "noWarranty": {
-        "title": "No Warranty",
-        "content": "The service is provided \"as is\" without any warranties"
-      },
-      "noLiability": {
-        "title": "No Liability",
-        "content": "We are not liable for any damages arising from use of the service"
-      },
-      "securityDecisions": {
-        "title": "Security Decisions",
-        "content": "You are responsible for your own security decisions"
-      },
-      "thirdPartyContent": {
-        "title": "Third-Party Content",
-        "content": "We are not responsible for the content of analyzed files"
-      },
-      "serviceAvailability": {
-        "title": "Service Availability",
-        "content": "We do not guarantee uninterrupted service availability"
-      }
-    },
-    "prohibitedUses": {
-      "title": "8. Prohibited Uses",
-      "illegalActivities": {
-        "title": "Illegal Activities",
-        "content": "Using the service for illegal purposes"
-      },
-      "spam": {
-        "title": "Spam",
-        "content": "Excessive or automated requests"
-      },
-      "harassment": {
-        "title": "Harassment",
-        "content": "Using the service to harass or harm others"
-      },
-      "reverseEngineering": {
-        "title": "Reverse Engineering",
-        "content": "Attempting to reverse engineer our systems"
-      },
-      "bypassingSecurity": {
-        "title": "Bypassing Security",
-        "content": "Attempting to bypass rate limits or security measures"
-      }
-    },
-    "termination": {
-      "title": "9. Termination",
-      "content": "We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms."
-    },
-    "changes": {
-      "title": "10. Changes to Terms",
-      "content": "We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect."
-    },
-    "governingLaw": {
-      "title": "11. Governing Law",
-      "content": "These Terms shall be interpreted and governed by the laws of the jurisdiction in which the service operates, without regard to its conflict of law provisions."
-    },
-    "contact": {
-      "title": "12. Contact Information",
-      "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
-    },
-    "lastUpdated": "Last updated"
-  }
-} 
+}

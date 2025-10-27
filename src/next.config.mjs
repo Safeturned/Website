@@ -1,27 +1,37 @@
-import path from 'path';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Enable standalone output for Docker deployment
     output: 'standalone',
     
-    // Disable static optimization for dynamic content
-    experimental: {
-        // Force dynamic rendering for better cache busting
-        forceSwcTransforms: true,
-    },
-    
-    // Ensure fresh builds with timestamp
     generateBuildId: async () => {
         return `build-${Date.now()}`;
     },
     
-    // Disable static optimization for pages with dynamic content
     trailingSlash: false,
     
-    // Force cache busting
     env: {
         BUILD_TIME: Date.now().toString(),
+    },
+    
+    images: {
+        formats: ['image/webp', 'image/avif'],
+        minimumCacheTTL: 60,
+        dangerouslyAllowSVG: true,
+        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    },
+    
+    
+    async headers() {
+        return [
+            {
+                source: '/favicon.ico',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+        ];
     },
 };
 

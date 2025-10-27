@@ -13,45 +13,66 @@ export function useTranslation() {
 
     const locale = useMemo(() => {
         if (!pathname) return 'en';
-        
-        // Clean the pathname to remove any undefined segments
+
         const cleanPathname = pathname.replace(/\/undefined/g, '');
         const segments = cleanPathname.split('/').filter(Boolean);
         const firstSegment = segments[0] || '';
-        
-        const detectedLocale = supportedLocales.includes(firstSegment as any) ? (firstSegment as 'ru' | 'en') : 'en';
-        
-        // Ensure we always return a valid locale
+
+        const detectedLocale = supportedLocales.includes(firstSegment as 'ru' | 'en')
+            ? (firstSegment as 'ru' | 'en')
+            : 'en';
+
         return detectedLocale || 'en';
     }, [pathname]);
 
-    const messages = locale === 'ru' ? (ru as Record<string, any>) : (en as Record<string, any>);
+    const messages =
+        locale === 'ru' ? (ru as Record<string, unknown>) : (en as Record<string, unknown>);
 
-    const getByPath = (obj: Record<string, any>, path: string) => {
-        return path.split('.').reduce<any>((acc, key) => (acc && key in acc ? acc[key] : undefined), obj);
+    const getByPath = (obj: Record<string, unknown>, path: string) => {
+        return path
+            .split('.')
+            .reduce<unknown>(
+                (acc, key) =>
+                    acc && typeof acc === 'object' && acc !== null && key in acc
+                        ? (acc as Record<string, unknown>)[key]
+                        : undefined,
+                obj
+            );
     };
 
-    const t = useCallback((key: string) => {
-        const value = getByPath(messages, key);
-        return typeof value === 'string' ? value : key;
-    }, [messages]);
+    const t = useCallback(
+        (key: string, fallback?: string, variables?: Record<string, unknown>) => {
+            const value = getByPath(messages, key);
+            let result = typeof value === 'string' ? value : fallback || key;
 
-    const changeLanguage = useCallback((newLocale: 'ru' | 'en') => {
-        if (newLocale === locale) return;
+            if (variables) {
+                Object.entries(variables).forEach(([varKey, varValue]) => {
+                    result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), String(varValue));
+                });
+            }
 
-        // persist preference for middleware
-        document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
+            return result;
+        },
+        [messages]
+    );
 
-        const segments = (pathname || '/').split('/');
-        // ensure leading slash preserved -> ["", "ru", ...]
-        if (segments.length > 1 && supportedLocales.includes(segments[1] as any)) {
-            segments[1] = newLocale;
-        } else {
-            segments.splice(1, 0, newLocale);
-        }
-        const newPath = segments.join('/') || `/${newLocale}`;
-        router.push(newPath);
-    }, [locale, pathname, router]);
+    const changeLanguage = useCallback(
+        (newLocale: 'ru' | 'en') => {
+            if (newLocale === locale) return;
+
+            document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
+
+            const segments = (pathname || '/').split('/');
+            if (segments.length > 1 && supportedLocales.includes(segments[1] as 'ru' | 'en')) {
+                segments[1] = newLocale;
+            } else {
+                segments.splice(1, 0, newLocale);
+            }
+            const newPath = segments.join('/') || `/${newLocale}`;
+            router.push(newPath);
+        },
+        [locale, pathname, router]
+    );
 
     return {
         t,

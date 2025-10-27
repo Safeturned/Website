@@ -73,6 +73,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: src/package-lock.json
 
+      - name: Install dependencies
+        run: |
+          cd src
+          npm ci
+
+      - name: Validate locales
+        run: |
+          cd src
+          npm run validate:locales
+
+      - name: Run full validation suite
+        run: |
+          cd src
+          npm run validate:all
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
