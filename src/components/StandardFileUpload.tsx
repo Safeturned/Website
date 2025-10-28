@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useCallback } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatFileSize } from '@/lib/utils';
 
 interface StandardFileUploadProps {
     onFileSelect: (file: File) => void;
@@ -43,7 +44,7 @@ export default function StandardFileUpload({
         (file: File): string | null => {
             if (file.size > maxFileSize) {
                 return t('errors.fileTooLarge', 'File is too large. Maximum size is {{size}}.', {
-                    size: formatFileSize(maxFileSize),
+                    size: formatFileSize(maxFileSize, t),
                 });
             }
 
@@ -224,7 +225,7 @@ export default function StandardFileUpload({
                         <div className='text-xs text-gray-500'>
                             <p>
                                 {t('upload.maxSize', 'Max file size: {{size}}', {
-                                    size: formatFileSize(maxFileSize),
+                                    size: formatFileSize(maxFileSize, t),
                                 })}
                             </p>
                             <p>
@@ -263,7 +264,7 @@ export default function StandardFileUpload({
                                 {selectedFile.name}
                             </p>
                             <p className='text-xs md:text-sm text-gray-500 mt-1'>
-                                {formatFileSize(selectedFile.size)}
+                                {formatFileSize(selectedFile.size, t)}
                             </p>
                         </div>
 

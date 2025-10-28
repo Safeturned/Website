@@ -172,12 +172,8 @@ export default function PrivacyPage() {
                                     обнаруженных угроз vs безопасных файлов
                                 </li>
                                 <li>
-                                    <strong>Точность обнаружения</strong> - Метрики
-                                    производительности нашего анализа
-                                </li>
-                                <li>
-                                    <strong>Среднее время сканирования</strong> - Метрики
-                                    производительности сервиса
+                                    <strong>Метрики производительности сканирования</strong> - Среднее время сканирования и
+                                    статистика обработки
                                 </li>
                                 <li>
                                     <strong>Средние оценки безопасности</strong> - Общие тенденции
@@ -367,8 +363,7 @@ export default function PrivacyPage() {
 
                         <div className='mt-8 pt-6 border-t border-purple-500/30'>
                             <p className='text-sm text-gray-400'>
-                                <strong>Последнее обновление:</strong>{' '}
-                                {new Date().toLocaleDateString('ru-RU')}
+                                <strong>Последнее обновление:</strong> 28 октября 2025, 18:52 GMT+3
                             </p>
                         </div>
                     </div>

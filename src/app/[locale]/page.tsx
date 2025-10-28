@@ -8,11 +8,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import StandardFileUpload from '@/components/StandardFileUpload';
+import { formatScanTime, computeFileHash } from '@/lib/utils';
 
 interface SystemAnalytics {
     totalFilesScanned: number;
     totalThreatsDetected: number;
-    detectionAccuracy: number;
     averageScanTimeMs: number;
     lastUpdated: string;
     totalSafeFiles: number;
@@ -86,13 +86,6 @@ export default function Page() {
         };
     }, []);
 
-    async function computeFileHash(file: File): Promise<string> {
-        const arrayBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-        const bytes = Array.from(new Uint8Array(hashBuffer));
-        const base64 = btoa(String.fromCharCode(...bytes));
-        return base64;
-    }
 
     const handleFileSelect = (file: File) => {
         setUseChunkedUploadForFile(file.size > CHUNKED_UPLOAD_THRESHOLD);
@@ -413,16 +406,14 @@ export default function Page() {
                                 {t('stats.threatsDetected')}
                             </div>
                         </div>
-                        <div className='bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 md:p-6 hover:bg-slate-800/50 hover:border-green-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 group cursor-pointer'>
-                            <div
-                                className={`text-2xl md:text-3xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300 ${systemAnalytics ? (systemAnalytics.detectionAccuracy >= 95 ? 'text-green-400' : systemAnalytics.detectionAccuracy >= 80 ? 'text-yellow-400' : 'text-red-400') : 'text-gray-400'}`}
-                            >
+                        <div className='bg-slate-800/30 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 md:p-6 hover:bg-slate-800/50 hover:border-blue-500/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 group cursor-pointer'>
+                            <div className='text-2xl md:text-3xl font-bold text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-300'>
                                 {systemAnalytics
-                                    ? `${systemAnalytics.detectionAccuracy.toFixed(1)}%`
+                                    ? formatScanTime(systemAnalytics.averageScanTimeMs, t)
                                     : '...'}
                             </div>
                             <div className='text-gray-300 group-hover:text-white transition-colors duration-300 text-sm md:text-base'>
-                                {t('stats.detectionAccuracy')}
+                                {t('stats.averageScanTime')}
                             </div>
                         </div>
                     </div>

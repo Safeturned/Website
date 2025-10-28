@@ -7,6 +7,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatFileSize, formatScanTime, computeFileHash, getRiskLevel, getRiskColor } from '@/lib/utils';
 
 interface AnalyticsData {
     fileName: string;
@@ -359,25 +360,6 @@ export default function ResultPage() {
         }
     };
 
-    const getRiskColor = (score: number) => {
-        if (score <= 70) return 'text-green-400';
-        if (score >= 50) return 'text-yellow-400';
-        return 'text-red-400';
-    };
-
-    const formatFileSize = (bytes: number) => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
-    const getRiskLevel = (score: number) => {
-        if (score <= 70) return t('results.safe');
-        if (score >= 50) return t('results.suspicious');
-        return t('results.unsafe');
-    };
 
     if (loading) {
         return (
@@ -577,7 +559,7 @@ export default function ResultPage() {
                                 </div>
                             </div>
                             <div className='text-xs md:text-sm break-words max-w-20 md:max-w-24 mt-2'>
-                                {getRiskLevel(analyticsData.score)}
+                                {getRiskLevel(analyticsData.score, t)}
                             </div>
                         </div>
                     </div>
@@ -586,7 +568,7 @@ export default function ResultPage() {
                         <div>
                             <span className='text-gray-400'>{t('results.fileSize')}:</span>
                             <span className='ml-2 text-white'>
-                                {formatFileSize(analyticsData.fileSizeBytes)}
+                                {formatFileSize(analyticsData.fileSizeBytes, t)}
                             </span>
                         </div>
                         <div>
@@ -717,7 +699,7 @@ export default function ResultPage() {
                                 {dragFile.name}
                             </p>
                             <p className='text-sm text-gray-500 mt-1'>
-                                {formatFileSize(dragFile.size)}
+                                {formatFileSize(dragFile.size, t)}
                             </p>
                         </div>
 

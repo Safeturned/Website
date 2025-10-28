@@ -132,7 +132,7 @@ export default function TermsPage() {
                                 <ul className='list-disc list-inside space-y-1 ml-4'>
                                     <li>
                                         <strong>Нет гарантий</strong> - Мы не гарантируем 100%
-                                        точность обнаружения угроз
+                                        эффективность обнаружения угроз
                                     </li>
                                     <li>
                                         <strong>Ложные срабатывания</strong> - Законные файлы могут

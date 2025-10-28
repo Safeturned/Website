@@ -60,9 +60,19 @@
         "safe": "Safe",
         "unsafe": "Unsafe",
         "riskLevel": "Security level",
-        "accuracy": "Detection accuracy",
         "threatsDetected": "Threats detected",
-        "detectionAccuracy": "Detection accuracy"
+        "averageScanTime": "Average scan time"
+    },
+    "timeUnits": {
+        "milliseconds": "ms",
+        "seconds": "s",
+        "minutes": "m"
+    },
+    "fileSizeUnits": {
+        "bytes": "Bytes",
+        "kb": "KB",
+        "mb": "MB",
+        "gb": "GB"
     },
     "features": {
         "title": "Safeturned Features",
@@ -138,7 +148,7 @@
         "suffix2": "."
     },
     "analytics": {
-        "lastUpdated": "Last updated"
+        "lastUpdated": "Data updated"
     },
     "terms": {
         "title": "Terms of Service",
@@ -178,7 +188,7 @@
             "important": "Important Limitations",
             "noGuarantees": {
                 "title": "No Guarantees",
-                "content": "We do not guarantee 100% accuracy of threat detection"
+                "content": "We do not guarantee 100% effectiveness of threat detection"
             },
             "falsePositives": {
                 "title": "False Positives",
@@ -302,6 +312,6 @@
             "title": "12. Contact Information",
             "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
         },
-        "lastUpdated": "Last updated"
+        "lastUpdated": "Data updated"
     }
 }

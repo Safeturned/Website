@@ -169,8 +169,8 @@ export default function PrivacyPage() {
                                     detected vs safe files
                                 </li>
                                 <li>
-                                    <strong>Detection accuracy</strong> - Performance metrics of our
-                                    analysis
+                                    <strong>Scan performance metrics</strong> - Average scan time and
+                                    processing statistics
                                 </li>
                                 <li>
                                     <strong>Average scan time</strong> - Service performance metrics
@@ -362,7 +362,7 @@ export default function PrivacyPage() {
 
                         <div className='mt-8 pt-6 border-t border-purple-500/30'>
                             <p className='text-sm text-gray-400'>
-                                <strong>Last updated:</strong> October 26, 2025, 12:30 PM GMT+3
+                                <strong>Last updated:</strong> October 28, 2025, 6:52 PM GMT+3
                             </p>
                         </div>
                     </div>
