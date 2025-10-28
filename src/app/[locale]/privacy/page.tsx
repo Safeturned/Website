@@ -166,8 +166,8 @@ export default function PrivacyPage() {
                                     detected vs safe files
                                 </li>
                                 <li>
-                                    <strong>Scan performance metrics</strong> - Average scan time and
-                                    processing statistics
+                                    <strong>Scan performance metrics</strong> - Average scan time
+                                    and processing statistics
                                 </li>
                                 <li>
                                     <strong>Average scan time</strong> - Service performance metrics

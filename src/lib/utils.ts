@@ -9,7 +9,9 @@ export const formatFileSize = (bytes: number, t: (key: string) => string): strin
     const k = 1024;
     const sizeKeys = ['bytes', 'kb', 'mb', 'gb'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + t(`fileSizeUnits.${sizeKeys[i]}`);
+    return (
+        parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + t(`fileSizeUnits.${sizeKeys[i]}`)
+    );
 };
 
 /**

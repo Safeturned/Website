@@ -7,7 +7,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatFileSize, formatScanTime, computeFileHash, getRiskLevel, getRiskColor } from '@/lib/utils';
+import { formatFileSize, getRiskLevel, getRiskColor } from '@/lib/utils';
 
 interface AnalyticsData {
     fileName: string;
@@ -359,7 +359,6 @@ export default function ResultPage() {
             router.push(`/${params.locale}/result/${urlSafeHash}`);
         }
     };
-
 
     if (loading) {
         return (

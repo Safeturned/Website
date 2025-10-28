@@ -86,7 +86,6 @@ export default function Page() {
         };
     }, []);
 
-
     const handleFileSelect = (file: File) => {
         setUseChunkedUploadForFile(file.size > CHUNKED_UPLOAD_THRESHOLD);
         setError(null);
