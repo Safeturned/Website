@@ -607,7 +607,7 @@ export default function Page() {
                         </p>
                     </div>
                     <div className='text-gray-500 text-xs md:text-sm hover:text-gray-400 transition-colors duration-300 mb-3 md:mb-4'>
-                        © 2024 Safeturned. {t('footer.allRightsReserved')}.
+                        © 2025 Safeturned. {t('footer.allRightsReserved')}.
                     </div>
                     <div className='text-gray-600 text-xs max-w-2xl mx-auto leading-relaxed mb-6'>
                         {t('footer.disclaimer')}
