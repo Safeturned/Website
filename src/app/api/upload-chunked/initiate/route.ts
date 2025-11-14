@@ -17,10 +17,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
         }
 
+        const authHeader = request.headers.get('authorization');
+        const hasUserAuth = authHeader && authHeader.startsWith('Bearer ');
+
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
-            'X-API-Key': apiKey,
         };
+
+        if (hasUserAuth) {
+            headers['Authorization'] = authHeader;
+        } else {
+            headers['X-API-Key'] = apiKey;
+        }
 
         const origin = request.headers.get('origin');
         const referer = request.headers.get('referer');

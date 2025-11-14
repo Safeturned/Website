@@ -1,72 +1,29 @@
 'use client';
 
-import { useTranslation } from '../../../hooks/useTranslation';
-import LanguageSwitcher from '../../../components/LanguageSwitcher';
-import Image from 'next/image';
+import { useTranslation } from '@/hooks/useTranslation';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 export default function PrivacyPage() {
     const { t, locale } = useTranslation();
 
     return (
-        <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white'>
-            <nav className='px-6 py-4 border-b border-purple-800/30 backdrop-blur-sm relative z-100'>
-                <div className='max-w-6xl mx-auto flex justify-between items-center'>
-                    <Link href={`/${locale}`} className='flex items-center space-x-3'>
-                        <div className='w-10 h-10'>
-                            <Image
-                                src='/favicon.jpg'
-                                alt='Safeturned Logo'
-                                width={40}
-                                height={40}
-                                className='w-full h-full object-contain rounded-lg'
-                            />
-                        </div>
-                        <span className='text-xl font-bold'>{t('hero.title')}</span>
-                    </Link>
-                    <div className='flex items-center space-x-4'>
-                        <a
-                            href='https://github.com/Safeturned/Website'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='hover:text-purple-300 transition-all duration-300 hover:scale-110 group flex items-center'
-                            title='View on GitHub'
-                        >
-                            <svg
-                                className='w-5 h-5 group-hover:rotate-12 transition-all duration-300'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path d='M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z' />
-                            </svg>
-                        </a>
-                        <a
-                            href='https://discord.gg/JAKWGEabhc'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='hover:text-purple-300 transition-all duration-300 hover:scale-110 group flex items-center'
-                            title='Join our Discord Community'
-                        >
-                            <svg
-                                className='w-5 h-5 group-hover:rotate-12 transition-all duration-300'
-                                fill='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path d='M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.019 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189Z' />
-                            </svg>
-                        </a>
-                        <LanguageSwitcher />
-                    </div>
-                </div>
-            </nav>
+        <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col'>
+            <Navigation />
 
-            <div className='max-w-4xl mx-auto px-6 py-8 relative z-1'>
-                <div className='bg-slate-800/50 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8'>
-                    <h1 className='text-3xl font-bold mb-8 text-center'>Privacy Notice</h1>
+            <div className='flex-1 max-w-5xl mx-auto px-6 py-12 relative z-1 w-full'>
+                <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-2xl p-8 md:p-12 shadow-2xl'>
+                    <div className='mb-10'>
+                        <h1 className='text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent pb-1 leading-tight'>
+                            Privacy Notice
+                        </h1>
+                        <p className='text-slate-400 text-sm'>Last updated: November 2025</p>
+                    </div>
 
                     <div className='space-y-6 text-gray-300'>
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 1. Introduction
                             </h2>
                             <p>
@@ -77,41 +34,42 @@ export default function PrivacyPage() {
                             </p>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
-                                2. Information We Do NOT Collect
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
+                                2. Information We Do NOT Permanently Store
                             </h2>
                             <div className='bg-red-900/20 border border-red-500/30 rounded-lg p-4'>
                                 <h3 className='font-semibold text-red-300 mb-2'>
-                                    Important: We do NOT store your plugin files
+                                    Important: We do NOT permanently store your plugin files
                                 </h3>
                                 <ul className='list-disc list-inside space-y-1 ml-4'>
                                     <li>
-                                        <strong>Plugin files (.dll)</strong> - Files are processed
-                                        in memory and immediately discarded
+                                        <strong>Plugin file content</strong> - We never permanently
+                                        store the actual code or content of your plugins
                                     </li>
                                     <li>
-                                        <strong>File content</strong> - We never store the actual
-                                        code or content of your plugins
-                                    </li>
-                                    <li>
-                                        <strong>Personal information</strong> - No names, emails,
-                                        addresses, or personal identifiers
-                                    </li>
-                                    <li>
-                                        <strong>User accounts</strong> - No registration or login
-                                        required
+                                        <strong>Personal information in files</strong> - We do not
+                                        extract or store personal data from file contents
                                     </li>
                                     <li>
                                         <strong>IP addresses</strong> - Only used temporarily for
-                                        rate limiting, not stored
+                                        rate limiting via Redis cache (expires after 1 hour)
                                     </li>
                                 </ul>
+                                <div className='mt-3 pt-3 border-t border-red-500/20'>
+                                    <p className='text-sm text-yellow-300'>
+                                        <strong>Note on large files (&gt;100MB):</strong> Large
+                                        files are temporarily stored in encrypted chunks during
+                                        upload and processing. All chunks are automatically deleted
+                                        after analysis completes or if the upload session expires
+                                        (24 hours maximum).
+                                    </p>
+                                </div>
                             </div>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 3. Information We DO Collect
                             </h2>
                             <div className='bg-green-900/20 border border-green-500/30 rounded-lg p-4'>
@@ -149,8 +107,8 @@ export default function PrivacyPage() {
                             </div>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 4. Analytics Data We Collect
                             </h2>
                             <p>
@@ -183,8 +141,8 @@ export default function PrivacyPage() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 5. How We Use Your Information
                             </h2>
                             <ul className='list-disc list-inside space-y-2 ml-4'>
@@ -211,60 +169,111 @@ export default function PrivacyPage() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 6. Data Protection
                             </h2>
                             <ul className='list-disc list-inside space-y-2 ml-4'>
                                 <li>
-                                    <strong>No file storage</strong> - Plugin files are never saved
-                                    to disk
+                                    <strong>No permanent file storage</strong> - Plugin file content
+                                    is never permanently saved
                                 </li>
                                 <li>
-                                    <strong>Memory-only processing</strong> - Files are processed in
-                                    RAM and immediately discarded
+                                    <strong>Memory-only processing (small files)</strong> - Files
+                                    under 100MB are processed in RAM and immediately discarded
+                                </li>
+                                <li>
+                                    <strong>Chunked upload security (large files)</strong> - Files
+                                    over 100MB use encrypted chunks with automatic cleanup. All
+                                    chunks are deleted after analysis or session expiration
                                 </li>
                                 <li>
                                     <strong>Encrypted transmission</strong> - All data is
                                     transmitted over HTTPS
                                 </li>
                                 <li>
-                                    <strong>Database security</strong> - Only metadata is stored in
-                                    secure databases
+                                    <strong>Distributed rate limiting</strong> - Redis-based rate
+                                    limiting protects against abuse while persisting limits across
+                                    server restarts
                                 </li>
                                 <li>
-                                    <strong>Log filtering</strong> - File uploads are filtered from
-                                    error logs
+                                    <strong>Database security</strong> - Only metadata is stored in
+                                    secure databases, never file content
+                                </li>
+                                <li>
+                                    <strong>Log filtering</strong> - File uploads and sensitive data
+                                    are filtered from error logs
+                                </li>
+                                <li>
+                                    <strong>Automatic cleanup</strong> - Temporary files and cache
+                                    entries expire automatically (chunks: 24h, rate limits: 1h)
                                 </li>
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 7. Data Retention
                             </h2>
-                            <ul className='list-disc list-inside space-y-2 ml-4'>
-                                <li>
-                                    <strong>File metadata</strong> - Retained indefinitely for
-                                    duplicate detection and analytics
-                                </li>
-                                <li>
-                                    <strong>Scan records</strong> - Retained for service improvement
-                                    and analytics
-                                </li>
-                                <li>
-                                    <strong>Analytics data</strong> - Aggregated statistics retained
-                                    for service optimization
-                                </li>
-                                <li>
-                                    <strong>Plugin files</strong> - Never stored, immediately
-                                    discarded after analysis
-                                </li>
-                            </ul>
+                            <div className='space-y-3'>
+                                <div>
+                                    <h4 className='font-semibold text-purple-200 mb-2'>
+                                        Permanent Storage:
+                                    </h4>
+                                    <ul className='list-disc list-inside space-y-1 ml-4'>
+                                        <li>
+                                            <strong>File metadata</strong> - Retained indefinitely for
+                                            duplicate detection and analytics
+                                        </li>
+                                        <li>
+                                            <strong>Scan records</strong> - Retained for service
+                                            improvement and analytics
+                                        </li>
+                                        <li>
+                                            <strong>Analytics data</strong> - Aggregated statistics
+                                            retained for service optimization
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className='font-semibold text-purple-200 mb-2'>
+                                        Temporary Storage (Auto-Deleted):
+                                    </h4>
+                                    <ul className='list-disc list-inside space-y-1 ml-4'>
+                                        <li>
+                                            <strong>File chunks</strong> - Deleted immediately after
+                                            analysis or after 24 hours (whichever comes first)
+                                        </li>
+                                        <li>
+                                            <strong>Upload sessions</strong> - Expire after 24 hours of
+                                            inactivity
+                                        </li>
+                                        <li>
+                                            <strong>Rate limit data</strong> - Stored in Redis cache,
+                                            expires after 1 hour
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className='font-semibold text-purple-200 mb-2'>
+                                        Never Stored:
+                                    </h4>
+                                    <ul className='list-disc list-inside space-y-1 ml-4'>
+                                        <li>
+                                            <strong>Plugin file content</strong> - Never permanently
+                                            stored, immediately discarded after analysis
+                                        </li>
+                                        <li>
+                                            <strong>Small files (&lt;100MB)</strong> - Processed entirely
+                                            in memory, never written to disk
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 8. Data Sharing
                             </h2>
                             <p>
@@ -287,8 +296,8 @@ export default function PrivacyPage() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 9. Your Rights
                             </h2>
                             <p>
@@ -311,8 +320,8 @@ export default function PrivacyPage() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 10. Open Source Transparency
                             </h2>
                             <p>Safeturned is completely open source. You can:</p>
@@ -335,8 +344,8 @@ export default function PrivacyPage() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 11. Changes to This Notice
                             </h2>
                             <p>
@@ -346,8 +355,8 @@ export default function PrivacyPage() {
                             </p>
                         </section>
 
-                        <section>
-                            <h2 className='text-xl font-semibold mb-3 text-white'>
+                        <section className='pb-6 border-b border-slate-700/50'>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
                                 12. Contact Information
                             </h2>
                             <p>
@@ -357,23 +366,10 @@ export default function PrivacyPage() {
                             </p>
                         </section>
 
-                        <div className='mt-8 pt-6 border-t border-purple-500/30'>
-                            <p className='text-sm text-gray-400'>
-                                <strong>Last updated:</strong> October 28, 2025, 6:52 PM GMT+3
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='mt-8 text-center'>
-                        <Link
-                            href={`/${locale}`}
-                            className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300'
-                        >
-                            Back to Home
-                        </Link>
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

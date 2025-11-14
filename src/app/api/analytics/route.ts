@@ -1,18 +1,31 @@
 import { NextResponse } from 'next/server';
 
+const FALLBACK_DATA = {
+    totalFilesScanned: 0,
+    totalThreatsDetected: 0,
+    averageScanTimeMs: 0,
+    lastUpdated: new Date().toISOString(),
+    totalSafeFiles: 0,
+    averageScore: 0,
+    firstScanDate: new Date().toISOString(),
+    lastScanDate: new Date().toISOString(),
+    totalScanTimeMs: 0,
+    threatDetectionRate: 0,
+};
+
 export async function GET() {
     try {
         const apiKey = process.env.SAFETURNED_API_KEY;
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         if (!apiKey) {
-            console.error('SAFETURNED_API_KEY environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
+            console.warn('SAFETURNED_API_KEY environment variable is not set, returning fallback data');
+            return NextResponse.json(FALLBACK_DATA);
         }
 
         if (!apiUrl) {
-            console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
+            console.warn('NEXT_PUBLIC_API_URL environment variable is not set, returning fallback data');
+            return NextResponse.json(FALLBACK_DATA);
         }
 
         const response = await fetch(`${apiUrl}/v1.0/files/analytics`, {
@@ -25,13 +38,14 @@ export async function GET() {
         });
 
         if (!response.ok) {
-            throw new Error(`API responded with status: ${response.status}`);
+            console.warn(`Analytics API responded with status: ${response.status}, returning fallback data`);
+            return NextResponse.json(FALLBACK_DATA);
         }
 
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching analytics:', error);
-        return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
+        console.warn('Error fetching analytics, returning fallback data:', error);
+        return NextResponse.json(FALLBACK_DATA);
     }
 }

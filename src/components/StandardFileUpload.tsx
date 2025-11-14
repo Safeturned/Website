@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatFileSize } from '@/lib/utils';
+import { getRandomLoadingMessage } from '@/lib/loadingMessages';
+import { useTypingEffect } from '@/hooks/useTypingEffect';
 
 interface StandardFileUploadProps {
     onFileSelect: (file: File) => void;
@@ -39,6 +41,18 @@ export default function StandardFileUpload({
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loadingMessage, setLoadingMessage] = useState(getRandomLoadingMessage());
+    const { displayedText: typedMessage, isComplete } = useTypingEffect(loadingMessage, 30);
+
+    useEffect(() => {
+        if (isUploading) {
+            setLoadingMessage(getRandomLoadingMessage());
+            const interval = setInterval(() => {
+                setLoadingMessage(getRandomLoadingMessage());
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [isUploading]);
 
     const validateFile = useCallback(
         (file: File): string | null => {
@@ -206,22 +220,22 @@ export default function StandardFileUpload({
                         </div>
 
                         <div>
-                            <p className='text-base md:text-lg font-medium text-white mb-2'>
-                                {t('upload.title', 'Choose file to upload')}
+                            <p className='text-lg md:text-xl font-semibold text-white mb-2'>
+                                {t('upload.title', 'Drop your plugin here')}
                             </p>
-                            <p className='text-gray-400 text-xs md:text-sm mb-4'>
-                                {t('upload.subtitle', 'or drag and drop here')}
+                            <p className='text-gray-400 text-sm md:text-base mb-4'>
+                                {t('upload.subtitle', 'or click to browse')}
                             </p>
                         </div>
 
-                        <div className='text-xs text-gray-500'>
+                        <div className='text-xs text-gray-500 space-y-1'>
                             <p>
-                                {t('upload.maxSize', 'Max file size: {{size}}', {
+                                {t('upload.maxSize', 'Up to {{size}}', {
                                     size: formatFileSize(maxFileSize, t),
                                 })}
                             </p>
                             <p>
-                                {t('upload.acceptedTypes', 'Accepted types: {{types}}', {
+                                {t('upload.acceptedTypes', '{{types}} files only', {
                                     types: acceptedFileTypes.join(', '),
                                 })}
                             </p>
@@ -247,7 +261,7 @@ export default function StandardFileUpload({
 
                         <div>
                             <p className='text-lg md:text-xl font-semibold text-white mb-2'>
-                                {t('upload.fileSelected', 'File selected')}
+                                {t('upload.fileSelected', 'Ready to scan')}
                             </p>
                             <p
                                 className='text-gray-400 truncate max-w-full text-sm md:text-base'
@@ -269,15 +283,15 @@ export default function StandardFileUpload({
                                     />
                                 </div>
                                 <div className='text-center'>
-                                    <p className='text-sm text-gray-300'>
-                                        {useChunkedUpload && uploadStatus
-                                            ? uploadStatus
-                                            : t('upload.uploading', 'Uploading...')}
+                                    <p className='text-sm text-purple-300 font-medium'>
+                                        {typedMessage}
+                                        {!isComplete && <span className='animate-pulse'>▊</span>}
                                     </p>
-                                    {useChunkedUpload && (
-                                        <p className='text-xs text-gray-400 mt-1'>
-                                            {Math.round(uploadProgress)}% complete
-                                        </p>
+                                    <p className='text-xs text-gray-400 mt-1'>
+                                        {Math.round(uploadProgress)}% complete
+                                    </p>
+                                    {useChunkedUpload && uploadStatus && (
+                                        <p className='text-xs text-gray-500 mt-1'>{uploadStatus}</p>
                                     )}
                                     {isPreparing && (
                                         <div className='flex items-center justify-center mt-2'>
@@ -294,9 +308,11 @@ export default function StandardFileUpload({
                                         handleUpload();
                                     }}
                                     disabled={disabled}
-                                    className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100 text-sm md:text-base'
+                                    className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95 disabled:hover:scale-100 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800'
                                 >
-                                    {t('upload.upload', 'Upload')}
+                                    {error
+                                        ? t('upload.uploadAgain', 'Scan Again')
+                                        : t('upload.upload', 'Scan Now')}
                                 </button>
                                 <button
                                     onClick={e => {
@@ -304,7 +320,7 @@ export default function StandardFileUpload({
                                         handleClearFile();
                                     }}
                                     disabled={disabled}
-                                    className='bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 px-6 md:px-8 py-2 md:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-110 active:scale-95 disabled:hover:scale-100 text-sm md:text-base'
+                                    className='bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-gray-200 px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-800'
                                 >
                                     {t('upload.cancel', 'Cancel')}
                                 </button>
@@ -314,8 +330,21 @@ export default function StandardFileUpload({
                 )}
 
                 {error && (
-                    <div className='mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
-                        <p className='text-sm text-red-600 dark:text-red-400'>{error}</p>
+                    <div className='mt-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg'>
+                        <div className='flex items-center gap-2'>
+                            <svg
+                                className='w-5 h-5 text-red-400 flex-shrink-0'
+                                fill='currentColor'
+                                viewBox='0 0 20 20'
+                            >
+                                <path
+                                    fillRule='evenodd'
+                                    d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z'
+                                    clipRule='evenodd'
+                                />
+                            </svg>
+                            <p className='text-sm text-red-300'>{error}</p>
+                        </div>
                     </div>
                 )}
             </div>

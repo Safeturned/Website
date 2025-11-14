@@ -2,11 +2,18 @@
     "nav": {
         "features": "Features",
         "howItWorks": "How it works",
-        "contacts": "Contacts"
+        "contacts": "Contacts",
+        "docs": "Docs",
+        "github": "GitHub",
+        "discord": "Discord",
+        "apiDocumentation": "API Documentation",
+        "githubOrganization": "GitHub Organization",
+        "joinDiscord": "Join our Discord Community",
+        "backToTop": "Back to top"
     },
     "hero": {
         "title": "Safeturned",
-        "subtitle": "Protect your Unturned server from malicious plugins. Automatic code scanning for backdoors and vulnerabilities.",
+        "subtitle": "Keep your Unturned server safe. We check plugins for backdoors and sketchy stuff so you don't have to.",
         "uploadTitle": "Upload plugin for scanning",
         "uploadSubtitle": "Supported files: .dll",
         "scanButton": "Start scan",
@@ -16,12 +23,13 @@
         "confirmUpload": "Confirm upload"
     },
     "upload": {
-        "title": "Choose file to upload",
-        "subtitle": "or drag and drop here",
-        "maxSize": "Max file size: {{size}}",
-        "acceptedTypes": "Accepted types: {{types}}",
-        "fileSelected": "File selected",
-        "upload": "Upload",
+        "title": "Drop your plugin here",
+        "subtitle": "or click to browse",
+        "maxSize": "Up to {{size}}",
+        "acceptedTypes": "{{types}} files only",
+        "fileSelected": "Ready to scan",
+        "upload": "Scan Now",
+        "uploadAgain": "Scan Again",
         "cancel": "Cancel",
         "uploading": "Uploading...",
         "uploadingChunks": "Uploading chunks... {{progress}}%"
@@ -34,24 +42,62 @@
         "fileSize": "File size",
         "processingTime": "Processing time",
         "checkedItemsTitle": "Checked items:",
+        "analyzerVersion": "Analyzer Version:",
         "safe": "Safe",
         "unsafe": "Unsafe",
         "suspicious": "Suspicious",
         "loading": "Loading analysis...",
         "notFound": "Analysis not found",
-        "notFoundDescription": "The requested analysis could not be found. Please check the hash or upload a new file.",
+        "notFoundDescription": "Couldn't find that analysis. Double-check the hash or upload a new file.",
         "backToHome": "Back to Home",
         "searchPlaceholder": "Enter SHA-256 hash to search...",
         "search": "Search",
         "lastAnalysisDate": "Last Analysis Date",
         "analysisResults": "Analysis Results",
-        "reanalyzeDescription": "Want to reanalyze this file? Click the button below to get fresh results.",
+        "reanalyzeDescription": "Want to scan this file again? Hit the button below for fresh results.",
         "reanalyzeButton": "Reanalyze",
-        "shareDescription": "Share this analysis with others",
+        "reanalyzeInfo": "We don't store files. Reanalyzing updates the scan results using stored metadata (file hash and name).",
+        "shareDescription": "Share this scan with others",
         "shareButton": "Share",
         "shareTitle": "Plugin Analysis Result",
         "shareText": "Check out this plugin analysis:",
-        "linkCopied": "Link copied to clipboard!"
+        "linkCopied": "Link copied to clipboard!",
+        "securityAnalysis": {
+            "title": "Security Analysis",
+            "detectionEngine": "Detection Engine",
+            "detectionEngines": "Detection Engines",
+            "detectionsFound": "detection found",
+            "detectionsFoundPlural": "detections found",
+            "noDetections": "No detections found",
+            "blacklistedCommands": "Blacklisted Commands",
+            "blacklistedCommandsDesc": "Scans for dangerous Rocket console commands (admin, shutdown, ban, etc.)",
+            "detected": "Detected",
+            "clean": "Clean",
+            "comingSoon": "Coming Soon",
+            "moreAnalyzersNote": "More security analyzers coming soon.",
+            "securityCheck": "security check",
+            "securityChecks": "security checks",
+            "checksDetected": "detected",
+            "highRisk": "High Risk",
+            "mediumRisk": "Medium Risk",
+            "lowRisk": "Low Risk",
+            "technicalDetails": "Technical Details",
+            "detectionsNote": "These detections indicate potential security risks or suspicious behaviors found during static analysis. Not all detections are malicious - legitimate software may also trigger some of these checks depending on its functionality."
+        },
+        "analysisResult": {
+            "title": "Analysis Result"
+        },
+        "assemblyMetadata": {
+            "title": "Assembly Metadata",
+            "company": "Company:",
+            "product": "Product:",
+            "assemblyTitle": "Title:",
+            "guid": "GUID:",
+            "copyright": "Copyright:"
+        },
+        "embedBadge": {
+            "title": "Embed Badge in Your README"
+        }
     },
     "stats": {
         "checkedPlugins": "Analyzed plugins",
@@ -75,33 +121,43 @@
         "gb": "GB"
     },
     "features": {
-        "title": "Safeturned Features",
-        "codeAnalysis": "Code Analysis",
-        "codeAnalysisDescription": "Deep static analysis of plugin source code for suspicious patterns",
+        "title": "What We Do",
+        "codeAnalysis": "Smart Scanning",
+        "codeAnalysisDescription": "We dig through plugin code to find anything that looks sketchy or off",
         "threatDetection": "Threat Detection",
-        "threatDetectionDescription": "Detection of backdoors, trojans and other malicious components in plugins",
-        "fastCheck": "Fast Scanning",
-        "fastCheckDescription": "Analysis results in seconds with detailed report of found issues"
+        "threatDetectionDescription": "Catches backdoors, trojans, and other nasty stuff hiding in your plugins",
+        "fastCheck": "Quick Results",
+        "fastCheckDescription": "Get your results in seconds, not hours. We'll show you exactly what we found"
     },
     "howItWorks": {
-        "title": "How it works",
+        "title": "How It Works",
         "step1": {
-            "title": "Upload plugin",
-            "description": "Upload plugin file (.dll) through web interface"
+            "title": "Upload your plugin",
+            "description": "Just drag and drop your .dll file. That's it."
         },
         "step2": {
-            "title": "Code analysis",
-            "description": "System analyzes code for suspicious functions and patterns"
+            "title": "We scan it",
+            "description": "Our system looks for sketchy code, backdoors, and anything that seems off"
         },
         "step3": {
-            "title": "Get results",
-            "description": "Get detailed report with security assessment and recommendations"
+            "title": "See the results",
+            "description": "Get a clear report showing what we found and whether your plugin is safe to use"
         }
     },
     "footer": {
-        "protectionMessage": "Protect your server from malicious plugins",
+        "protectionMessage": "Keep your server safe, one plugin at a time",
         "allRightsReserved": "All rights reserved",
-        "disclaimer": "This site is not affiliated with Smartly Dressed Games or Unturned. Unturned® is a registered trademark or trademark of Smartly Dressed Games Ltd. in the United States, Canada, and other countries."
+        "disclaimer": "This site is not affiliated with Smartly Dressed Games or Unturned. Unturned® is a registered trademark or trademark of Smartly Dressed Games Ltd. in the United States, Canada, and other countries.",
+        "quickLinks": "Quick Links",
+        "discordCommunity": "Discord Community",
+        "openSource": "Open Source",
+        "viewSourceCode": "View Source Code",
+        "fileChecker": "File Checker",
+        "apiServer": "API Server",
+        "website": "Website",
+        "apiRepository": "API Repository",
+        "websiteRepository": "Website Repository",
+        "fileCheckerRepository": "File Checker (Analyzer)"
     },
     "github": {
         "tooltip": "View on GitHub - Open Source"
@@ -113,7 +169,7 @@
         "analysisTimeout": "Analysis is taking longer than expected (waited 2 minutes). Please try again in a few moments or check back later."
     },
     "dragDrop": {
-        "tip": "💡 Tip: You can also drag and drop .dll files anywhere on this page to analyze them",
+        "tip": "💡 Tip: You can drag and drop .dll files anywhere on this page to scan them",
         "overlayTitle": "Drop file to analyze",
         "overlayDescription": "Release to upload and analyze your .dll file",
         "title": "Drop file here",
@@ -129,26 +185,109 @@
         "cancel": "Cancel",
         "uploading": "Uploading...",
         "uploadingChunks": "Uploading large file",
-        "disclaimer": "By submitting data above, you are agreeing to our Terms of Service and Privacy Notice. Please do not submit any personal information; we are not responsible for the contents of your submission."
+        "disclaimer": "By uploading, you agree to our Terms of Service and Privacy Notice. Don't upload personal info - we're not responsible for what you submit."
     },
     "scanning": {
         "processing": "Processing your file",
         "longRunning": "This is taking longer than usual",
         "longRunningTitle": "Analysis in Progress",
-        "longRunningDescription": "Your file has been processing for {{elapsedTime}} seconds. This is normal for complex files.",
+        "longRunningDescription": "Your file's been processing for {{elapsedTime}} seconds. This is normal for bigger files.",
         "estimatedTime": "Estimated completion: 1-2 minutes"
     },
     "consent": {
-        "prefix": "By submitting data above, you are agreeing to our ",
-        "termsOfService": "Terms of Service",
+        "prefix": "By uploading, you agree to our ",
+        "termsOfService": "Terms",
         "and": " and ",
-        "privacyNotice": "Privacy Notice",
-        "suffix": ". Please do not submit any personal information; we are not responsible for the contents of your submission. ",
+        "privacyNotice": "Privacy Policy",
+        "suffix": ". Don't upload personal stuff. ",
         "learnMore": "Learn more",
         "suffix2": "."
     },
     "analytics": {
         "lastUpdated": "Data updated"
+    },
+    "menu": {
+        "dashboard": "Dashboard",
+        "apiKeys": "API Keys",
+        "scanHistory": "Scan History",
+        "usage": "Usage & Analytics",
+        "notifications": "Notifications",
+        "adminPanel": "Admin Panel",
+        "logout": "Logout",
+        "login": "Login"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcomeBack": "Welcome back, {{username}}!",
+        "backToDashboard": "← Back to Dashboard",
+        "yourActivity": "Your Activity",
+        "recentScans": "Recent Scans",
+        "viewAll": "View All →",
+        "totalScans": "Total Scans",
+        "cleanFiles": "Clean Files",
+        "threatsFound": "Threats Found",
+        "avgScore": "Avg Score",
+        "apiRequests": "API Requests",
+        "fileSizeLimit": "File Size Limit",
+        "prioritySupport": "Priority Support",
+        "uploadFile": "Upload File",
+        "scanNewFile": "Scan a new file",
+        "manageKeys": "Manage your keys",
+        "viewPastScans": "View past scans",
+        "apiStatistics": "API statistics",
+        "alertsUpdates": "Alerts & updates"
+    },
+    "scans": {
+        "title": "Scan History",
+        "description": "View your past file scans and results",
+        "status": "Status",
+        "time": "Time",
+        "date": "Date",
+        "score": "Score",
+        "fileName": "File name",
+        "threat": "Threat",
+        "clean": "Clean",
+        "searchPlaceholder": "Search by filename...",
+        "loading": "Loading scans...",
+        "noScans": "No Scans Yet",
+        "noScansDesc": "Upload a file to see your scan results here",
+        "avgTime": "Avg Time",
+        "resultUnavailable": "Scan result is not available. File hash not found."
+    },
+    "apiKeys": {
+        "title": "API Keys",
+        "description": "Manage your API keys for programmatic access",
+        "noKeys": "No API Keys Yet",
+        "createFirst": "Create your first API key to start using the Safeturned API",
+        "learnMore": "Learn how to use your API keys to integrate Safeturned into your applications.",
+        "visitDocs": "Visit our API documentation for code examples and usage guides."
+    },
+    "usage": {
+        "title": "API Usage & Analytics",
+        "description": "Monitor your API key usage and performance metrics",
+        "noUsage": "No API Usage Yet",
+        "description1": "This page only tracks",
+        "description2": "API key usage",
+        "description3": ".",
+        "description4": "Uploading files through the website doesn't count as API usage.",
+        "note": "Note: Website uploads show up in your",
+        "scanHistory": "Scan History",
+        "notHere": "instead.",
+        "createKey": "Create API Key",
+        "viewHistory": "View Scan History"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "loading": "Loading notifications...",
+        "noNotifications": "No Notifications",
+        "noNotificationsDesc": "You don't have any notifications yet. Upload files to start scanning!",
+        "noFilterNotifications": "No {{filter}} notifications found.",
+        "all": "All",
+        "threats": "Threats",
+        "clean": "Clean",
+        "about": "About Notifications",
+        "aboutDesc1": "This page shows notifications for all your scan results. Threat notifications mean files might be dangerous and need your attention.",
+        "aboutDesc2": "Clean notifications mean files passed our security checks."
     },
     "terms": {
         "title": "Terms of Service",
@@ -208,26 +347,30 @@
             },
             "rateLimits": {
                 "title": "Rate Limits",
-                "content": "Upload and analysis requests are rate-limited"
+                "content": "Upload and analysis requests are rate-limited based on your account tier: Free (60/hour), Verified (300/hour), Premium (1000/hour), Bot (10,000/hour with 100/minute burst limit). Excessive usage may result in temporary suspension."
             }
         },
         "dataHandling": {
             "title": "5. Data Handling",
-            "noFileStorage": {
-                "title": "No File Storage",
-                "content": "Plugin files are processed in memory and immediately discarded"
+            "temporaryStorage": {
+                "title": "Temporary File Storage",
+                "content": "For large files (>100MB), files are temporarily stored in encrypted chunks during upload and processing. All chunks and temporary files are automatically deleted after analysis completes or if the session expires (24 hours)."
+            },
+            "fileProcessing": {
+                "title": "File Processing",
+                "content": "Smaller files (<100MB) are processed in memory and immediately discarded. Larger files use chunked upload and temporary storage but are deleted after scanning."
             },
             "metadataOnly": {
                 "title": "Metadata Only",
-                "content": "Only file metadata (hash, name, size, scan results) is stored"
+                "content": "Only file metadata (hash, name, size, scan results, assembly information) is stored permanently. The actual file contents are never permanently stored."
             },
-            "noContentAnalysis": {
-                "title": "No Content Analysis",
-                "content": "We do not store or analyze the actual code content"
+            "noContentStorage": {
+                "title": "No Content Storage",
+                "content": "We do not permanently store or analyze the actual code content beyond generating the security scan results"
             },
             "analyticsData": {
                 "title": "Analytics Data",
-                "content": "Aggregated statistics are collected for service improvement"
+                "content": "Aggregated anonymous statistics are collected for service improvement and public display"
             }
         },
         "intellectualProperty": {
@@ -313,5 +456,474 @@
             "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
         },
         "lastUpdated": "Data updated"
+    },
+    "badges": {
+        "title": "Manage Badges",
+        "description": "Create badges for your scanned files to show in your README",
+        "about": "About Badges",
+        "aboutDescription": "Badges are links you can add to your README that show your scan results. They update automatically when you link new files.",
+        "security": "Security",
+        "securityDescription": "Your badges are yours alone. Nobody else can change what they show, even if they upload a file with the same name.",
+        "createFromResult": "Want to create a badge? Head to any scan result page and hit \"Create Badge\"",
+        "loading": "Loading badges...",
+        "yourBadges": "Your Badges",
+        "created": "Created",
+        "updated": "Updated",
+        "copyMarkdown": "Copy Markdown",
+        "copied": "✓ Copied!",
+        "confirm": "Confirm",
+        "delete": "Delete",
+        "currentlyShowing": "Currently showing:",
+        "lastScanned": "Last scanned:",
+        "riskScore": "Risk Score:",
+        "preview": "Preview:",
+        "id": "ID:",
+        "noBadges": "No Badges Yet",
+        "noBadgesDesc": "Pick one of your scanned files below to create a badge.",
+        "loadingFiles": "Loading your files...",
+        "noScannedFiles": "No Scanned Files",
+        "noScannedFilesDesc": "You haven't scanned anything yet. Upload a file to get started!",
+        "scanFile": "Scan a File",
+        "createFromScanned": "Create Badge from Scanned Files",
+        "yourScannedFiles": "Your Scanned Files",
+        "viewResult": "View Result",
+        "hashUnavailable": "Hash missing - go to the result page to create a badge",
+        "createBadge": "Create Badge",
+        "createFor": "Creating badge for:",
+        "createFailed": "Couldn't create badge",
+        "noHash": "This file doesn't have a hash, so we can't create a badge for it.",
+        "badgeName": "Badge Name",
+        "descriptionOptional": "Description (optional)",
+        "namePlaceholder": "e.g., MyPlugin v1.0",
+        "descriptionPlaceholder": "What's this badge for?",
+        "creating": "Creating...",
+        "embedTitle": "Embed Badge in Your README",
+        "recommended": "Recommended",
+        "recommendedDescription": "Get your own badge ID that only you control. This stops anyone else from messing with your badge, even if they upload a file with the same name.",
+        "createSecure": "Create Secure Badge",
+        "createSecureProduction": "Create Secure Badge for Production",
+        "createSecureDescription": "Want a badge that only you can update? Just",
+        "signIn": "sign in",
+        "secureDescription": " and you're good to go. Secure badges can't be hijacked by others.",
+        "warning": "Heads up:",
+        "warningDescription": "The filename-based badges below can be taken over if someone uploads a file with the same name.",
+        "useSecure": "For real projects, use the secure badges above instead.",
+        "createSecureForProduction": "to make secure badges for your projects.",
+        "quickBadge": "Quick badges by filename (not as secure):",
+        "markdown": "Markdown (GitHub README):",
+        "html": "HTML:",
+        "copy": "Copy",
+        "markdownCopied": "Copied!",
+        "htmlCopied": "Copied!",
+        "autoUpdate": "The badge updates automatically when you re-scan the file. It links back to this page.",
+        "badgeCreated": "Badge created!",
+        "manageVerification": "Manage verification badges",
+        "updates": "Updates",
+        "autoUpdateEnabled": "Auto-Update Enabled",
+        "autoUpdateDisabled": "Auto-Update Disabled",
+        "enableAutoUpdate": "Enable Auto-Update",
+        "disableAutoUpdate": "Disable Auto-Update",
+        "regenerateToken": "Regenerate Token",
+        "autoUpdateDescription": "When enabled, this badge will automatically update when you upload new versions of your file with the update token. You'll receive a secure token to include in your uploads.",
+        "updateToken": "Update Token",
+        "tokenWarning": "Save this token securely - it won't be shown again!",
+        "tokenDescription": "Include this token when uploading files to automatically update this badge. Keep it secret!",
+        "copyToken": "Copy Token",
+        "tokenSecurityWarning": "⚠️ Never share this token publicly or commit it to version control. Anyone with this token can update your badge.",
+        "regenerateFailed": "Failed to regenerate token",
+        "toggleFailed": "Failed to toggle auto-update",
+        "deleteFailed": "Failed to delete badge",
+        "close": "Close",
+        "deleteConfirm": {
+            "title": "Delete Badge?",
+            "message": "Are you sure you want to delete the badge \"{{badgeName}}\"? This action cannot be undone."
+        },
+        "regenerateTokenConfirm": {
+            "title": "Regenerate Token?",
+            "message": "Are you sure you want to regenerate the token for badge \"{{badgeName}}\"? Your old token will stop working immediately and you'll receive a new one."
+        },
+        "duplicateWarning": "You already have a badge for this file:",
+        "duplicateConfirm": "Do you want to create another badge?",
+        "directUrl": "Direct URL",
+        "autoUpdateWithTokens": "Auto-Update with Tokens",
+        "autoUpdateTokenDescription": "Enable auto-update to receive a secure token. Include this token when uploading new versions to automatically update your badge without changing the badge URL.",
+        "perfectForCICD": "💡 Perfect for CI/CD pipelines and automated releases"
+    },
+    "risk": {
+        "highRisk": "High Risk",
+        "moderateRisk": "Moderate Risk",
+        "lowRisk": "Low Risk",
+        "fileAppearsSafe": "File Appears Safe",
+        "highRiskDetected": "High Risk Detected",
+        "moderateRiskDetected": "Moderate Risk Detected",
+        "lowRiskDetected": "Low Risk Detected",
+        "highRiskDescription": "High risk detected. Do not use this file.",
+        "moderateRiskDescription": "Suspicious patterns found. Use with caution.",
+        "lowRiskDescription": "Some concerns detected. Review before use.",
+        "safeDescription": "No threats found. File appears safe.",
+        "analysisNote": "Analysis Note:",
+        "howCalculate": "How We Calculate the Score",
+        "scoreBasedOn": "Score {{score}}/100 is based on:",
+        "apiCalls": "API calls and system access patterns",
+        "suspiciousCode": "Suspicious code structures",
+        "fileBehavior": "File behavior and permissions",
+        "maliciousSignatures": "Known malicious signatures",
+        "recommendations": "Recommendations",
+        "doNotUse": "Do not use this file",
+        "deleteFile": "Delete the file",
+        "scanSystem": "Scan your system",
+        "reportSource": "Report to the source",
+        "useCaution": "Use with caution",
+        "onlyIfTrust": "Only use if you trust the source",
+        "testSandbox": "Test in a sandbox first",
+        "monitorBehavior": "Monitor system behavior",
+        "reviewBeforeUse": "Review before use",
+        "verifySource": "Verify the source",
+        "checkPermissions": "Check file permissions",
+        "keepBackups": "Keep backups",
+        "safeToUse": "Safe to use",
+        "passedChecks": "Passed security checks",
+        "downloadTrusted": "Download from trusted sources"
+    },
+    "apiKeys": {
+        "title": "API Keys",
+        "description": "Manage your API keys for programmatic access",
+        "createNew": "Create New Key",
+        "error": "Error",
+        "keyCreated": "API Key Created!",
+        "saveSecurely": "Save this key now - you won't be able to see it again!",
+        "copy": "Copy",
+        "saved": "I've Saved My Key",
+        "revokeTitle": "Revoke API Key?",
+        "revokeConfirm": "Are you sure you want to revoke",
+        "revokeWarning": "This can't be undone and will immediately stop all requests using this key.",
+        "cancel": "Cancel",
+        "revokeKey": "Revoke Key",
+        "regenerateTitle": "Regenerate API Key?",
+        "regenerateConfirm": "Regenerate",
+        "regenerateWarning": "The old key gets revoked right away and a new one is generated.",
+        "createTitle": "Create New API Key",
+        "keyName": "Key Name",
+        "keyNameDescription": "Give your key a name so you remember what it's for",
+        "keyNamePlaceholder": "e.g., My Server, Development, Personal Project",
+        "creating": "Creating...",
+        "create": "Create",
+        "noKeys": "No API Keys Yet",
+        "noKeysDesc": "Create your first API key to get started",
+        "createKey": "Create API Key",
+        "revoked": "Revoked",
+        "created": "Created",
+        "lastUsed": "Last Used",
+        "never": "Never",
+        "rateLimit": "Rate Limit",
+        "perHour": "/hour",
+        "scopes": "Scopes",
+        "documentation": "API Documentation",
+        "documentationDescription": "Want to use your API keys? Check out our API docs for code examples and guides.",
+        "fetchFailed": "Failed to fetch API keys",
+        "loadFailed": "Failed to load API keys",
+        "enterName": "Please enter a name for the API key",
+        "createFailed": "Failed to create API key",
+        "networkError": "Network error. Please check your connection and try again.",
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "revokeFailed": "Failed to revoke API key",
+        "regenerateFailed": "Failed to regenerate API key"
+    },
+    "login": {
+        "title": "Login to manage your API keys and scans",
+        "loginWithDiscord": "Login with Discord",
+        "or": "or",
+        "continueGuest": "Continue as Guest",
+        "agreeTerms": "By logging in, you agree to our",
+        "termsOfService": "Terms of Service",
+        "and": "and",
+        "privacyPolicy": "Privacy Policy",
+        "whyCreate": "Why create an account?",
+        "manageKeys": "Generate and manage API keys",
+        "viewHistory": "See your scan history and usage stats",
+        "higherLimits": "Higher rate limits (60 requests/hour)"
+    },
+    "common": {
+        "loading": "Loading...",
+        "cancel": "Cancel",
+        "uploading": "Uploading...",
+        "processing": "Processing your file...",
+        "complete": "complete",
+        "cancelUpload": "Cancel Upload",
+        "sha256": "SHA-256:",
+        "pleaseSelectDll": "Please select a .dll file",
+        "shareFailed": "Failed to share",
+        "copyLinkFailed": "Failed to copy link",
+        "reanalysisFailed": "Reanalysis failed",
+        "createBadgeFailed": "Failed to create badge",
+        "loadAnalysisFailed": "Failed to load analysis",
+        "preview": "Preview:",
+        "user": "User",
+        "active": "active",
+        "malicious": "malicious",
+        "administrators": "administrators",
+        "close": "Close"
+    },
+    "admin": {
+        "title": "Admin Dashboard",
+        "description": "System management and analytics",
+        "backToDashboard": "Back to Dashboard",
+        "userManagement": {
+            "title": "User Management",
+            "description": "Manage users, tiers, and permissions",
+            "viewAndManage": "View and manage all users, update tiers, and grant admin privileges",
+            "adminStatus": "Admin Status",
+            "adminsOnly": "Admins Only",
+            "nonAdmins": "Non-Admins",
+            "grantAdmin": "Grant Admin",
+            "revokeAdmin": "Revoke Admin",
+            "failedToLoad": "Failed to load users",
+            "failedToUpdateTier": "Failed to update user tier",
+            "failedToUpdateAdmin": "Failed to update admin status",
+            "failedToToggleStatus": "Failed to toggle user status",
+            "search": "Search",
+            "tier": "Tier",
+            "allTiers": "All Tiers",
+            "allUsers": "All Users",
+            "clearFilters": "Clear Filters",
+            "user": "User",
+            "status": "Status",
+            "active": "Active",
+            "inactive": "Inactive",
+            "activate": "Activate",
+            "deactivate": "Deactivate",
+            "showing": "Showing {{count}} of {{total}} users",
+            "searchPlaceholder": "Email or username...",
+            "activity": "Activity",
+            "actions": "Actions",
+            "page": "Page {{current}} of {{total}}",
+            "previous": "Previous",
+            "next": "Next"
+        },
+        "analytics": {
+            "title": "System Analytics",
+            "description": "View detailed system analytics, recent activity, and usage trends",
+            "failedToLoad": "Failed to load analytics"
+        },
+        "stats": {
+            "totalUsers": "Total Users",
+            "totalScans": "Total Scans",
+            "apiKeys": "API Keys",
+            "admins": "Admins",
+            "usersByTier": "Users by Tier"
+        },
+        "adminPanel": "Admin Panel",
+        "manageUsersSystem": "Manage users & system"
+    },
+    "docs": {
+        "title": "API Documentation",
+        "subtitle": "Learn how to use the Safeturned API to scan Unturned plugins programmatically.",
+        "backToHome": "Back to Home",
+        "common": {
+            "collapse": "Collapse",
+            "expand": "Expand"
+        },
+        "gettingStarted": {
+            "title": "Getting Started",
+            "step1": "Sign in with Discord or Steam",
+            "step2": "Go to your",
+            "step3": "Click \"Create New Key\" and give it a name",
+            "step4": "Copy your key and save it somewhere safe (you won't see it again!)",
+            "signIn": "Sign in",
+            "apiKeysPage": "API Keys page"
+        },
+        "rateLimits": {
+            "title": "Rate Limits",
+            "free": "Free",
+            "freeDesc": "Default for new users",
+            "verified": "Verified",
+            "verifiedDesc": "For verified users",
+            "premium": "Premium",
+            "premiumDesc": "For premium users",
+            "bot": "Bot",
+            "botDesc": "For Discord bots (admin-created)"
+        },
+        "endpoints": {
+            "title": "API Endpoints",
+            "upload": {
+                "title": "Upload and scan a .dll file. Returns the scan results immediately.",
+                "params": "Parameters:",
+                "paramFile": "The .dll file to scan (multipart/form-data)",
+                "paramForce": "Set to true to re-scan an existing file (optional)"
+            },
+            "chunkedUpload": {
+                "title": "Upload large files using chunked upload (for files over 100MB)",
+                "exampleTitle": "Chunked Upload Example",
+                "processTitle": "Chunked Upload Process:",
+                "step1": "Initialize upload session with file metadata (fileName, fileSizeBytes, fileHash, totalChunks)",
+                "step2": "Upload each chunk with sessionId, chunkIndex, and chunk data",
+                "step3": "Finalize upload to complete file processing",
+                "tip": "Chunked uploads are ideal for large files, slow connections, or resumable uploads. Each chunk should be 1-5MB for optimal performance."
+            },
+            "getByHash": {
+                "title": "Get scan results for a specific file using its SHA-256 hash."
+            },
+            "getByFilename": {
+                "title": "Get the most recent scan results for a file by its filename."
+            },
+            "analytics": {
+                "title": "Get platform-wide analytics (no auth required)."
+            }
+        },
+        "codeExamples": {
+            "title": "Code Examples",
+            "intro": "Replace",
+            "yourApiKey": "YOUR_API_KEY",
+            "withKey": "with the API key you created in your dashboard.",
+            "copy": "Copy",
+            "copied": "✓ Copied!"
+        },
+        "response": {
+            "title": "Response Format",
+            "fileName": "Name of the scanned file",
+            "hash": "SHA-256 hash of the file",
+            "score": "Risk score from 0-100 (higher = more risky)",
+            "isNew": "Whether this is a new scan or cached result",
+            "message": "Human-readable status message",
+            "uploadedAt": "When the scan was requested",
+            "lastScanned": "When the file was last analyzed",
+            "fileSizeBytes": "Size of the file in bytes"
+        },
+        "riskScores": {
+            "title": "Understanding Risk Scores",
+            "safe": "File looks safe. No major concerns found.",
+            "suspicious": "Some suspicious patterns detected. Review before using.",
+            "moderate": "Moderate risk. Use with caution and only if you trust the source.",
+            "dangerous": "High risk detected. Don't use this file."
+        },
+        "errorHandling": {
+            "title": "Error Handling",
+            "unauthorized": "Unauthorized",
+            "tooManyRequests": "Too Many Requests"
+        },
+        "help": {
+            "title": "Need Help?",
+            "discord": "Join our Discord community",
+            "wiki": "Check out the GitHub wiki",
+            "issues": "Report issues on GitHub"
+        },
+        "playground": {
+            "title": "🚀 Try It Out - Interactive API Playground",
+            "intro": "Test the API right here with your own API key. Great for trying things out before you start coding.",
+            "securityWarning": "Keep your key safe:",
+            "securityWarningDesc": "Don't share your API key or commit it to version control. It's like your password - anyone with it can access your account. We only store it in your browser while you're on this page.",
+            "yourApiKey": "Your API Key",
+            "selectEndpoint": "Select API Endpoint",
+            "testUpload": "Test File Upload",
+            "selectFile": "Select .dll file",
+            "testUploadBtn": "Test Upload Endpoint",
+            "testing": "Testing...",
+            "testGetByHash": "Test Get by Hash",
+            "fileHash": "File Hash (SHA-256)",
+            "testGetBtn": "Test Get Endpoint",
+            "fetching": "Fetching...",
+            "testGetByFilename": "Test Get by Filename",
+            "filename": "Filename",
+            "testGetByFilenameBtn": "Test Get by Filename",
+            "testGetAnalytics": "Test Get Analytics",
+            "analyticsDesc": "See stats for all your scanned files - useful for tracking what you've uploaded and how it's doing.",
+            "testAnalyticsBtn": "Test Analytics Endpoint",
+            "chunkedUploadTitle": "Chunked Upload (Documentation Only)",
+            "chunkedUploadDesc": "Files bigger than 100MB need to be uploaded in chunks.",
+            "chunkedStep1": "Tell us about the file you're uploading",
+            "chunkedStep2": "Send the file in pieces, one at a time",
+            "chunkedStep3": "Let us know you're done so we can scan it",
+            "chunkedTip": "Check out the \"Chunked Upload Example\" section above for ready-to-use code in multiple languages.",
+            "curlCommand": "Equivalent curl command:",
+            "curlCommandExample": "Example curl command (Step 1 - Initiate):",
+            "selectFileMsg": "Select a file to see the curl command",
+            "response": "Response",
+            "validationErrors": {
+                "provideKeyAndFile": "Please provide an API key and select a file",
+                "provideKeyAndHash": "Please provide an API key and hash",
+                "provideKeyAndFilename": "Please provide an API key and filename",
+                "provideKey": "Please provide an API key"
+            }
+        },
+        "tierFeatures": {
+            "title": "Rate Limits & Tier Features",
+            "tier": "Tier",
+            "default": "Default",
+            "recommended": "Recommended",
+            "rateLimit": "Rate Limit:",
+            "fileSizeLimit": "File Size Limit:",
+            "apiKeys": "API Keys:",
+            "support": "Support:",
+            "communitySupport": "Community support",
+            "prioritySupport": "Priority support",
+            "additionalFeatures": "Additional features and higher limits",
+            "upToKeys": "Up to {{count}} active keys",
+            "requestsPerHour": "{{count}} requests/hour",
+            "tipIntro": "Tip:",
+            "tipDesc": "You can manage your API keys in the",
+            "tipLink": "API Keys dashboard",
+            "tipDesc2": ". Each tier has a limit on the number of active API keys you can have simultaneously."
+        }
+    },
+    "apiKeys": {
+        "createModal": {
+            "title": "Create New API Key",
+            "keyNameLabel": "Key Name",
+            "keyNameHelp": "Give your key a descriptive name to identify where it will be used",
+            "placeholder": "e.g., My Server, Development, Personal Project",
+            "cancel": "Cancel",
+            "create": "Create Key",
+            "creating": "Creating..."
+        },
+        "keyCreated": {
+            "title": "API Key Created!",
+            "message": "Save this key securely - you won't be able to see it again!",
+            "savedBtn": "I've Saved My Key"
+        },
+        "deleteConfirm": {
+            "title": "Revoke API Key?",
+            "message": "Are you sure you want to revoke",
+            "warning": "This can't be undone - any apps using this key will stop working immediately.",
+            "cancel": "Cancel",
+            "revoke": "Revoke Key"
+        },
+        "regenerateConfirm": {
+            "title": "Regenerate API Key?",
+            "message": "Regenerate",
+            "warning": "Your old key will stop working right away, and you'll get a new one.",
+            "cancel": "Cancel",
+            "regenerate": "Regenerate"
+        },
+        "page": {
+            "backToDashboard": "← Back to Dashboard",
+            "title": "API Keys",
+            "subtitle": "Manage your API keys for programmatic access",
+            "keysLabel": "API Keys:",
+            "limitReached": "Limit reached",
+            "limitReachedTooltip": "API key limit reached for your tier",
+            "createButton": "Create API Key"
+        },
+        "limitWarning": {
+            "title": "API Key Limit Reached",
+            "message": "You've reached the maximum of {{max}} active API key{{plural}} for your current tier. Revoke an existing key to create a new one, or upgrade your plan for more keys."
+        },
+        "error": {
+            "title": "Error"
+        },
+        "emptyState": {
+            "title": "No API Keys Yet",
+            "subtitle": "Create your first API key to get started",
+            "createButton": "Create API Key"
+        },
+        "keyCard": {
+            "revoked": "Revoked",
+            "created": "Created",
+            "lastUsed": "Last Used",
+            "never": "Never",
+            "rateLimit": "Rate Limit",
+            "scopes": "Scopes",
+            "regenerateTooltip": "Regenerate",
+            "revokeTooltip": "Revoke"
+        }
     }
 }

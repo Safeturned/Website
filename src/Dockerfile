@@ -7,8 +7,9 @@ FROM node:25-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG APP_VERSION=dev
 ENV NEXT_TELEMETRY_DISABLED=1
-# Force fresh build by adding timestamp and clearing cache
+ENV NEXT_PUBLIC_APP_VERSION=${APP_VERSION}
 RUN echo "Build timestamp: $(date)" && \
     rm -rf .next && \
     npm run build

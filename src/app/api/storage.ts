@@ -1,5 +1,3 @@
-// In production, this should be replaced with a proper database
-
 interface AnalysisResult {
     id: string;
     createdAt: string;

@@ -1,0 +1,716 @@
+'use client';
+
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { createBearerToken, createJsonAuthHeaders } from '@/lib/authHelpers';
+import { useTranslation } from '@/hooks/useTranslation';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+
+interface ApiKey {
+    id: string;
+    name: string;
+    prefix: string;
+    lastSixChars: string;
+    maskedKey: string;
+    createdAt: string;
+    expiresAt: string | null;
+    lastUsedAt: string | null;
+    isActive: boolean;
+    scopes: string[];
+    ipWhitelist: string | null;
+    requestsPerHour: number;
+    tier: number;
+}
+
+export default function ApiKeysPage() {
+    const { user, isAuthenticated, tokens, isLoading } = useAuth();
+    const { t, locale } = useTranslation();
+    const router = useRouter();
+    const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newKeyName, setNewKeyName] = useState('');
+    const [newKeyResult, setNewKeyResult] = useState<{ key: string; id: string } | null>(null);
+    const [creating, setCreating] = useState(false);
+    const [keyLimits, setKeyLimits] = useState<{ current: number; max: number; canCreateMore: boolean } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{
+        show: boolean;
+        keyId: string;
+        keyName: string;
+    }>({ show: false, keyId: '', keyName: '' });
+    const [regenerateConfirm, setRegenerateConfirm] = useState<{
+        show: boolean;
+        keyId: string;
+        keyName: string;
+    }>({ show: false, keyId: '', keyName: '' });
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push(`/${locale}/login?returnUrl=/dashboard/api-keys`);
+        } else if (isAuthenticated && tokens) {
+            fetchApiKeys();
+            fetchKeyLimits();
+        }
+    }, [isAuthenticated, isLoading, tokens, router, locale]);
+
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (showCreateModal) {
+                    setShowCreateModal(false);
+                    setNewKeyName('');
+                    setError(null);
+                } else if (newKeyResult) {
+                    setNewKeyResult(null);
+                } else if (deleteConfirm.show) {
+                    setDeleteConfirm({ show: false, keyId: '', keyName: '' });
+                } else if (regenerateConfirm.show) {
+                    setRegenerateConfirm({ show: false, keyId: '', keyName: '' });
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [showCreateModal, newKeyResult, deleteConfirm.show, regenerateConfirm.show]);
+
+    const fetchApiKeys = async () => {
+        try {
+            setLoading(true);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
+                headers: {
+                    Authorization: createBearerToken(tokens?.accessToken || ''),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch API keys');
+            }
+
+            const data = await response.json();
+            setApiKeys(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load API keys');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchKeyLimits = async () => {
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/limits`, {
+                headers: {
+                    Authorization: createBearerToken(tokens?.accessToken || ''),
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setKeyLimits(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch key limits:', err);
+        }
+    };
+
+    const createApiKey = async () => {
+        if (!newKeyName.trim()) {
+            setError('Please enter a name for the API key');
+            return;
+        }
+
+        try {
+            setCreating(true);
+            setError(null);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
+                method: 'POST',
+                headers: createJsonAuthHeaders(tokens?.accessToken || ''),
+                body: JSON.stringify({
+                    name: newKeyName,
+                    prefix: 'sk_live',
+                    scopes: ['read', 'analyze'],
+                }),
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'Failed to create API key';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch {
+                    errorMessage = `Failed to create API key: ${response.status} ${response.statusText}`;
+                }
+                setError(errorMessage);
+                setCreating(false);
+                return;
+            }
+
+            const data = await response.json();
+            setNewKeyResult({ key: data.key, id: data.id });
+            setNewKeyName('');
+            setShowCreateModal(false);
+            setError(null);
+            await fetchApiKeys();
+            await fetchKeyLimits();
+        } catch (err) {
+            if (err instanceof Error) {
+                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                    setError('Network error. Please check your connection and try again.');
+                } else {
+                    setError(err.message);
+                }
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const confirmDelete = (keyId: string, keyName: string) => {
+        setDeleteConfirm({ show: true, keyId, keyName });
+    };
+
+    const deleteApiKey = async () => {
+        const keyId = deleteConfirm.keyId;
+        setDeleteConfirm({ show: false, keyId: '', keyName: '' });
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: createBearerToken(tokens?.accessToken || ''),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to revoke API key');
+            }
+
+            await fetchApiKeys();
+            await fetchKeyLimits();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to revoke API key');
+        }
+    };
+
+    const confirmRegenerate = (keyId: string, keyName: string) => {
+        setRegenerateConfirm({ show: true, keyId, keyName });
+    };
+
+    const regenerateApiKey = async () => {
+        const keyId = regenerateConfirm.keyId;
+        setRegenerateConfirm({ show: false, keyId: '', keyName: '' });
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}/regenerate`, {
+                method: 'POST',
+                headers: {
+                    Authorization: createBearerToken(tokens?.accessToken || ''),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to regenerate API key');
+            }
+
+            const data = await response.json();
+            setNewKeyResult({ key: data.key, id: data.id });
+            await fetchApiKeys();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to regenerate API key');
+        }
+    };
+
+    const copyToClipboard = (text: string, id: string = 'default') => {
+        navigator.clipboard.writeText(text);
+        setCopiedKey(id);
+        setTimeout(() => setCopiedKey(null), 2000);
+    };
+
+    if (isLoading || !isAuthenticated || !user) {
+        return (
+            <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
+                <div className='text-center'>
+                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
+                    <p className='text-slate-300 text-lg'>Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white'>
+            <Navigation />
+
+            <div className='max-w-7xl mx-auto px-6 py-12'>
+                <div className='mb-8 flex items-center justify-between'>
+                    <div>
+                        <Link
+                            href={`/${locale}/dashboard`}
+                            className='text-purple-400 hover:text-purple-300 mb-2 inline-block'
+                        >
+                            {t('apiKeys.page.backToDashboard')}
+                        </Link>
+                        <h1 className='text-4xl font-bold'>{t('apiKeys.page.title')}</h1>
+                        <p className='text-slate-400 mt-2'>
+                            {t('apiKeys.page.subtitle')}
+                        </p>
+                        {keyLimits && (
+                            <div className='mt-3 flex items-center gap-2'>
+                                <span className='text-sm text-slate-400'>
+                                    {t('apiKeys.page.keysLabel')} <span className='font-semibold text-white'>{keyLimits.current}</span> / {keyLimits.max === 9999 ? '∞' : keyLimits.max}
+                                </span>
+                                {!keyLimits.canCreateMore && keyLimits.max !== 9999 && (
+                                    <span className='text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded'>
+                                        {t('apiKeys.page.limitReached')}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => {
+                            setShowCreateModal(true);
+                            setError(null);
+                        }}
+                        disabled={keyLimits ? !keyLimits.canCreateMore : false}
+                        className='bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600'
+                        title={keyLimits && !keyLimits.canCreateMore ? t('apiKeys.page.limitReachedTooltip') : ''}
+                    >
+                        {t('apiKeys.page.createButton')}
+                    </button>
+                </div>
+
+                {keyLimits && !keyLimits.canCreateMore && keyLimits.max !== 9999 && (
+                    <div className='mb-6 p-4 bg-orange-900/30 border border-orange-500/50 rounded-lg flex items-start gap-3'>
+                        <svg
+                            className='w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                        </svg>
+                        <div className='flex-1'>
+                            <p className='text-orange-300 font-medium mb-1'>{t('apiKeys.limitWarning.title')}</p>
+                            <p className='text-orange-400 text-sm'>
+                                {t('apiKeys.limitWarning.message', { max: keyLimits.max, plural: keyLimits.max > 1 ? 's' : '' })}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {error && !showCreateModal && (
+                    <div className='mb-6 p-4 bg-red-900/50 border border-red-500/50 rounded-lg flex items-start gap-3'>
+                        <svg
+                            className='w-5 h-5 text-red-400 flex-shrink-0 mt-0.5'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                        </svg>
+                        <div className='flex-1'>
+                            <p className='text-red-300 font-medium mb-1'>{t('apiKeys.error.title')}</p>
+                            <p className='text-red-400 text-sm'>{error}</p>
+                        </div>
+                        <button
+                            onClick={() => setError(null)}
+                            className='text-red-400 hover:text-red-300 transition-colors'
+                            aria-label='Close error'
+                        >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M6 18L18 6M6 6l12 12'
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                )}
+
+                {newKeyResult && (
+                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                        <div className='bg-slate-800 rounded-xl p-8 max-w-2xl w-full border border-slate-700'>
+                            <h3 className='text-2xl font-bold mb-4 text-green-400'>
+                                {t('apiKeys.keyCreated.title')}
+                            </h3>
+                            <p className='text-slate-300 mb-4'>
+                                {t('apiKeys.keyCreated.message')}
+                            </p>
+                            <div className='bg-slate-900 rounded-lg p-4 mb-6 font-mono text-sm break-all'>
+                                <div className='flex items-center justify-between'>
+                                    <code className='text-green-400'>{newKeyResult.key}</code>
+                                    <button
+                                        onClick={() => copyToClipboard(newKeyResult.key, 'newkey')}
+                                        className='ml-4 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors'
+                                    >
+                                        {copiedKey === 'newkey' ? t('docs.codeExamples.copied') : t('docs.codeExamples.copy')}
+                                    </button>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setNewKeyResult(null)}
+                                className='w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 rounded-lg transition-colors'
+                            >
+                                {t('apiKeys.keyCreated.savedBtn')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {deleteConfirm.show && (
+                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                        <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-red-500/50'>
+                            <div className='text-center mb-6'>
+                                <div className='w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4'>
+                                    <svg
+                                        className='w-8 h-8 text-red-400'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
+                                    </svg>
+                                </div>
+                                <h3 className='text-2xl font-bold mb-2 text-white'>
+                                    {t('apiKeys.deleteConfirm.title')}
+                                </h3>
+                                <p className='text-slate-300 mb-2'>
+                                    {t('apiKeys.deleteConfirm.message')}{' '}
+                                    <span className='font-semibold text-white'>
+                                        {deleteConfirm.keyName}
+                                    </span>
+                                    ?
+                                </p>
+                                <p className='text-red-400 text-sm'>
+                                    {t('apiKeys.deleteConfirm.warning')}
+                                </p>
+                            </div>
+                            <div className='flex gap-3'>
+                                <button
+                                    onClick={() =>
+                                        setDeleteConfirm({ show: false, keyId: '', keyName: '' })
+                                    }
+                                    className='flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors'
+                                >
+                                    {t('apiKeys.deleteConfirm.cancel')}
+                                </button>
+                                <button
+                                    onClick={deleteApiKey}
+                                    className='flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                >
+                                    {t('apiKeys.deleteConfirm.revoke')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {regenerateConfirm.show && (
+                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                        <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-yellow-500/50'>
+                            <div className='text-center mb-6'>
+                                <div className='w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4'>
+                                    <svg
+                                        className='w-8 h-8 text-yellow-400'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                        />
+                                    </svg>
+                                </div>
+                                <h3 className='text-2xl font-bold mb-2 text-white'>
+                                    {t('apiKeys.regenerateConfirm.title')}
+                                </h3>
+                                <p className='text-slate-300 mb-2'>
+                                    {t('apiKeys.regenerateConfirm.message')}{' '}
+                                    <span className='font-semibold text-white'>
+                                        {regenerateConfirm.keyName}
+                                    </span>
+                                    ?
+                                </p>
+                                <p className='text-yellow-400 text-sm'>
+                                    {t('apiKeys.regenerateConfirm.warning')}
+                                </p>
+                            </div>
+                            <div className='flex gap-3'>
+                                <button
+                                    onClick={() =>
+                                        setRegenerateConfirm({
+                                            show: false,
+                                            keyId: '',
+                                            keyName: '',
+                                        })
+                                    }
+                                    className='flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors'
+                                >
+                                    {t('apiKeys.regenerateConfirm.cancel')}
+                                </button>
+                                <button
+                                    onClick={regenerateApiKey}
+                                    className='flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                >
+                                    {t('apiKeys.regenerateConfirm.regenerate')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showCreateModal && (
+                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                        <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-slate-700'>
+                            <h3 className='text-2xl font-bold mb-4'>{t('apiKeys.createModal.title')}</h3>
+                            <div className='mb-6'>
+                                <label className='block text-sm font-medium text-slate-300 mb-2'>
+                                    {t('apiKeys.createModal.keyNameLabel')}
+                                </label>
+                                <p className='text-xs text-slate-400 mb-2'>
+                                    {t('apiKeys.createModal.keyNameHelp')}
+                                </p>
+                                <input
+                                    type='text'
+                                    value={newKeyName}
+                                    onChange={e => {
+                                        setNewKeyName(e.target.value);
+                                        setError(null);
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !creating && newKeyName.trim()) {
+                                            createApiKey();
+                                        }
+                                    }}
+                                    placeholder={t('apiKeys.createModal.placeholder')}
+                                    className='w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
+                                    autoFocus
+                                />
+                            </div>
+                            {error && (
+                                <div className='mb-4 p-3 bg-red-900/50 border border-red-500/50 rounded-lg'>
+                                    <p className='text-red-300 text-sm'>{error}</p>
+                                </div>
+                            )}
+                            <div className='flex gap-3'>
+                                <button
+                                    onClick={() => {
+                                        setShowCreateModal(false);
+                                        setNewKeyName('');
+                                        setError(null);
+                                    }}
+                                    className='flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                    disabled={creating}
+                                >
+                                    {t('apiKeys.createModal.cancel')}
+                                </button>
+                                <button
+                                    onClick={createApiKey}
+                                    className='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                                    disabled={creating}
+                                >
+                                    {creating ? t('apiKeys.createModal.creating') : t('apiKeys.createModal.create')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {loading ? (
+                    <div className='flex items-center justify-center py-12'>
+                        <div className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500'></div>
+                    </div>
+                ) : apiKeys.length === 0 ? (
+                    <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-12 text-center'>
+                        <svg
+                            className='w-16 h-16 text-slate-600 mx-auto mb-4'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'
+                            />
+                        </svg>
+                        <h3 className='text-xl font-semibold mb-2'>{t('apiKeys.emptyState.title')}</h3>
+                        <p className='text-slate-400 mb-6'>
+                            {t('apiKeys.emptyState.subtitle')}
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowCreateModal(true);
+                                setError(null);
+                            }}
+                            disabled={keyLimits ? !keyLimits.canCreateMore : false}
+                            className='bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                            {t('apiKeys.emptyState.createButton')}
+                        </button>
+                    </div>
+                ) : (
+                    <div className='space-y-4'>
+                        {apiKeys.map(key => (
+                            <div
+                                key={key.id}
+                                className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'
+                            >
+                                <div className='flex items-start justify-between'>
+                                    <div className='flex-1'>
+                                        <div className='flex items-center gap-3 mb-2'>
+                                            <h3 className='text-xl font-semibold'>{key.name}</h3>
+                                            {!key.isActive && (
+                                                <span className='text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded'>
+                                                    {t('apiKeys.keyCard.revoked')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='font-mono text-sm text-slate-400 mb-4'>
+                                            {key.maskedKey}
+                                        </div>
+                                        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
+                                            <div>
+                                                <p className='text-slate-500'>{t('apiKeys.keyCard.created')}</p>
+                                                <p className='text-slate-300'>
+                                                    {new Date(key.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className='text-slate-500'>{t('apiKeys.keyCard.lastUsed')}</p>
+                                                <p className='text-slate-300'>
+                                                    {key.lastUsedAt
+                                                        ? new Date(
+                                                              key.lastUsedAt
+                                                          ).toLocaleDateString()
+                                                        : t('apiKeys.keyCard.never')}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className='text-slate-500'>{t('apiKeys.keyCard.rateLimit')}</p>
+                                                <p className='text-slate-300'>
+                                                    {key.requestsPerHour}/hour
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className='text-slate-500'>{t('apiKeys.keyCard.scopes')}</p>
+                                                <p className='text-slate-300'>
+                                                    {key.scopes.join(', ')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {key.isActive && (
+                                        <div className='flex gap-2 ml-4'>
+                                            <button
+                                                onClick={() => confirmRegenerate(key.id, key.name)}
+                                                className='text-blue-400 hover:text-blue-300 p-2'
+                                                title={t('apiKeys.keyCard.regenerateTooltip')}
+                                            >
+                                                <svg
+                                                    className='w-5 h-5'
+                                                    fill='none'
+                                                    stroke='currentColor'
+                                                    viewBox='0 0 24 24'
+                                                >
+                                                    <path
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        strokeWidth={2}
+                                                        d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                                    />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => confirmDelete(key.id, key.name)}
+                                                className='text-red-400 hover:text-red-300 p-2'
+                                                title={t('apiKeys.keyCard.revokeTooltip')}
+                                            >
+                                                <svg
+                                                    className='w-5 h-5'
+                                                    fill='none'
+                                                    stroke='currentColor'
+                                                    viewBox='0 0 24 24'
+                                                >
+                                                    <path
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        strokeWidth={2}
+                                                        d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className='mt-8 bg-blue-500/10 border border-blue-500/30 rounded-xl p-6'>
+                    <div className='flex items-start justify-between gap-4'>
+                        <div>
+                            <h3 className='text-lg font-semibold mb-2 flex items-center gap-2'>
+                                📚 API Documentation
+                            </h3>
+                            <p className='text-slate-300 text-sm'>
+                                Learn how to use your API keys to integrate Safeturned into your
+                                applications. Visit our{' '}
+                                <Link
+                                    href={`/${locale}/docs`}
+                                    className='text-blue-400 hover:text-blue-300 underline transition-colors'
+                                >
+                                    API documentation
+                                </Link>
+                                {' '}for code examples and usage guides.
+                            </p>
+                        </div>
+                        <Link
+                            href={`/${locale}/docs`}
+                            className='px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap'
+                        >
+                            View Docs
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            <Footer />
+        </div>
+    );
+}
