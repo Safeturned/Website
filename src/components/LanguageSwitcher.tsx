@@ -49,33 +49,33 @@ export default function LanguageSwitcher() {
         if (isOpen && dropdownRef.current && isMounted) {
             const updatePosition = () => {
                 if (!dropdownRef.current) return;
-                
+
                 const rect = dropdownRef.current.getBoundingClientRect();
                 const viewportWidth = window.innerWidth;
                 const dropdownWidth = 192;
-                
+
                 let left = rect.right - dropdownWidth;
-                
+
                 if (left < 8) {
                     left = 8;
                 }
-                
+
                 if (left + dropdownWidth > viewportWidth - 8) {
                     left = viewportWidth - dropdownWidth - 8;
                 }
-                
+
                 setDropdownPosition({
                     top: rect.bottom,
                     left: left,
                     width: rect.width,
                 });
             };
-            
+
             updatePosition();
-            
+
             window.addEventListener('scroll', updatePosition, true);
             window.addEventListener('resize', updatePosition);
-            
+
             return () => {
                 window.removeEventListener('scroll', updatePosition, true);
                 window.removeEventListener('resize', updatePosition);
@@ -120,7 +120,7 @@ export default function LanguageSwitcher() {
                             top: `${dropdownPosition.top}px`,
                             left: `${dropdownPosition.left}px`,
                         }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                     >
                         <div className='py-1'>
                             {languages.map(language => (

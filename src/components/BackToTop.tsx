@@ -24,7 +24,7 @@ export default function BackToTop() {
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: 'smooth',
         });
     };
 
@@ -37,12 +37,7 @@ export default function BackToTop() {
                     aria-label={t('nav.backToTop')}
                     title={t('nav.backToTop')}
                 >
-                    <svg
-                        className='w-6 h-6'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                    >
+                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path
                             strokeLinecap='round'
                             strokeLinejoin='round'

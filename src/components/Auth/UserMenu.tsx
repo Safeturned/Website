@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
+import { api } from '@/lib/api-client';
 
 const PLAN_NAMES = ['Free', 'Verified', 'Premium'];
 const PLAN_COLORS = {
@@ -14,7 +15,7 @@ const PLAN_COLORS = {
 };
 
 export default function UserMenu() {
-    const { user, isAuthenticated, logout, getAccessToken } = useAuth();
+    const { user, isAuthenticated, logout } = useAuth();
     const { t, locale } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -29,25 +30,13 @@ export default function UserMenu() {
     }, []);
 
     useEffect(() => {
-        if (isAuthenticated && user && getAccessToken) {
+        if (isAuthenticated && user) {
             const fetchThreatCount = async () => {
                 try {
-                    const token = getAccessToken();
-                    const headers: HeadersInit = {
-                        'Content-Type': 'application/json',
-                    };
-                    if (token) {
-                        headers['Authorization'] = `Bearer ${token}`;
-                    }
-
-                    const response = await fetch('/api/v1.0/users/me/scans/stats', {
-                        headers,
-                        credentials: 'include',
-                    });
-                    if (response.ok) {
-                        const stats = await response.json();
-                        setThreatCount(stats.threatsDetected || 0);
-                    }
+                    const stats = await api.get<{ threatsDetected: number }>(
+                        'users/me/scans/stats'
+                    );
+                    setThreatCount(stats.threatsDetected || 0);
                 } catch (error) {
                     console.error('Failed to fetch threat count:', error);
                 }
@@ -55,7 +44,7 @@ export default function UserMenu() {
 
             fetchThreatCount();
         }
-    }, [isAuthenticated, user, getAccessToken]);
+    }, [isAuthenticated, user]);
 
     useLayoutEffect(() => {
         if (isOpen && buttonRef.current) {

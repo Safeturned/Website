@@ -1,13 +1,9 @@
 'use client';
 
-import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import Link from 'next/link';
 
 export default function PrivacyPage() {
-    const { t, locale } = useTranslation();
-
     return (
         <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col'>
             <Navigation />
@@ -222,8 +218,8 @@ export default function PrivacyPage() {
                                     </h4>
                                     <ul className='list-disc list-inside space-y-1 ml-4'>
                                         <li>
-                                            <strong>File metadata</strong> - Retained indefinitely for
-                                            duplicate detection and analytics
+                                            <strong>File metadata</strong> - Retained indefinitely
+                                            for duplicate detection and analytics
                                         </li>
                                         <li>
                                             <strong>Scan records</strong> - Retained for service
@@ -245,12 +241,12 @@ export default function PrivacyPage() {
                                             analysis or after 24 hours (whichever comes first)
                                         </li>
                                         <li>
-                                            <strong>Upload sessions</strong> - Expire after 24 hours of
-                                            inactivity
+                                            <strong>Upload sessions</strong> - Expire after 24 hours
+                                            of inactivity
                                         </li>
                                         <li>
-                                            <strong>Rate limit data</strong> - Stored in Redis cache,
-                                            expires after 1 hour
+                                            <strong>Rate limit data</strong> - Stored in Redis
+                                            cache, expires after 1 hour
                                         </li>
                                     </ul>
                                 </div>
@@ -264,8 +260,8 @@ export default function PrivacyPage() {
                                             stored, immediately discarded after analysis
                                         </li>
                                         <li>
-                                            <strong>Small files (&lt;100MB)</strong> - Processed entirely
-                                            in memory, never written to disk
+                                            <strong>Small files (&lt;100MB)</strong> - Processed
+                                            entirely in memory, never written to disk
                                         </li>
                                     </ul>
                                 </div>
@@ -365,7 +361,6 @@ export default function PrivacyPage() {
                                 official channels.
                             </p>
                         </section>
-
                     </div>
                 </div>
             </div>

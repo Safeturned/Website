@@ -10,13 +10,21 @@ interface MetaTagsProps {
     type?: string;
 }
 
-export default function DynamicMetaTags({ title, description, url, image, type = 'website' }: MetaTagsProps) {
+export default function DynamicMetaTags({
+    title,
+    description,
+    url,
+    image,
+    type = 'website',
+}: MetaTagsProps) {
     useEffect(() => {
         document.title = title;
 
         const updateMetaTag = (property: string, content: string, useProperty = true) => {
             const attribute = useProperty ? 'property' : 'name';
-            let element = document.querySelector(`meta[${attribute}="${property}"]`) as HTMLMetaElement;
+            let element = document.querySelector(
+                `meta[${attribute}="${property}"]`
+            ) as HTMLMetaElement;
 
             if (!element) {
                 element = document.createElement('meta');
@@ -47,7 +55,6 @@ export default function DynamicMetaTags({ title, description, url, image, type =
         }
 
         updateMetaTag('description', description, false);
-
     }, [title, description, url, image, type]);
 
     return null;

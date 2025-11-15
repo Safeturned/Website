@@ -13,7 +13,6 @@ import {
     TIER_FREE,
     TIER_VERIFIED,
     TIER_PREMIUM,
-    TIER_BOT
 } from '@/lib/tierConstants';
 import Link from 'next/link';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -27,7 +26,7 @@ const languageMap: Record<CodeLanguage, string> = {
     csharp: 'csharp',
     curl: 'bash',
     javascript: 'javascript',
-    python: 'python'
+    python: 'python',
 };
 
 interface CodeBlockProps {
@@ -47,7 +46,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language, customStyle }) =>
                     padding: '1rem',
                     fontSize: '0.875rem',
                     borderRadius: 0,
-                    ...customStyle
+                    ...customStyle,
                 }}
                 showLineNumbers={false}
             >
@@ -87,15 +86,20 @@ export default function DocsPage() {
         csharp: { name: 'C#', code: csharpExample, id: 'csharp' },
         curl: { name: 'cURL', code: curlExample, id: 'curl' },
         javascript: { name: 'JavaScript (Node.js)', code: jsExample, id: 'js' },
-        python: { name: 'Python', code: pythonExample, id: 'python' }
+        python: { name: 'Python', code: pythonExample, id: 'python' },
     };
 
-    const chunkedUploadExamples: Record<CodeLanguage, { name: string; code: string; id: string }> = {
-        csharp: { name: 'C#', code: chunkedUploadCSharpExample, id: 'chunked-csharp' },
-        curl: { name: 'cURL', code: chunkedUploadCurlExample, id: 'chunked-curl' },
-        javascript: { name: 'JavaScript (Node.js)', code: chunkedUploadJsExample, id: 'chunked-js' },
-        python: { name: 'Python', code: chunkedUploadPythonExample, id: 'chunked-python' }
-    };
+    const chunkedUploadExamples: Record<CodeLanguage, { name: string; code: string; id: string }> =
+        {
+            csharp: { name: 'C#', code: chunkedUploadCSharpExample, id: 'chunked-csharp' },
+            curl: { name: 'cURL', code: chunkedUploadCurlExample, id: 'chunked-curl' },
+            javascript: {
+                name: 'JavaScript (Node.js)',
+                code: chunkedUploadJsExample,
+                id: 'chunked-js',
+            },
+            python: { name: 'Python', code: chunkedUploadPythonExample, id: 'chunked-python' },
+        };
 
     return (
         <div className='min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900'>
@@ -108,26 +112,32 @@ export default function DocsPage() {
                 </Link>
 
                 <h1 className='text-4xl font-bold text-white mb-4'>{t('docs.title')}</h1>
-                <p className='text-gray-300 text-lg mb-12'>
-                    {t('docs.subtitle')}
-                </p>
+                <p className='text-gray-300 text-lg mb-12'>{t('docs.subtitle')}</p>
 
                 <div className='space-y-12'>
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.gettingStarted.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.gettingStarted.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6 space-y-4'>
                             <ol className='list-decimal list-inside space-y-2 text-gray-300 ml-4'>
                                 {!isAuthenticated && (
                                     <li>
-                                        <Link href={`/${locale}/login`} className='text-purple-400 hover:text-purple-300'>
+                                        <Link
+                                            href={`/${locale}/login`}
+                                            className='text-purple-400 hover:text-purple-300'
+                                        >
                                             {t('docs.gettingStarted.signIn')}
-                                        </Link>
-                                        {' '}{t('docs.gettingStarted.step1')}
+                                        </Link>{' '}
+                                        {t('docs.gettingStarted.step1')}
                                     </li>
                                 )}
                                 <li>
                                     {t('docs.gettingStarted.step2')}{' '}
-                                    <Link href={`/${locale}/dashboard/api-keys`} className='text-purple-400 hover:text-purple-300'>
+                                    <Link
+                                        href={`/${locale}/dashboard/api-keys`}
+                                        className='text-purple-400 hover:text-purple-300'
+                                    >
                                         {t('docs.gettingStarted.apiKeysPage')}
                                     </Link>
                                 </li>
@@ -138,57 +148,103 @@ export default function DocsPage() {
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.rateLimits.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.rateLimits.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                <div className={`rounded-lg p-4 ${
-                                    isAuthenticated && user?.tier === TIER_FREE
-                                        ? `${getTierBgColor(TIER_FREE)} border-2 ${getTierBorderColor(TIER_FREE)} shadow-lg`
-                                        : 'bg-slate-700/30'
-                                }`}>
+                                <div
+                                    className={`rounded-lg p-4 ${
+                                        isAuthenticated && user?.tier === TIER_FREE
+                                            ? `${getTierBgColor(TIER_FREE)} border-2 ${getTierBorderColor(TIER_FREE)} shadow-lg`
+                                            : 'bg-slate-700/30'
+                                    }`}
+                                >
                                     <div className='flex items-center justify-between mb-1'>
-                                        <div className={`${getTierTextColor(TIER_FREE)} font-semibold`}>{t('docs.rateLimits.free')}</div>
+                                        <div
+                                            className={`${getTierTextColor(TIER_FREE)} font-semibold`}
+                                        >
+                                            {t('docs.rateLimits.free')}
+                                        </div>
                                         {isAuthenticated && user?.tier === TIER_FREE && (
-                                            <span className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_FREE)} text-white rounded-full`}>Your</span>
+                                            <span
+                                                className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_FREE)} text-white rounded-full`}
+                                            >
+                                                Your
+                                            </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>{getTierRateLimit(TIER_FREE)}/hour</div>
-                                    <div className='text-gray-400 text-sm'>{t('docs.rateLimits.freeDesc')}</div>
+                                    <div className='text-2xl font-bold text-white'>
+                                        {getTierRateLimit(TIER_FREE)}/hour
+                                    </div>
+                                    <div className='text-gray-400 text-sm'>
+                                        {t('docs.rateLimits.freeDesc')}
+                                    </div>
                                 </div>
-                                <div className={`rounded-lg p-4 ${
-                                    isAuthenticated && user?.tier === TIER_VERIFIED
-                                        ? `${getTierBgColor(TIER_VERIFIED)} border-2 ${getTierBorderColor(TIER_VERIFIED)} shadow-lg`
-                                        : 'bg-slate-700/30'
-                                }`}>
+                                <div
+                                    className={`rounded-lg p-4 ${
+                                        isAuthenticated && user?.tier === TIER_VERIFIED
+                                            ? `${getTierBgColor(TIER_VERIFIED)} border-2 ${getTierBorderColor(TIER_VERIFIED)} shadow-lg`
+                                            : 'bg-slate-700/30'
+                                    }`}
+                                >
                                     <div className='flex items-center justify-between mb-1'>
-                                        <div className={`${getTierTextColor(TIER_VERIFIED)} font-semibold`}>{t('docs.rateLimits.verified')}</div>
+                                        <div
+                                            className={`${getTierTextColor(TIER_VERIFIED)} font-semibold`}
+                                        >
+                                            {t('docs.rateLimits.verified')}
+                                        </div>
                                         {isAuthenticated && user?.tier === TIER_VERIFIED && (
-                                            <span className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_VERIFIED)} text-white rounded-full`}>Your</span>
+                                            <span
+                                                className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_VERIFIED)} text-white rounded-full`}
+                                            >
+                                                Your
+                                            </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>{getTierRateLimit(TIER_VERIFIED)}/hour</div>
-                                    <div className='text-gray-400 text-sm'>{t('docs.rateLimits.verifiedDesc')}</div>
+                                    <div className='text-2xl font-bold text-white'>
+                                        {getTierRateLimit(TIER_VERIFIED)}/hour
+                                    </div>
+                                    <div className='text-gray-400 text-sm'>
+                                        {t('docs.rateLimits.verifiedDesc')}
+                                    </div>
                                 </div>
-                                <div className={`rounded-lg p-4 ${
-                                    isAuthenticated && user?.tier === TIER_PREMIUM
-                                        ? `${getTierBgColor(TIER_PREMIUM)} border-2 ${getTierBorderColor(TIER_PREMIUM)} shadow-lg`
-                                        : 'bg-slate-700/30'
-                                }`}>
+                                <div
+                                    className={`rounded-lg p-4 ${
+                                        isAuthenticated && user?.tier === TIER_PREMIUM
+                                            ? `${getTierBgColor(TIER_PREMIUM)} border-2 ${getTierBorderColor(TIER_PREMIUM)} shadow-lg`
+                                            : 'bg-slate-700/30'
+                                    }`}
+                                >
                                     <div className='flex items-center justify-between mb-1'>
-                                        <div className={`${getTierTextColor(TIER_PREMIUM)} font-semibold`}>{t('docs.rateLimits.premium')}</div>
+                                        <div
+                                            className={`${getTierTextColor(TIER_PREMIUM)} font-semibold`}
+                                        >
+                                            {t('docs.rateLimits.premium')}
+                                        </div>
                                         {isAuthenticated && user?.tier === TIER_PREMIUM && (
-                                            <span className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_PREMIUM)} text-white rounded-full`}>Your</span>
+                                            <span
+                                                className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_PREMIUM)} text-white rounded-full`}
+                                            >
+                                                Your
+                                            </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>{getTierRateLimit(TIER_PREMIUM)}/hour</div>
-                                    <div className='text-gray-400 text-sm'>{t('docs.rateLimits.premiumDesc')}</div>
+                                    <div className='text-2xl font-bold text-white'>
+                                        {getTierRateLimit(TIER_PREMIUM)}/hour
+                                    </div>
+                                    <div className='text-gray-400 text-sm'>
+                                        {t('docs.rateLimits.premiumDesc')}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.endpoints.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.endpoints.title')}
+                        </h2>
 
                         <div className='space-y-6'>
                             <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
@@ -202,10 +258,18 @@ export default function DocsPage() {
                                     {t('docs.endpoints.upload.title')}
                                 </p>
                                 <div className='bg-slate-900/50 rounded p-4 space-y-2'>
-                                    <div className='text-sm text-gray-400'>{t('docs.endpoints.upload.params')}</div>
+                                    <div className='text-sm text-gray-400'>
+                                        {t('docs.endpoints.upload.params')}
+                                    </div>
                                     <ul className='text-gray-300 space-y-1 ml-4'>
-                                        <li><code className='text-purple-400'>file</code> - {t('docs.endpoints.upload.paramFile')}</li>
-                                        <li><code className='text-purple-400'>forceAnalyze</code> - {t('docs.endpoints.upload.paramForce')}</li>
+                                        <li>
+                                            <code className='text-purple-400'>file</code> -{' '}
+                                            {t('docs.endpoints.upload.paramFile')}
+                                        </li>
+                                        <li>
+                                            <code className='text-purple-400'>forceAnalyze</code> -{' '}
+                                            {t('docs.endpoints.upload.paramForce')}
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -215,23 +279,43 @@ export default function DocsPage() {
                                     <span className='px-3 py-1 bg-green-500/20 text-green-400 rounded font-mono text-sm font-semibold'>
                                         POST
                                     </span>
-                                    <code className='text-purple-400 font-mono'>/v1.0/files/upload/*</code>
+                                    <code className='text-purple-400 font-mono'>
+                                        /v1.0/files/upload/*
+                                    </code>
                                 </div>
                                 <p className='text-gray-300 mb-4'>
                                     {t('docs.endpoints.chunkedUpload.title')}
                                 </p>
                                 <div className='bg-slate-900/50 rounded p-4 space-y-3'>
                                     <div>
-                                        <div className='text-sm text-gray-400 mb-2 font-semibold'>{t('docs.endpoints.chunkedUpload.processTitle')}</div>
+                                        <div className='text-sm text-gray-400 mb-2 font-semibold'>
+                                            {t('docs.endpoints.chunkedUpload.processTitle')}
+                                        </div>
                                         <ol className='text-gray-300 space-y-2 ml-4 list-decimal text-sm'>
-                                            <li><code className='text-purple-400'>POST /v1.0/files/upload/initiate</code> - {t('docs.endpoints.chunkedUpload.step1')}</li>
-                                            <li><code className='text-purple-400'>POST /v1.0/files/upload/chunk</code> - {t('docs.endpoints.chunkedUpload.step2')}</li>
-                                            <li><code className='text-purple-400'>POST /v1.0/files/upload/finalize</code> - {t('docs.endpoints.chunkedUpload.step3')}</li>
+                                            <li>
+                                                <code className='text-purple-400'>
+                                                    POST /v1.0/files/upload/initiate
+                                                </code>{' '}
+                                                - {t('docs.endpoints.chunkedUpload.step1')}
+                                            </li>
+                                            <li>
+                                                <code className='text-purple-400'>
+                                                    POST /v1.0/files/upload/chunk
+                                                </code>{' '}
+                                                - {t('docs.endpoints.chunkedUpload.step2')}
+                                            </li>
+                                            <li>
+                                                <code className='text-purple-400'>
+                                                    POST /v1.0/files/upload/finalize
+                                                </code>{' '}
+                                                - {t('docs.endpoints.chunkedUpload.step3')}
+                                            </li>
                                         </ol>
                                     </div>
                                     <div className='bg-blue-900/20 border border-blue-500/20 rounded p-3'>
                                         <p className='text-blue-300 text-xs'>
-                                            💡 <strong>Tip:</strong> {t('docs.endpoints.chunkedUpload.tip')}
+                                            💡 <strong>Tip:</strong>{' '}
+                                            {t('docs.endpoints.chunkedUpload.tip')}
                                         </p>
                                     </div>
                                 </div>
@@ -242,7 +326,9 @@ export default function DocsPage() {
                                     <span className='px-3 py-1 bg-blue-500/20 text-blue-400 rounded font-mono text-sm font-semibold'>
                                         GET
                                     </span>
-                                    <code className='text-purple-400 font-mono'>/v1.0/files/{'{hash}'}</code>
+                                    <code className='text-purple-400 font-mono'>
+                                        /v1.0/files/{'{hash}'}
+                                    </code>
                                 </div>
                                 <p className='text-gray-300 mb-4'>
                                     {t('docs.endpoints.getByHash.title')}
@@ -254,7 +340,9 @@ export default function DocsPage() {
                                     <span className='px-3 py-1 bg-blue-500/20 text-blue-400 rounded font-mono text-sm font-semibold'>
                                         GET
                                     </span>
-                                    <code className='text-purple-400 font-mono'>/v1.0/files/filename/{'{filename}'}</code>
+                                    <code className='text-purple-400 font-mono'>
+                                        /v1.0/files/filename/{'{filename}'}
+                                    </code>
                                 </div>
                                 <p className='text-gray-300 mb-4'>
                                     {t('docs.endpoints.getByFilename.title')}
@@ -266,7 +354,9 @@ export default function DocsPage() {
                                     <span className='px-3 py-1 bg-blue-500/20 text-blue-400 rounded font-mono text-sm font-semibold'>
                                         GET
                                     </span>
-                                    <code className='text-purple-400 font-mono'>/v1.0/files/analytics</code>
+                                    <code className='text-purple-400 font-mono'>
+                                        /v1.0/files/analytics
+                                    </code>
                                 </div>
                                 <p className='text-gray-300 mb-4'>
                                     {t('docs.endpoints.analytics.title')}
@@ -277,22 +367,44 @@ export default function DocsPage() {
 
                     <section>
                         <div className='flex items-center justify-between mb-4'>
-                            <h2 className='text-2xl font-bold text-white'>{t('docs.codeExamples.title')}</h2>
+                            <h2 className='text-2xl font-bold text-white'>
+                                {t('docs.codeExamples.title')}
+                            </h2>
                             <button
                                 onClick={() => toggleSection('codeExamples')}
                                 className='flex items-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/50 text-purple-300 rounded-lg transition-all duration-200 hover:scale-105 font-medium'
                             >
                                 {expandedSections.has('codeExamples') ? (
                                     <>
-                                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                                        <svg
+                                            className='w-5 h-5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M5 15l7-7 7 7'
+                                            />
                                         </svg>
                                         {t('docs.common.collapse')}
                                     </>
                                 ) : (
                                     <>
-                                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                                        <svg
+                                            className='w-5 h-5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M19 9l-7 7-7-7'
+                                            />
                                         </svg>
                                         {t('docs.common.expand')}
                                     </>
@@ -300,13 +412,17 @@ export default function DocsPage() {
                             </button>
                         </div>
                         <p className='text-gray-300 mb-6'>
-                            {t('docs.codeExamples.intro')} <code className='text-purple-400 bg-slate-800 px-2 py-1 rounded'>{t('docs.codeExamples.yourApiKey')}</code> {t('docs.codeExamples.withKey')}
+                            {t('docs.codeExamples.intro')}{' '}
+                            <code className='text-purple-400 bg-slate-800 px-2 py-1 rounded'>
+                                {t('docs.codeExamples.yourApiKey')}
+                            </code>{' '}
+                            {t('docs.codeExamples.withKey')}
                         </p>
 
                         {expandedSections.has('codeExamples') && (
                             <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg overflow-hidden'>
                                 <div className='flex flex-wrap gap-2 p-4 bg-slate-800/30 border-b border-slate-600/50'>
-                                    {(Object.keys(codeExamples) as CodeLanguage[]).map((lang) => (
+                                    {(Object.keys(codeExamples) as CodeLanguage[]).map(lang => (
                                         <button
                                             key={lang}
                                             onClick={() => setSelectedLanguage(lang)}
@@ -327,10 +443,12 @@ export default function DocsPage() {
                                             {codeExamples[selectedLanguage].name}
                                         </h3>
                                         <button
-                                            onClick={() => copyCode(
-                                                codeExamples[selectedLanguage].code,
-                                                codeExamples[selectedLanguage].id
-                                            )}
+                                            onClick={() =>
+                                                copyCode(
+                                                    codeExamples[selectedLanguage].code,
+                                                    codeExamples[selectedLanguage].id
+                                                )
+                                            }
                                             className='px-3 py-1 bg-slate-700 hover:bg-slate-600 text-gray-300 rounded text-sm transition-colors'
                                         >
                                             {copiedCode === codeExamples[selectedLanguage].id
@@ -349,22 +467,44 @@ export default function DocsPage() {
 
                     <section>
                         <div className='flex items-center justify-between mb-4'>
-                            <h2 className='text-2xl font-bold text-white'>{t('docs.endpoints.chunkedUpload.exampleTitle')}</h2>
+                            <h2 className='text-2xl font-bold text-white'>
+                                {t('docs.endpoints.chunkedUpload.exampleTitle')}
+                            </h2>
                             <button
                                 onClick={() => toggleSection('chunkedUpload')}
                                 className='flex items-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/50 text-purple-300 rounded-lg transition-all duration-200 hover:scale-105 font-medium'
                             >
                                 {expandedSections.has('chunkedUpload') ? (
                                     <>
-                                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                                        <svg
+                                            className='w-5 h-5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M5 15l7-7 7 7'
+                                            />
                                         </svg>
                                         {t('docs.common.collapse')}
                                     </>
                                 ) : (
                                     <>
-                                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                                        <svg
+                                            className='w-5 h-5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M19 9l-7 7-7-7'
+                                            />
                                         </svg>
                                         {t('docs.common.expand')}
                                     </>
@@ -374,19 +514,21 @@ export default function DocsPage() {
                         {expandedSections.has('chunkedUpload') && (
                             <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg overflow-hidden'>
                                 <div className='flex flex-wrap gap-2 p-4 bg-slate-800/30 border-b border-slate-600/50'>
-                                    {(Object.keys(chunkedUploadExamples) as CodeLanguage[]).map((lang) => (
-                                        <button
-                                            key={lang}
-                                            onClick={() => setSelectedChunkedLanguage(lang)}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                                                selectedChunkedLanguage === lang
-                                                    ? 'bg-purple-600 text-white shadow-lg'
-                                                    : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700 hover:text-white'
-                                            }`}
-                                        >
-                                            {chunkedUploadExamples[lang].name}
-                                        </button>
-                                    ))}
+                                    {(Object.keys(chunkedUploadExamples) as CodeLanguage[]).map(
+                                        lang => (
+                                            <button
+                                                key={lang}
+                                                onClick={() => setSelectedChunkedLanguage(lang)}
+                                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                                                    selectedChunkedLanguage === lang
+                                                        ? 'bg-purple-600 text-white shadow-lg'
+                                                        : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700 hover:text-white'
+                                                }`}
+                                            >
+                                                {chunkedUploadExamples[lang].name}
+                                            </button>
+                                        )
+                                    )}
                                 </div>
 
                                 <div className='p-6'>
@@ -395,13 +537,18 @@ export default function DocsPage() {
                                             {chunkedUploadExamples[selectedChunkedLanguage].name}
                                         </h3>
                                         <button
-                                            onClick={() => copyCode(
-                                                chunkedUploadExamples[selectedChunkedLanguage].code,
-                                                chunkedUploadExamples[selectedChunkedLanguage].id
-                                            )}
+                                            onClick={() =>
+                                                copyCode(
+                                                    chunkedUploadExamples[selectedChunkedLanguage]
+                                                        .code,
+                                                    chunkedUploadExamples[selectedChunkedLanguage]
+                                                        .id
+                                                )
+                                            }
                                             className='px-3 py-1 bg-slate-700 hover:bg-slate-600 text-gray-300 rounded text-sm transition-colors'
                                         >
-                                            {copiedCode === chunkedUploadExamples[selectedChunkedLanguage].id
+                                            {copiedCode ===
+                                            chunkedUploadExamples[selectedChunkedLanguage].id
                                                 ? t('docs.codeExamples.copied')
                                                 : t('docs.codeExamples.copy')}
                                         </button>
@@ -416,24 +563,52 @@ export default function DocsPage() {
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.response.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.response.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <CodeBlock code={responseExample} language='json' />
                             <div className='mt-4 space-y-2 text-sm text-gray-300'>
-                                <div><code className='text-purple-400'>fileName</code> - {t('docs.response.fileName')}</div>
-                                <div><code className='text-purple-400'>hash</code> - {t('docs.response.hash')}</div>
-                                <div><code className='text-purple-400'>score</code> - {t('docs.response.score')}</div>
-                                <div><code className='text-purple-400'>isNew</code> - {t('docs.response.isNew')}</div>
-                                <div><code className='text-purple-400'>message</code> - {t('docs.response.message')}</div>
-                                <div><code className='text-purple-400'>uploadedAt</code> - {t('docs.response.uploadedAt')}</div>
-                                <div><code className='text-purple-400'>lastScanned</code> - {t('docs.response.lastScanned')}</div>
-                                <div><code className='text-purple-400'>fileSizeBytes</code> - {t('docs.response.fileSizeBytes')}</div>
+                                <div>
+                                    <code className='text-purple-400'>fileName</code> -{' '}
+                                    {t('docs.response.fileName')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>hash</code> -{' '}
+                                    {t('docs.response.hash')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>score</code> -{' '}
+                                    {t('docs.response.score')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>isNew</code> -{' '}
+                                    {t('docs.response.isNew')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>message</code> -{' '}
+                                    {t('docs.response.message')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>uploadedAt</code> -{' '}
+                                    {t('docs.response.uploadedAt')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>lastScanned</code> -{' '}
+                                    {t('docs.response.lastScanned')}
+                                </div>
+                                <div>
+                                    <code className='text-purple-400'>fileSizeBytes</code> -{' '}
+                                    {t('docs.response.fileSizeBytes')}
+                                </div>
                             </div>
                         </div>
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.riskScores.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.riskScores.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <div className='space-y-3'>
                                 <div className='flex items-start gap-3'>
@@ -442,26 +617,36 @@ export default function DocsPage() {
                                 </div>
                                 <div className='flex items-start gap-3'>
                                     <div className='w-24 text-yellow-400 font-semibold'>31-60</div>
-                                    <div className='text-gray-300'>{t('docs.riskScores.suspicious')}</div>
+                                    <div className='text-gray-300'>
+                                        {t('docs.riskScores.suspicious')}
+                                    </div>
                                 </div>
                                 <div className='flex items-start gap-3'>
                                     <div className='w-24 text-orange-400 font-semibold'>61-80</div>
-                                    <div className='text-gray-300'>{t('docs.riskScores.moderate')}</div>
+                                    <div className='text-gray-300'>
+                                        {t('docs.riskScores.moderate')}
+                                    </div>
                                 </div>
                                 <div className='flex items-start gap-3'>
                                     <div className='w-24 text-red-400 font-semibold'>81-100</div>
-                                    <div className='text-gray-300'>{t('docs.riskScores.dangerous')}</div>
+                                    <div className='text-gray-300'>
+                                        {t('docs.riskScores.dangerous')}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.errorHandling.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.errorHandling.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <div className='space-y-4'>
                                 <div>
-                                    <div className='text-red-400 font-semibold mb-2'>401 {t('docs.errorHandling.unauthorized')}</div>
+                                    <div className='text-red-400 font-semibold mb-2'>
+                                        401 {t('docs.errorHandling.unauthorized')}
+                                    </div>
                                     <CodeBlock
                                         code={errorExample401}
                                         language='json'
@@ -469,7 +654,9 @@ export default function DocsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <div className='text-red-400 font-semibold mb-2'>429 {t('docs.errorHandling.tooManyRequests')}</div>
+                                    <div className='text-red-400 font-semibold mb-2'>
+                                        429 {t('docs.errorHandling.tooManyRequests')}
+                                    </div>
                                     <CodeBlock
                                         code={errorExample429}
                                         language='json'
@@ -481,51 +668,81 @@ export default function DocsPage() {
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.playground.title')}</h2>
-                        <p className='text-gray-300 mb-6'>
-                            {t('docs.playground.intro')}
-                        </p>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.playground.title')}
+                        </h2>
+                        <p className='text-gray-300 mb-6'>{t('docs.playground.intro')}</p>
                         <ApiPlayground />
                     </section>
 
                     <section>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.tierFeatures.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.tierFeatures.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <div className='space-y-6'>
                                 <div className='p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg'>
                                     <div className='flex items-center gap-2 mb-3'>
-                                        <h3 className={`text-lg font-semibold ${getTierTextColor(TIER_FREE)}`}>
+                                        <h3
+                                            className={`text-lg font-semibold ${getTierTextColor(TIER_FREE)}`}
+                                        >
                                             {getTierName(TIER_FREE)}
                                         </h3>
-                                        <span className={`px-2 py-1 rounded text-xs ${getTierBgColor(TIER_FREE)} ${getTierTextColor(TIER_FREE)}`}>
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs ${getTierBgColor(TIER_FREE)} ${getTierTextColor(TIER_FREE)}`}
+                                        >
                                             Default
                                         </span>
                                     </div>
                                     <ul className='space-y-2 text-sm text-gray-300'>
-                                        <li><span className='font-semibold'>{getTierRateLimit(TIER_FREE)} requests/hour</span></li>
-                                        <li><span className='font-semibold'>100 MB</span> file size limit</li>
-                                        <li><span className='font-semibold'>Up to 3</span> active API keys</li>
+                                        <li>
+                                            <span className='font-semibold'>
+                                                {getTierRateLimit(TIER_FREE)} requests/hour
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>100 MB</span> file size
+                                            limit
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>Up to 3</span> active
+                                            API keys
+                                        </li>
                                         <li>Community support</li>
                                     </ul>
                                 </div>
 
                                 <div className='p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg'>
                                     <div className='flex items-center gap-2 mb-3'>
-                                        <h3 className={`text-lg font-semibold ${getTierTextColor(TIER_VERIFIED)}`}>
+                                        <h3
+                                            className={`text-lg font-semibold ${getTierTextColor(TIER_VERIFIED)}`}
+                                        >
                                             {getTierName(TIER_VERIFIED)}
                                         </h3>
                                     </div>
                                     <ul className='space-y-2 text-sm text-gray-300'>
-                                        <li><span className='font-semibold'>{getTierRateLimit(TIER_VERIFIED)} requests/hour</span></li>
-                                        <li><span className='font-semibold'>200 MB</span> file size limit</li>
-                                        <li><span className='font-semibold'>Up to 5</span> active API keys</li>
+                                        <li>
+                                            <span className='font-semibold'>
+                                                {getTierRateLimit(TIER_VERIFIED)} requests/hour
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>200 MB</span> file size
+                                            limit
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>Up to 5</span> active
+                                            API keys
+                                        </li>
                                         <li>Priority support</li>
                                     </ul>
                                 </div>
 
                                 <div className='p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg'>
                                     <div className='flex items-center gap-2 mb-3'>
-                                        <h3 className={`text-lg font-semibold ${getTierTextColor(TIER_PREMIUM)}`}>
+                                        <h3
+                                            className={`text-lg font-semibold ${getTierTextColor(TIER_PREMIUM)}`}
+                                        >
                                             {getTierName(TIER_PREMIUM)}
                                         </h3>
                                         <span className='px-2 py-1 rounded text-xs bg-yellow-500/20 text-yellow-400'>
@@ -533,9 +750,19 @@ export default function DocsPage() {
                                         </span>
                                     </div>
                                     <ul className='space-y-2 text-sm text-gray-300'>
-                                        <li><span className='font-semibold'>{getTierRateLimit(TIER_PREMIUM)} requests/hour</span></li>
-                                        <li><span className='font-semibold'>500 MB</span> file size limit</li>
-                                        <li><span className='font-semibold'>Up to 10</span> active API keys</li>
+                                        <li>
+                                            <span className='font-semibold'>
+                                                {getTierRateLimit(TIER_PREMIUM)} requests/hour
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>500 MB</span> file size
+                                            limit
+                                        </li>
+                                        <li>
+                                            <span className='font-semibold'>Up to 10</span> active
+                                            API keys
+                                        </li>
                                         <li>Priority support</li>
                                         <li>Additional features and higher limits</li>
                                     </ul>
@@ -544,8 +771,12 @@ export default function DocsPage() {
 
                             <div className='mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg'>
                                 <p className='text-sm text-gray-300'>
-                                    <span className='font-semibold text-blue-400'>💡 Tip:</span> Manage your API keys in the{' '}
-                                    <Link href={`/${locale}/dashboard/api-keys`} className='text-purple-400 hover:text-purple-300 underline'>
+                                    <span className='font-semibold text-blue-400'>💡 Tip:</span>{' '}
+                                    Manage your API keys in the{' '}
+                                    <Link
+                                        href={`/${locale}/dashboard/api-keys`}
+                                        className='text-purple-400 hover:text-purple-300 underline'
+                                    >
                                         API Keys dashboard
                                     </Link>
                                     . Each tier limits how many active keys you can have at once.
@@ -555,7 +786,9 @@ export default function DocsPage() {
                     </section>
 
                     <section className='border-t border-slate-700 pt-8'>
-                        <h2 className='text-2xl font-bold text-white mb-4'>{t('docs.help.title')}</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.help.title')}
+                        </h2>
                         <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
                             <div className='space-y-3 text-gray-300'>
                                 <div className='flex items-center gap-3'>
@@ -958,4 +1191,3 @@ curl -X POST "$API_BASE/finalize" \\
   -H "Authorization: Bearer $API_KEY" \\
   -H "Content-Type: application/json" \\
   -d "{\\"sessionId\\": \\"$SESSION_ID\\"}"`;
-

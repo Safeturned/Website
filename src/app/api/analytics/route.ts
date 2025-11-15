@@ -19,12 +19,16 @@ export async function GET() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         if (!apiKey) {
-            console.warn('SAFETURNED_API_KEY environment variable is not set, returning fallback data');
+            console.warn(
+                'SAFETURNED_API_KEY environment variable is not set, returning fallback data'
+            );
             return NextResponse.json(FALLBACK_DATA);
         }
 
         if (!apiUrl) {
-            console.warn('NEXT_PUBLIC_API_URL environment variable is not set, returning fallback data');
+            console.warn(
+                'NEXT_PUBLIC_API_URL environment variable is not set, returning fallback data'
+            );
             return NextResponse.json(FALLBACK_DATA);
         }
 
@@ -38,7 +42,9 @@ export async function GET() {
         });
 
         if (!response.ok) {
-            console.warn(`Analytics API responded with status: ${response.status}, returning fallback data`);
+            console.warn(
+                `Analytics API responded with status: ${response.status}, returning fallback data`
+            );
             return NextResponse.json(FALLBACK_DATA);
         }
 

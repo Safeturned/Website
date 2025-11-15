@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { formatFileSize, getRiskLevel, getRiskColor } from '@/lib/utils';
 import DynamicMetaTags from '@/components/DynamicMetaTags';
+import { api } from '@/lib/api-client';
 
 interface AnalyticsData {
     fileName: string;
@@ -34,24 +35,27 @@ interface SecurityCheck {
 }
 
 const BLACKLISTED_COMMANDS_MAP: Record<string, SecurityCheck> = {
-    'admin': {
+    admin: {
         name: 'Admin Command Detection',
-        description: 'Plugin attempts to execute the "admin" command via Rocket Console, which grants administrator privileges. This is a critical security risk as plugins should not modify user permissions.',
+        description:
+            'Plugin attempts to execute the "admin" command via Rocket Console, which grants administrator privileges. This is a critical security risk as plugins should not modify user permissions.',
         severity: 'high',
-        icon: '🚨'
+        icon: '🚨',
     },
-    'shutdown': {
+    shutdown: {
         name: 'Shutdown Command Detection',
-        description: 'Plugin attempts to execute the "shutdown" command via Rocket Console, which can forcefully stop the server. This could be used for griefing or denial of service.',
+        description:
+            'Plugin attempts to execute the "shutdown" command via Rocket Console, which can forcefully stop the server. This could be used for griefing or denial of service.',
         severity: 'high',
-        icon: '⛔'
+        icon: '⛔',
     },
-    'ban': {
+    ban: {
         name: 'Ban Command Detection',
-        description: 'Plugin attempts to execute the "ban" command via Rocket Console, which can ban players without proper authorization. This could be abused for unfair moderation.',
+        description:
+            'Plugin attempts to execute the "ban" command via Rocket Console, which can ban players without proper authorization. This could be abused for unfair moderation.',
         severity: 'medium',
-        icon: '🔨'
-    }
+        icon: '🔨',
+    },
 };
 
 function getSecurityCheckInfo(checkText: string): SecurityCheck {
@@ -67,13 +71,13 @@ function getSecurityCheckInfo(checkText: string): SecurityCheck {
         name: 'Security Finding',
         description: checkText,
         severity: 'medium',
-        icon: '⚠️'
+        icon: '⚠️',
     };
 }
 
 export default function ResultPage() {
     const { t } = useTranslation();
-    const { getAccessToken, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const params = useParams();
     const router = useRouter();
     const hash = params.hash as string;
@@ -284,8 +288,6 @@ export default function ResultPage() {
     const handleShare = async () => {
         if (!analyticsData) return;
 
-        const riskLevel = getRiskLevel(analyticsData.score, t);
-
         let shareText = '';
         let shareTitle = '';
 
@@ -339,23 +341,10 @@ export default function ResultPage() {
         setError(null);
 
         try {
-            const response = await fetch('/api/reanalyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    fileHash: hash,
-                    forceAnalyze: true,
-                }),
+            const result = await api.post('/api/reanalyze', {
+                fileHash: hash,
+                forceAnalyze: true,
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Reanalysis failed: ${response.status}`);
-            }
-
-            const result = await response.json();
 
             setAnalyticsData(result);
         } catch (err) {
@@ -382,17 +371,15 @@ export default function ResultPage() {
         setError(null);
 
         try {
-            const response = await fetch(`/api/files/${fileHash}`);
-
-            if (response.ok) {
-                const data = await response.json();
-                setAnalyticsData(data);
-            } else {
-                setError('Analysis not found');
-            }
+            const data = await api.get(`/api/files/${fileHash}`);
+            setAnalyticsData(data);
         } catch (err) {
             console.error('Failed to load analysis:', err);
-            setError(t('common.loadAnalysisFailed'));
+            if (err instanceof Error && err.message.includes('404')) {
+                setError('Analysis not found');
+            } else {
+                setError(t('common.loadAnalysisFailed'));
+            }
         } finally {
             setLoading(false);
         }
@@ -442,9 +429,6 @@ export default function ResultPage() {
             </div>
         );
     }
-
-    const scoreEmoji = analyticsData.score >= 80 ? '🔴' : analyticsData.score >= 60 ? '🟠' : analyticsData.score >= 30 ? '🟡' : '🟢';
-    const riskLevelText = getRiskLevel(analyticsData.score, t);
 
     let metaDescription = '';
     let metaTitle = '';
@@ -643,23 +627,50 @@ export default function ResultPage() {
                     {analyticsData.analyzerVersion && (
                         <div className='mt-4 pt-4 border-t border-purple-500/20'>
                             <div className='flex items-center gap-2 text-xs text-gray-500'>
-                                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                <svg
+                                    className='w-3.5 h-3.5'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                                    />
                                 </svg>
-                                <span>Scanned with FileChecker {analyticsData.analyzerVersion}</span>
+                                <span>
+                                    Scanned with FileChecker {analyticsData.analyzerVersion}
+                                </span>
                             </div>
                         </div>
                     )}
 
-                    {(analyticsData.assemblyCompany || analyticsData.assemblyProduct || analyticsData.assemblyTitle || analyticsData.assemblyGuid) && (
+                    {(analyticsData.assemblyCompany ||
+                        analyticsData.assemblyProduct ||
+                        analyticsData.assemblyTitle ||
+                        analyticsData.assemblyGuid) && (
                         <div className='mt-4 pt-4 border-t border-purple-500/20'>
                             <button
-                                onClick={() => setAssemblyMetadataExpanded(!assemblyMetadataExpanded)}
+                                onClick={() =>
+                                    setAssemblyMetadataExpanded(!assemblyMetadataExpanded)
+                                }
                                 className='w-full text-sm font-semibold text-purple-400 mb-3 flex items-center justify-between gap-2 hover:text-purple-300 transition-colors'
                             >
                                 <div className='flex items-center gap-2'>
-                                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                    <svg
+                                        className='w-4 h-4'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                        />
                                     </svg>
                                     {t('results.assemblyMetadata.title')}
                                 </div>
@@ -669,39 +680,64 @@ export default function ResultPage() {
                                     stroke='currentColor'
                                     viewBox='0 0 24 24'
                                 >
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M19 9l-7 7-7-7'
+                                    />
                                 </svg>
                             </button>
                             {assemblyMetadataExpanded && (
                                 <div className='grid grid-cols-1 gap-2 text-sm'>
                                     {analyticsData.assemblyCompany && (
                                         <div className='flex flex-col'>
-                                            <span className='text-gray-400'>{t('results.assemblyMetadata.company')}</span>
-                                            <span className='text-white break-words'>{analyticsData.assemblyCompany}</span>
+                                            <span className='text-gray-400'>
+                                                {t('results.assemblyMetadata.company')}
+                                            </span>
+                                            <span className='text-white break-words'>
+                                                {analyticsData.assemblyCompany}
+                                            </span>
                                         </div>
                                     )}
                                     {analyticsData.assemblyProduct && (
                                         <div className='flex flex-col'>
-                                            <span className='text-gray-400'>{t('results.assemblyMetadata.product')}</span>
-                                            <span className='text-white break-words'>{analyticsData.assemblyProduct}</span>
+                                            <span className='text-gray-400'>
+                                                {t('results.assemblyMetadata.product')}
+                                            </span>
+                                            <span className='text-white break-words'>
+                                                {analyticsData.assemblyProduct}
+                                            </span>
                                         </div>
                                     )}
                                     {analyticsData.assemblyTitle && (
                                         <div className='flex flex-col'>
-                                            <span className='text-gray-400'>{t('results.assemblyMetadata.assemblyTitle')}</span>
-                                            <span className='text-white break-words'>{analyticsData.assemblyTitle}</span>
+                                            <span className='text-gray-400'>
+                                                {t('results.assemblyMetadata.assemblyTitle')}
+                                            </span>
+                                            <span className='text-white break-words'>
+                                                {analyticsData.assemblyTitle}
+                                            </span>
                                         </div>
                                     )}
                                     {analyticsData.assemblyGuid && (
                                         <div className='flex flex-col'>
-                                            <span className='text-gray-400'>{t('results.assemblyMetadata.guid')}</span>
-                                            <span className='text-white break-words font-mono text-xs'>{analyticsData.assemblyGuid}</span>
+                                            <span className='text-gray-400'>
+                                                {t('results.assemblyMetadata.guid')}
+                                            </span>
+                                            <span className='text-white break-words font-mono text-xs'>
+                                                {analyticsData.assemblyGuid}
+                                            </span>
                                         </div>
                                     )}
                                     {analyticsData.assemblyCopyright && (
                                         <div className='flex flex-col'>
-                                            <span className='text-gray-400'>{t('results.assemblyMetadata.copyright')}</span>
-                                            <span className='text-white break-words text-xs'>{analyticsData.assemblyCopyright}</span>
+                                            <span className='text-gray-400'>
+                                                {t('results.assemblyMetadata.copyright')}
+                                            </span>
+                                            <span className='text-white break-words text-xs'>
+                                                {analyticsData.assemblyCopyright}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -834,8 +870,18 @@ export default function ResultPage() {
 
                     <div className='mt-8 bg-slate-900/50 rounded-lg border border-purple-500/30 p-6'>
                         <h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-                            <svg className='w-6 h-6 text-green-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' />
+                            <svg
+                                className='w-6 h-6 text-green-400'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'
+                                />
                             </svg>
                             {t('results.securityAnalysis.detectionEngine')}
                         </h3>
@@ -846,22 +892,40 @@ export default function ResultPage() {
                         </p>
 
                         <div className='max-w-md'>
-                            <div className={`border rounded-lg p-4 ${
-                                analyticsData.checked && analyticsData.checked.length > 0
-                                    ? 'border-red-500/50 bg-red-900/20'
-                                    : 'border-green-500/50 bg-green-900/20'
-                            }`}>
+                            <div
+                                className={`border rounded-lg p-4 ${
+                                    analyticsData.checked && analyticsData.checked.length > 0
+                                        ? 'border-red-500/50 bg-red-900/20'
+                                        : 'border-green-500/50 bg-green-900/20'
+                                }`}
+                            >
                                 <div className='flex items-center justify-between mb-2'>
                                     <div className='flex items-center gap-2'>
-                                        <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4' />
+                                        <svg
+                                            className='w-5 h-5 text-purple-400'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4'
+                                            />
                                         </svg>
-                                        <span className='font-medium text-white'>{t('results.securityAnalysis.blacklistedCommands')}</span>
+                                        <span className='font-medium text-white'>
+                                            {t('results.securityAnalysis.blacklistedCommands')}
+                                        </span>
                                     </div>
                                     {analyticsData.checked && analyticsData.checked.length > 0 ? (
-                                        <span className='text-red-400 text-sm font-semibold'>⚠️ {t('results.securityAnalysis.detected')}</span>
+                                        <span className='text-red-400 text-sm font-semibold'>
+                                            ⚠️ {t('results.securityAnalysis.detected')}
+                                        </span>
                                     ) : (
-                                        <span className='text-green-400 text-sm font-semibold'>✓ {t('results.securityAnalysis.clean')}</span>
+                                        <span className='text-green-400 text-sm font-semibold'>
+                                            ✓ {t('results.securityAnalysis.clean')}
+                                        </span>
                                     )}
                                 </div>
                                 <p className='text-xs text-gray-400'>
@@ -872,12 +936,20 @@ export default function ResultPage() {
 
                         <div className='mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg'>
                             <p className='text-blue-300 text-xs flex items-start gap-2'>
-                                <svg className='w-4 h-4 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                <svg
+                                    className='w-4 h-4 flex-shrink-0 mt-0.5'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                    />
                                 </svg>
-                                <span>
-                                    {t('results.securityAnalysis.moreAnalyzersNote')}
-                                </span>
+                                <span>{t('results.securityAnalysis.moreAnalyzersNote')}</span>
                             </p>
                         </div>
                     </div>
@@ -885,17 +957,35 @@ export default function ResultPage() {
                     {analyticsData.checked && analyticsData.checked.length > 0 && (
                         <div className='mt-8 bg-slate-900/50 rounded-lg overflow-hidden border border-purple-500/30'>
                             <button
-                                onClick={() => setSecurityAnalysisExpanded(!securityAnalysisExpanded)}
+                                onClick={() =>
+                                    setSecurityAnalysisExpanded(!securityAnalysisExpanded)
+                                }
                                 className='w-full px-6 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors'
                             >
                                 <div className='flex items-center gap-3'>
-                                    <svg className='w-6 h-6 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                                    <svg
+                                        className='w-6 h-6 text-purple-400'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                        />
                                     </svg>
                                     <div className='text-left'>
-                                        <h3 className='text-xl font-bold text-white'>{t('results.securityAnalysis.title')}</h3>
+                                        <h3 className='text-xl font-bold text-white'>
+                                            {t('results.securityAnalysis.title')}
+                                        </h3>
                                         <p className='text-sm text-gray-400'>
-                                            {analyticsData.checked.length} {analyticsData.checked.length === 1 ? t('results.securityAnalysis.securityCheck') : t('results.securityAnalysis.securityChecks')} {t('results.securityAnalysis.checksDetected')}
+                                            {analyticsData.checked.length}{' '}
+                                            {analyticsData.checked.length === 1
+                                                ? t('results.securityAnalysis.securityCheck')
+                                                : t('results.securityAnalysis.securityChecks')}{' '}
+                                            {t('results.securityAnalysis.checksDetected')}
                                         </p>
                                     </div>
                                 </div>
@@ -905,7 +995,12 @@ export default function ResultPage() {
                                     stroke='currentColor'
                                     viewBox='0 0 24 24'
                                 >
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M19 9l-7 7-7-7'
+                                    />
                                 </svg>
                             </button>
 
@@ -916,17 +1011,17 @@ export default function ResultPage() {
                                         const severityColors = {
                                             high: 'border-red-500/50 bg-red-900/20',
                                             medium: 'border-yellow-500/50 bg-yellow-900/20',
-                                            low: 'border-blue-500/50 bg-blue-900/20'
+                                            low: 'border-blue-500/50 bg-blue-900/20',
                                         };
                                         const severityTextColors = {
                                             high: 'text-red-400',
                                             medium: 'text-yellow-400',
-                                            low: 'text-blue-400'
+                                            low: 'text-blue-400',
                                         };
                                         const severityBadgeColors = {
                                             high: 'bg-red-500/20 text-red-300 border-red-500/30',
                                             medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-                                            low: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                                            low: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
                                         };
 
                                         return (
@@ -940,11 +1035,26 @@ export default function ResultPage() {
                                                     </div>
                                                     <div className='flex-1 min-w-0'>
                                                         <div className='flex items-start justify-between gap-2 mb-2'>
-                                                            <h4 className={`font-semibold text-base ${severityTextColors[checkInfo.severity]}`}>
+                                                            <h4
+                                                                className={`font-semibold text-base ${severityTextColors[checkInfo.severity]}`}
+                                                            >
                                                                 {checkInfo.name}
                                                             </h4>
-                                                            <span className={`px-2 py-1 text-xs font-medium rounded-full border flex-shrink-0 ${severityBadgeColors[checkInfo.severity]}`}>
-                                                                {checkInfo.severity === 'high' ? t('results.securityAnalysis.highRisk') : checkInfo.severity === 'medium' ? t('results.securityAnalysis.mediumRisk') : t('results.securityAnalysis.lowRisk')}
+                                                            <span
+                                                                className={`px-2 py-1 text-xs font-medium rounded-full border flex-shrink-0 ${severityBadgeColors[checkInfo.severity]}`}
+                                                            >
+                                                                {checkInfo.severity === 'high'
+                                                                    ? t(
+                                                                          'results.securityAnalysis.highRisk'
+                                                                      )
+                                                                    : checkInfo.severity ===
+                                                                        'medium'
+                                                                      ? t(
+                                                                            'results.securityAnalysis.mediumRisk'
+                                                                        )
+                                                                      : t(
+                                                                            'results.securityAnalysis.lowRisk'
+                                                                        )}
                                                             </span>
                                                         </div>
                                                         <p className='text-sm text-gray-300 mb-2'>
@@ -952,7 +1062,9 @@ export default function ResultPage() {
                                                         </p>
                                                         <details className='mt-2'>
                                                             <summary className='text-xs text-purple-400 cursor-pointer hover:text-purple-300 select-none'>
-                                                                {t('results.securityAnalysis.technicalDetails')}
+                                                                {t(
+                                                                    'results.securityAnalysis.technicalDetails'
+                                                                )}
                                                             </summary>
                                                             <div className='mt-2 p-2 bg-slate-950/50 rounded border border-slate-700'>
                                                                 <code className='text-xs text-gray-400 font-mono break-all'>
@@ -968,8 +1080,18 @@ export default function ResultPage() {
 
                                     <div className='mt-4 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg'>
                                         <div className='flex items-start gap-2'>
-                                            <svg className='w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                            <svg
+                                                className='w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                viewBox='0 0 24 24'
+                                            >
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                />
                                             </svg>
                                             <div className='text-sm text-blue-300'>
                                                 {t('results.securityAnalysis.detectionsNote')}
@@ -1063,8 +1185,18 @@ export default function ResultPage() {
                         className='w-full px-6 py-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors'
                     >
                         <h2 className='text-xl font-bold flex items-center gap-2'>
-                            <svg className='w-6 h-6 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                            <svg
+                                className='w-6 h-6 text-purple-400'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                />
                             </svg>
                             {t('badges.embedTitle')}
                         </h2>
@@ -1074,154 +1206,229 @@ export default function ResultPage() {
                             stroke='currentColor'
                             viewBox='0 0 24 24'
                         >
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M19 9l-7 7-7-7'
+                            />
                         </svg>
                     </button>
 
                     {badgeEmbedExpanded && (
                         <div className='px-6 pb-6'>
-
-                    {isAuthenticated ? (
-                        <div className='mb-6 bg-green-900/20 border border-green-500/30 rounded-lg p-4'>
-                            <div className='flex items-start gap-3 mb-3'>
-                                <svg className='w-5 h-5 text-green-400 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
-                                </svg>
-                                <div className='flex-1'>
-                                    <h3 className='text-green-400 font-semibold mb-1'>{t('badges.recommended')}</h3>
-                                    <p className='text-slate-300 text-sm mb-3'>
-                                        {t('badges.recommendedDescription')}
-                                    </p>
-                                    <button
-                                        onClick={handleCreateBadge}
-                                        className='bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2'
-                                    >
-                                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                            {isAuthenticated ? (
+                                <div className='mb-6 bg-green-900/20 border border-green-500/30 rounded-lg p-4'>
+                                    <div className='flex items-start gap-3 mb-3'>
+                                        <svg
+                                            className='w-5 h-5 text-green-400 flex-shrink-0 mt-0.5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                            />
                                         </svg>
-                                        {t('badges.createSecure')}
+                                        <div className='flex-1'>
+                                            <h3 className='text-green-400 font-semibold mb-1'>
+                                                {t('badges.recommended')}
+                                            </h3>
+                                            <p className='text-slate-300 text-sm mb-3'>
+                                                {t('badges.recommendedDescription')}
+                                            </p>
+                                            <button
+                                                onClick={handleCreateBadge}
+                                                className='bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2'
+                                            >
+                                                <svg
+                                                    className='w-5 h-5'
+                                                    fill='none'
+                                                    stroke='currentColor'
+                                                    viewBox='0 0 24 24'
+                                                >
+                                                    <path
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        strokeWidth={2}
+                                                        d='M12 4v16m8-8H4'
+                                                    />
+                                                </svg>
+                                                {t('badges.createSecure')}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className='mb-6 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4'>
+                                    <div className='flex items-start gap-3'>
+                                        <svg
+                                            className='w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                            />
+                                        </svg>
+                                        <div className='flex-1'>
+                                            <h3 className='text-blue-400 font-semibold mb-1'>
+                                                {t('badges.createSecureProduction')}
+                                            </h3>
+                                            <p className='text-slate-300 text-sm mb-3'>
+                                                {t('badges.createSecureDescription')}{' '}
+                                                <Link
+                                                    href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
+                                                    className='text-blue-400 hover:text-blue-300 underline'
+                                                >
+                                                    {t('badges.signIn')}
+                                                </Link>
+                                                {t('badges.secureDescription')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className='mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3'>
+                                <div className='flex items-start gap-2'>
+                                    <svg
+                                        className='w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
+                                    </svg>
+                                    <p className='text-yellow-300 text-xs'>
+                                        <strong>{t('badges.warning')}</strong>{' '}
+                                        {t('badges.warningDescription')}{' '}
+                                        {isAuthenticated ? (
+                                            <>{t('badges.useSecure')}</>
+                                        ) : (
+                                            <>
+                                                <Link
+                                                    href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
+                                                    className='text-yellow-400 hover:text-yellow-300 underline'
+                                                >
+                                                    {t('badges.signIn')}
+                                                </Link>{' '}
+                                                {t('badges.createSecureForProduction')}
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p className='text-slate-400 text-sm mb-4'>{t('badges.quickBadge')}</p>
+
+                            <div className='bg-slate-900/50 rounded-lg p-4 mb-4 text-center'>
+                                <p className='text-slate-400 text-xs mb-3'>{t('common.preview')}</p>
+                                <a
+                                    href={
+                                        typeof window !== 'undefined' ? window.location.href : '#'
+                                    }
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                >
+                                    <img
+                                        src={
+                                            analyticsData
+                                                ? `/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}`
+                                                : ''
+                                        }
+                                        alt='Safeturned Scan Badge'
+                                        className='inline-block'
+                                        onError={e => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                        }}
+                                    />
+                                </a>
+                            </div>
+
+                            <div className='mb-4'>
+                                <label className='block text-sm font-semibold text-white mb-2'>
+                                    {t('badges.markdown')}
+                                </label>
+                                <div className='bg-slate-900/70 rounded-lg p-3 border border-slate-700 relative group'>
+                                    <code className='text-xs text-green-400 font-mono break-all'>
+                                        {analyticsData &&
+                                            `[![Safeturned](${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)})](${typeof window !== 'undefined' ? window.location.href : ''})`}
+                                    </code>
+                                    <button
+                                        onClick={() => {
+                                            if (!analyticsData) return;
+                                            const code = `[![Safeturned](${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)})](${typeof window !== 'undefined' ? window.location.href : ''})`;
+                                            navigator.clipboard.writeText(code);
+                                            setNotification({
+                                                message: t('badges.markdownCopied'),
+                                                type: 'success',
+                                            });
+                                        }}
+                                        className='absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity'
+                                    >
+                                        {t('badges.copy')}
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className='mb-6 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4'>
-                            <div className='flex items-start gap-3'>
-                                <svg className='w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                                </svg>
-                                <div className='flex-1'>
-                                    <h3 className='text-blue-400 font-semibold mb-1'>{t('badges.createSecureProduction')}</h3>
-                                    <p className='text-slate-300 text-sm mb-3'>
-                                        {t('badges.createSecureDescription')}{' '}
-                                        <Link
-                                            href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
-                                            className='text-blue-400 hover:text-blue-300 underline'
-                                        >
-                                            {t('badges.signIn')}
-                                        </Link>
-                                        {t('badges.secureDescription')}
-                                    </p>
+
+                            <div>
+                                <label className='block text-sm font-semibold text-white mb-2'>
+                                    {t('badges.html')}
+                                </label>
+                                <div className='bg-slate-900/70 rounded-lg p-3 border border-slate-700 relative group'>
+                                    <code className='text-xs text-blue-400 font-mono break-all'>
+                                        {analyticsData &&
+                                            `<a href="${typeof window !== 'undefined' ? window.location.href : ''}"><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}" alt="Safeturned" /></a>`}
+                                    </code>
+                                    <button
+                                        onClick={() => {
+                                            if (!analyticsData) return;
+                                            const code = `<a href="${typeof window !== 'undefined' ? window.location.href : ''}"><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}" alt="Safeturned" /></a>`;
+                                            navigator.clipboard.writeText(code);
+                                            setNotification({
+                                                message: t('badges.htmlCopied'),
+                                                type: 'success',
+                                            });
+                                        }}
+                                        className='absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity'
+                                    >
+                                        {t('badges.copy')}
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    )}
 
-                    <div className='mb-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3'>
-                        <div className='flex items-start gap-2'>
-                            <svg className='w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
-                            </svg>
-                            <p className='text-yellow-300 text-xs'>
-                                <strong>{t('badges.warning')}</strong> {t('badges.warningDescription')}{' '}
-                                {isAuthenticated ? (
-                                    <>{t('badges.useSecure')}</>
-                                ) : (
-                                    <>
-                                        <Link
-                                            href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
-                                            className='text-yellow-400 hover:text-yellow-300 underline'
-                                        >
-                                            {t('badges.signIn')}
-                                        </Link>
-                                        {' '}{t('badges.createSecureForProduction')}
-                                    </>
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
-                    <p className='text-slate-400 text-sm mb-4'>
-                        {t('badges.quickBadge')}
-                    </p>
-
-                    <div className='bg-slate-900/50 rounded-lg p-4 mb-4 text-center'>
-                        <p className='text-slate-400 text-xs mb-3'>{t('common.preview')}</p>
-                        <a
-                            href={typeof window !== 'undefined' ? window.location.href : '#'}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <img
-                                src={analyticsData ? `/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}` : ''}
-                                alt='Safeturned Scan Badge'
-                                className='inline-block'
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                }}
-                            />
-                        </a>
-                    </div>
-
-                    <div className='mb-4'>
-                        <label className='block text-sm font-semibold text-white mb-2'>{t('badges.markdown')}</label>
-                        <div className='bg-slate-900/70 rounded-lg p-3 border border-slate-700 relative group'>
-                            <code className='text-xs text-green-400 font-mono break-all'>
-                                {analyticsData && `[![Safeturned](${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)})](${typeof window !== 'undefined' ? window.location.href : ''})`}
-                            </code>
-                            <button
-                                onClick={() => {
-                                    if (!analyticsData) return;
-                                    const code = `[![Safeturned](${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)})](${typeof window !== 'undefined' ? window.location.href : ''})`;
-                                    navigator.clipboard.writeText(code);
-                                    setNotification({ message: t('badges.markdownCopied'), type: 'success' });
-                                }}
-                                className='absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity'
-                            >
-                                {t('badges.copy')}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className='block text-sm font-semibold text-white mb-2'>{t('badges.html')}</label>
-                        <div className='bg-slate-900/70 rounded-lg p-3 border border-slate-700 relative group'>
-                            <code className='text-xs text-blue-400 font-mono break-all'>
-                                {analyticsData && `<a href="${typeof window !== 'undefined' ? window.location.href : ''}"><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}" alt="Safeturned" /></a>`}
-                            </code>
-                            <button
-                                onClick={() => {
-                                    if (!analyticsData) return;
-                                    const code = `<a href="${typeof window !== 'undefined' ? window.location.href : ''}"><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}" alt="Safeturned" /></a>`;
-                                    navigator.clipboard.writeText(code);
-                                    setNotification({ message: t('badges.htmlCopied'), type: 'success' });
-                                }}
-                                className='absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity'
-                            >
-                                {t('badges.copy')}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className='mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg'>
-                        <p className='text-blue-300 text-xs flex items-start gap-2'>
-                            <svg className='w-4 h-4 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                            </svg>
-                            <span>{t('badges.autoUpdate')}</span>
-                        </p>
-                    </div>
+                            <div className='mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg'>
+                                <p className='text-blue-300 text-xs flex items-start gap-2'>
+                                    <svg
+                                        className='w-4 h-4 flex-shrink-0 mt-0.5'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                        />
+                                    </svg>
+                                    <span>{t('badges.autoUpdate')}</span>
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -1251,7 +1458,9 @@ export default function ResultPage() {
                         <h2 className='text-2xl font-bold text-white mb-2'>
                             {t('dragDrop.overlayTitle', 'Drop file to scan')}
                         </h2>
-                        <p className='text-gray-300'>{t('dragDrop.overlayDescription', 'Release to start scanning')}</p>
+                        <p className='text-gray-300'>
+                            {t('dragDrop.overlayDescription', 'Release to start scanning')}
+                        </p>
                     </div>
                 </div>
             )}
@@ -1261,7 +1470,9 @@ export default function ResultPage() {
                     <div className='bg-slate-800/95 border border-purple-500/50 rounded-xl p-8 max-w-md w-full mx-4'>
                         <div className='text-center mb-6'>
                             <div className='text-4xl mb-4'>📄</div>
-                            <h3 className='text-xl font-semibold mb-2'>{t('hero.fileSelected', 'File Selected')}</h3>
+                            <h3 className='text-xl font-semibold mb-2'>
+                                {t('hero.fileSelected', 'File Selected')}
+                            </h3>
                             <p className='text-gray-400 truncate max-w-full' title={dragFile.name}>
                                 {dragFile.name}
                             </p>
@@ -1276,7 +1487,9 @@ export default function ResultPage() {
                                 disabled={isUploading}
                                 className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 px-6 py-3 rounded-lg font-medium transition-all duration-300'
                             >
-                                {isUploading ? t('hero.scanning', 'Scanning...') : t('hero.confirmUpload', 'Scan Now')}
+                                {isUploading
+                                    ? t('hero.scanning', 'Scanning...')
+                                    : t('hero.confirmUpload', 'Scan Now')}
                             </button>
                             <button
                                 onClick={handleCancelDragUpload}
@@ -1335,7 +1548,8 @@ export default function ResultPage() {
                                 </div>
                                 {useChunkedUploadForFile && (
                                     <div className='text-xs text-gray-400'>
-                                        {Math.round(chunkedUpload.progress)}% {t('common.complete', 'complete')}
+                                        {Math.round(chunkedUpload.progress)}%{' '}
+                                        {t('common.complete', 'complete')}
                                     </div>
                                 )}
                                 {chunkedUpload.isPreparing && (

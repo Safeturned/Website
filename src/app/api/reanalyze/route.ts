@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnalysisResult, storeAnalysisResult, getStoredFile } from '../storage';
+import { serverApiRequest, ServerApiError } from '@/lib/api-client-server';
 
 export async function POST(request: NextRequest) {
     try {
@@ -50,19 +51,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const apiKey = process.env.SAFETURNED_API_KEY;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-        if (!apiKey) {
-            console.error('SAFETURNED_API_KEY environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
-        }
-
-        if (!apiUrl) {
-            console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
-        }
-
         const formData = new FormData();
         formData.append('forceAnalyze', 'true');
         const fileBlob = new Blob([storedFile.fileData], { type: storedFile.mimeType });
@@ -71,57 +59,23 @@ export async function POST(request: NextRequest) {
         });
         formData.append('file', recreatedFile);
 
-        const url = new URL(`${apiUrl}/v1.0/files`);
-        url.searchParams.append('forceAnalyze', 'true');
-        const headers: Record<string, string> = {
-            'X-API-Key': apiKey,
-        };
-
-        const origin = request.headers.get('origin');
-        const referer = request.headers.get('referer');
-
-        if (origin) {
-            headers['Origin'] = origin;
-        }
-        if (referer) {
-            headers['Referer'] = referer;
-        }
-
-        const existingForwardedFor = request.headers.get('x-forwarded-for');
-        const realIP = request.headers.get('x-real-ip') || request.headers.get('cf-connecting-ip');
-
-        if (realIP) {
-            const newForwardedFor = existingForwardedFor
-                ? `${existingForwardedFor}, ${realIP}`
-                : realIP;
-            headers['X-Forwarded-For'] = newForwardedFor;
-        } else if (existingForwardedFor) {
-            headers['X-Forwarded-For'] = existingForwardedFor;
-        }
-
-        const response = await fetch(url.toString(), {
+        const { data: result } = await serverApiRequest(request, 'files', {
             method: 'POST',
-            headers,
             body: formData,
+            searchParams: { forceAnalyze: 'true' },
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            return NextResponse.json(
-                {
-                    error: `Reanalysis failed: ${response.status} ${response.statusText} - ${errorText}`,
-                },
-                { status: response.status }
-            );
-        }
-
-        const result = await response.json();
 
         const hashToUse = existingResult.id || fileHash;
         storeAnalysisResult(hashToUse, result);
         return NextResponse.json(result);
     } catch (err) {
         console.error('Reanalysis error:', err);
+        if (err instanceof ServerApiError) {
+            return NextResponse.json(
+                { error: `Reanalysis failed: ${err.message}` },
+                { status: err.status }
+            );
+        }
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

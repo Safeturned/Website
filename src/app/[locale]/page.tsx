@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import StandardFileUpload from '@/components/StandardFileUpload';
 import { formatScanTime, computeFileHash } from '@/lib/utils';
-import { useAuth } from '@/lib/auth-context';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -30,7 +28,6 @@ export const dynamic = 'force-dynamic';
 export default function Page() {
     const { t, locale } = useTranslation();
     const router = useRouter();
-    const { getAccessToken } = useAuth();
     const [isScanning, setIsScanning] = useState(false);
     const [systemAnalytics, setSystemAnalytics] = useState<SystemAnalytics | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -42,7 +39,6 @@ export default function Page() {
     const CHUNKED_UPLOAD_THRESHOLD = 100 * 1024 * 1024;
 
     const chunkedUpload = useChunkedUpload({
-        getAccessToken,
         onComplete: (result: Record<string, unknown>) => {
             sessionStorage.setItem('uploadResult', JSON.stringify(result));
             let hash;
@@ -110,15 +106,9 @@ export default function Page() {
                 const formData = new FormData();
                 formData.append('file', file, file.name);
 
-                const accessToken = getAccessToken();
-                const headers: HeadersInit = {};
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
                 const response = await fetch('/api/upload', {
                     method: 'POST',
-                    headers,
+                    credentials: 'include',
                     body: formData,
                 });
 
@@ -205,7 +195,6 @@ export default function Page() {
     return (
         <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative'>
             <Navigation />
-
 
             <section className='px-6 py-20'>
                 <div className='max-w-6xl mx-auto text-center'>
@@ -314,7 +303,9 @@ export default function Page() {
                         <>
                             <div
                                 className={`grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto transition-all duration-700 delay-400 ${
-                                    isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                                    isLoaded
+                                        ? 'translate-y-0 opacity-100'
+                                        : 'translate-y-10 opacity-0'
                                 }`}
                             >
                                 <div className='bg-slate-800/40 backdrop-blur-sm border border-purple-500/30 rounded-lg p-5 md:p-6 hover:bg-slate-800/60 hover:border-purple-400/50 transition-all duration-200'>

@@ -41,7 +41,6 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
         onProgress,
         onComplete,
         onError,
-        getAccessToken,
     } = options;
 
     const [state, setState] = useState<ChunkedUploadState>({
@@ -125,15 +124,9 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
                 formData.append('chunk', chunk);
                 formData.append('chunkHash', chunkHash);
 
-                const accessToken = getAccessToken?.();
-                const headers: HeadersInit = {};
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
                 const response = await fetch('/api/upload-chunked/chunk', {
                     method: 'POST',
-                    headers,
+                    credentials: 'include',
                     body: formData,
                     signal: abortControllerRef.current?.signal,
                 });
@@ -196,17 +189,12 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
             retryCount = 0
         ): Promise<string> => {
             try {
-                const accessToken = getAccessToken?.();
-                const headers: HeadersInit = {
-                    'Content-Type': 'application/json',
-                };
-                if (accessToken) {
-                    headers['Authorization'] = `Bearer ${accessToken}`;
-                }
-
                 const response = await fetch('/api/upload-chunked/initiate', {
                     method: 'POST',
-                    headers,
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
                         fileName,
                         fileSizeBytes,
@@ -345,17 +333,12 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
 
                 setState(prev => ({ ...prev, status: MESSAGES.PROCESSING }));
 
-                const accessToken = getAccessToken?.();
-                const completeHeaders: HeadersInit = {
-                    'Content-Type': 'application/json',
-                };
-                if (accessToken) {
-                    completeHeaders['Authorization'] = `Bearer ${accessToken}`;
-                }
-
                 const completeResponse = await fetch('/api/upload-chunked/complete', {
                     method: 'POST',
-                    headers: completeHeaders,
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({ sessionId }),
                     signal: abortControllerRef.current.signal,
                 });

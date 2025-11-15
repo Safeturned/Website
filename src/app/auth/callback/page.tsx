@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { setAuthData } from '@/lib/auth-context';
+import { api } from '@/lib/api-client';
 
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -12,19 +13,47 @@ export default function AuthCallbackPage() {
     useEffect(() => {
         const handleCallback = async () => {
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-                const response = await fetch(`${apiUrl}/v1.0/auth/me`, {
-                    credentials: 'include',
-                });
+                const code = searchParams.get('code');
+                const state = searchParams.get('state');
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user data');
+                const openIdMode = searchParams.get('openid.mode');
+
+                let userData;
+
+                if (code) {
+                    userData = await api.post('auth/discord/exchange', { code, state });
+                } else if (openIdMode === 'id_res') {
+                    const openIdParams: Record<string, string> = {};
+                    searchParams.forEach((value, key) => {
+                        if (key.startsWith('openid.')) {
+                            openIdParams[key] = value;
+                        }
+                    });
+
+                    const steamState = searchParams.get('state');
+
+                    userData = await api.post('auth/steam/exchange', {
+                        OpenIdMode: openIdMode,
+                        OpenIdOpEndpoint: openIdParams['openid.op_endpoint'],
+                        OpenIdClaimedId: openIdParams['openid.claimed_id'],
+                        OpenIdIdentity: openIdParams['openid.identity'],
+                        OpenIdReturnTo: openIdParams['openid.return_to'],
+                        OpenIdResponseNonce: openIdParams['openid.response_nonce'],
+                        OpenIdAssocHandle: openIdParams['openid.assoc_handle'],
+                        OpenIdSigned: openIdParams['openid.signed'],
+                        OpenIdSig: openIdParams['openid.sig'],
+                        State: steamState,
+                    });
+                } else {
+                    throw new Error(
+                        'Invalid callback - no authorization code or OpenID response found'
+                    );
                 }
 
-                const userData = await response.json();
                 setAuthData(userData);
 
-                let returnUrl = sessionStorage.getItem('auth_return_url') || '/en';
+                let returnUrl =
+                    userData.returnUrl || sessionStorage.getItem('auth_return_url') || '/en';
                 sessionStorage.removeItem('auth_return_url');
 
                 if (!returnUrl.startsWith('/en/') && !returnUrl.startsWith('/ru/')) {
@@ -35,7 +64,7 @@ export default function AuthCallbackPage() {
                     }
                 }
 
-                router.push(returnUrl);
+                window.location.href = returnUrl;
             } catch (err) {
                 console.error('Auth callback error:', err);
                 setError(err instanceof Error ? err.message : 'Authentication failed');
@@ -43,7 +72,7 @@ export default function AuthCallbackPage() {
         };
 
         handleCallback();
-    }, [router]);
+    }, [router, searchParams]);
 
     if (error) {
         return (

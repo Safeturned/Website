@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth, LinkedIdentity } from '@/lib/auth-context';
 import { DiscordIcon, SteamIcon } from '@/components/Icons';
+import { getApiUrl } from '@/lib/api-client';
 
 export default function AccountLinking() {
-    const { user, tokens, getLinkedIdentities, unlinkIdentity } = useAuth();
+    const { tokens, getLinkedIdentities, unlinkIdentity } = useAuth();
     const [linkedIdentities, setLinkedIdentities] = useState<LinkedIdentity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -68,20 +69,18 @@ export default function AccountLinking() {
     };
 
     const handleLinkProvider = (provider: string) => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const callbackUrl = `${window.location.origin}/auth/callback`;
-
         sessionStorage.setItem('auth_return_url', window.location.pathname);
 
         if (provider === 'discord') {
-            window.location.href = `${apiUrl}/v1.0/auth/discord?returnUrl=${encodeURIComponent(callbackUrl)}`;
+            window.location.href = `${getApiUrl('auth/discord')}?returnUrl=${encodeURIComponent(callbackUrl)}`;
         } else if (provider === 'steam') {
-            window.location.href = `${apiUrl}/v1.0/auth/steam?returnUrl=${encodeURIComponent(callbackUrl)}`;
+            window.location.href = `${getApiUrl('auth/steam')}?returnUrl=${encodeURIComponent(callbackUrl)}`;
         }
     };
 
-    const isDiscordLinked = linkedIdentities.some((id) => id.providerName === 'Discord');
-    const isSteamLinked = linkedIdentities.some((id) => id.providerName === 'Steam');
+    const isDiscordLinked = linkedIdentities.some(id => id.providerName === 'Discord');
+    const isSteamLinked = linkedIdentities.some(id => id.providerName === 'Steam');
 
     return (
         <div className='w-full space-y-6'>
@@ -104,7 +103,6 @@ export default function AccountLinking() {
                 </div>
             ) : (
                 <div className='space-y-4'>
-                    {/* Discord */}
                     <div className='bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6'>
                         <div className='flex items-center justify-between'>
                             <div className='flex items-center gap-4'>
@@ -115,23 +113,29 @@ export default function AccountLinking() {
                                     <h3 className='font-semibold text-white'>Discord</h3>
                                     {isDiscordLinked ? (
                                         <div className='text-sm text-slate-400'>
-                                            {linkedIdentities.find((id) => id.providerName === 'Discord')?.providerUsername && (
+                                            {linkedIdentities.find(
+                                                id => id.providerName === 'Discord'
+                                            )?.providerUsername && (
                                                 <p>
                                                     Connected as{' '}
                                                     <span className='text-slate-300'>
                                                         {
-                                                            linkedIdentities.find((id) => id.providerName === 'Discord')
-                                                                ?.providerUsername
+                                                            linkedIdentities.find(
+                                                                id => id.providerName === 'Discord'
+                                                            )?.providerUsername
                                                         }
                                                     </span>
                                                 </p>
                                             )}
-                                            {linkedIdentities.find((id) => id.providerName === 'Discord')?.lastAuthenticatedAt && (
+                                            {linkedIdentities.find(
+                                                id => id.providerName === 'Discord'
+                                            )?.lastAuthenticatedAt && (
                                                 <p className='text-xs text-slate-500 mt-1'>
                                                     Last authenticated:{' '}
                                                     {new Date(
-                                                        linkedIdentities.find((id) => id.providerName === 'Discord')
-                                                            ?.lastAuthenticatedAt || ''
+                                                        linkedIdentities.find(
+                                                            id => id.providerName === 'Discord'
+                                                        )?.lastAuthenticatedAt || ''
                                                     ).toLocaleDateString()}
                                                 </p>
                                             )}
@@ -144,7 +148,10 @@ export default function AccountLinking() {
                             {isDiscordLinked ? (
                                 <button
                                     onClick={() => handleUnlinkClick('Discord')}
-                                    disabled={linkedIdentities.length <= 1 || unlinkingProvider === 'Discord'}
+                                    disabled={
+                                        linkedIdentities.length <= 1 ||
+                                        unlinkingProvider === 'Discord'
+                                    }
                                     className='px-4 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 rounded-lg transition-colors font-medium'
                                 >
                                     {unlinkingProvider === 'Discord' ? 'Unlinking...' : 'Unlink'}
@@ -160,7 +167,6 @@ export default function AccountLinking() {
                         </div>
                     </div>
 
-                    {/* Steam */}
                     <div className='bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6'>
                         <div className='flex items-center justify-between'>
                             <div className='flex items-center gap-4'>
@@ -171,19 +177,29 @@ export default function AccountLinking() {
                                     <h3 className='font-semibold text-white'>Steam</h3>
                                     {isSteamLinked ? (
                                         <div className='text-sm text-slate-400'>
-                                            {linkedIdentities.find((id) => id.providerName === 'Steam')?.providerUsername && (
+                                            {linkedIdentities.find(
+                                                id => id.providerName === 'Steam'
+                                            )?.providerUsername && (
                                                 <p>
                                                     Connected as{' '}
                                                     <span className='text-slate-300'>
-                                                        {linkedIdentities.find((id) => id.providerName === 'Steam')?.providerUsername}
+                                                        {
+                                                            linkedIdentities.find(
+                                                                id => id.providerName === 'Steam'
+                                                            )?.providerUsername
+                                                        }
                                                     </span>
                                                 </p>
                                             )}
-                                            {linkedIdentities.find((id) => id.providerName === 'Steam')?.lastAuthenticatedAt && (
+                                            {linkedIdentities.find(
+                                                id => id.providerName === 'Steam'
+                                            )?.lastAuthenticatedAt && (
                                                 <p className='text-xs text-slate-500 mt-1'>
                                                     Last authenticated:{' '}
                                                     {new Date(
-                                                        linkedIdentities.find((id) => id.providerName === 'Steam')?.lastAuthenticatedAt || ''
+                                                        linkedIdentities.find(
+                                                            id => id.providerName === 'Steam'
+                                                        )?.lastAuthenticatedAt || ''
                                                     ).toLocaleDateString()}
                                                 </p>
                                             )}
@@ -196,7 +212,10 @@ export default function AccountLinking() {
                             {isSteamLinked ? (
                                 <button
                                     onClick={() => handleUnlinkClick('Steam')}
-                                    disabled={linkedIdentities.length <= 1 || unlinkingProvider === 'Steam'}
+                                    disabled={
+                                        linkedIdentities.length <= 1 ||
+                                        unlinkingProvider === 'Steam'
+                                    }
                                     className='px-4 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 rounded-lg transition-colors font-medium'
                                 >
                                     {unlinkingProvider === 'Steam' ? 'Unlinking...' : 'Unlink'}
@@ -215,8 +234,8 @@ export default function AccountLinking() {
                     {linkedIdentities.length === 1 && (
                         <div className='bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 mt-4'>
                             <p className='text-blue-400 text-sm'>
-                                ℹ️ You can link additional accounts for easier access. You must always have at least one
-                                authentication method.
+                                ℹ️ You can link additional accounts for easier access. You must
+                                always have at least one authentication method.
                             </p>
                         </div>
                     )}

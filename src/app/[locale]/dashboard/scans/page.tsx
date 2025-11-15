@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { api } from '@/lib/api-client';
 
 interface ScanRecord {
     id: number;
@@ -36,7 +37,7 @@ interface ScanStats {
 }
 
 export default function ScansPage() {
-    const { user, isAuthenticated, tokens, isLoading } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { t, locale } = useTranslation();
     const router = useRouter();
     const [scans, setScans] = useState<ScanRecord[]>([]);
@@ -54,11 +55,11 @@ export default function ScansPage() {
     }, [isAuthenticated, isLoading, router, locale]);
 
     useEffect(() => {
-        if (isAuthenticated && tokens) {
+        if (isAuthenticated) {
             fetchScans();
             fetchStats();
         }
-    }, [isAuthenticated, tokens, currentPage, searchFilter]);
+    }, [isAuthenticated, currentPage, searchFilter]);
 
     const fetchScans = async () => {
         try {
@@ -70,21 +71,10 @@ export default function ScansPage() {
                 ...(searchFilter && { filter: searchFilter }),
             });
 
-            const token = tokens?.accessToken;
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+            const data = await api.get<{ scans: ScanRecord[]; pagination: PaginationInfo }>(
+                `users/me/scans?${params}`
+            );
 
-            const response = await fetch(`/api/v1.0/users/me/scans?${params}`, {
-                headers,
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch scans');
-            }
-
-            const data = await response.json();
             console.log('Scans data received:', data);
             setScans(data.scans || []);
             setPagination(data.pagination);
@@ -98,21 +88,7 @@ export default function ScansPage() {
 
     const fetchStats = async () => {
         try {
-            const token = tokens?.accessToken;
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch('/api/v1.0/users/me/scans/stats', {
-                headers,
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch stats');
-            }
-
-            const data = await response.json();
+            const data = await api.get<ScanStats>('users/me/scans/stats');
             console.log('Stats data received:', data);
             setStats(data);
         } catch (err) {

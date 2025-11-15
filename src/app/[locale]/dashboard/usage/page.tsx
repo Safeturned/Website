@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { api } from '@/lib/api-client';
 
 interface UsageSummary {
     totalRequests: number;
@@ -40,8 +41,8 @@ interface StatusCode {
 }
 
 export default function UsagePage() {
-    const { user, isAuthenticated, isLoading, getAccessToken } = useAuth();
-    const { t, locale } = useTranslation();
+    const { user, isAuthenticated, isLoading } = useAuth();
+    const { locale } = useTranslation();
     const router = useRouter();
     const [summary, setSummary] = useState<UsageSummary | null>(null);
     const [dailyUsage, setDailyUsage] = useState<DailyUsage[]>([]);
@@ -77,20 +78,9 @@ export default function UsagePage() {
 
     const fetchSummary = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch('/api/v1.0/users/me/usage/summary', { headers });
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Usage summary received:', data);
-                setSummary(data);
-            } else {
-                console.error('Failed to fetch summary, status:', response.status);
-            }
+            const data = await api.get<UsageSummary>('users/me/usage/summary');
+            console.log('Usage summary received:', data);
+            setSummary(data);
         } catch (err) {
             console.error('Failed to fetch summary:', err);
         }
@@ -98,20 +88,8 @@ export default function UsagePage() {
 
     const fetchDailyUsage = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(
-                `/api/v1.0/users/me/usage/daily?days=${selectedDays}`,
-                { headers }
-            );
-            if (response.ok) {
-                const data = await response.json();
-                setDailyUsage(data);
-            }
+            const data = await api.get<DailyUsage[]>(`users/me/usage/daily?days=${selectedDays}`);
+            setDailyUsage(data);
         } catch (err) {
             console.error('Failed to fetch daily usage:', err);
         }
@@ -119,17 +97,8 @@ export default function UsagePage() {
 
     const fetchEndpointUsage = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch('/api/v1.0/users/me/usage/endpoints', { headers });
-            if (response.ok) {
-                const data = await response.json();
-                setEndpointUsage(data);
-            }
+            const data = await api.get<EndpointUsage[]>('users/me/usage/endpoints');
+            setEndpointUsage(data);
         } catch (err) {
             console.error('Failed to fetch endpoint usage:', err);
         }
@@ -137,17 +106,8 @@ export default function UsagePage() {
 
     const fetchMethodUsage = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch('/api/v1.0/users/me/usage/methods', { headers });
-            if (response.ok) {
-                const data = await response.json();
-                setMethodUsage(data);
-            }
+            const data = await api.get<MethodUsage[]>('users/me/usage/methods');
+            setMethodUsage(data);
         } catch (err) {
             console.error('Failed to fetch method usage:', err);
         }
@@ -155,17 +115,8 @@ export default function UsagePage() {
 
     const fetchStatusCodes = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch('/api/v1.0/users/me/usage/status-codes', { headers });
-            if (response.ok) {
-                const data = await response.json();
-                setStatusCodes(data);
-            }
+            const data = await api.get<StatusCode[]>('users/me/usage/status-codes');
+            setStatusCodes(data);
         } catch (err) {
             console.error('Failed to fetch status codes:', err);
         }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { createBearerToken } from '@/lib/authHelpers';
+import { api } from '@/lib/api-client';
 
 interface RateLimitData {
     current: number;
@@ -18,24 +18,15 @@ interface RateLimitData {
 }
 
 export default function RateLimitUsage() {
-    const { tokens } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [rateLimitData, setRateLimitData] = useState<RateLimitData | null>(null);
     const [loading, setLoading] = useState(true);
     const [timeUntilReset, setTimeUntilReset] = useState<string>('');
 
     const fetchRateLimitData = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/usage/rate-limit`, {
-                headers: {
-                    Authorization: createBearerToken(tokens?.accessToken || ''),
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setRateLimitData(data);
-            }
+            const data = await api.get<RateLimitData>('users/me/usage/rate-limit');
+            setRateLimitData(data);
         } catch (err) {
             console.error('Failed to fetch rate limit data:', err);
         } finally {
@@ -44,12 +35,12 @@ export default function RateLimitUsage() {
     };
 
     useEffect(() => {
-        if (tokens?.accessToken) {
+        if (isAuthenticated) {
             fetchRateLimitData();
             const interval = setInterval(fetchRateLimitData, 30000);
             return () => clearInterval(interval);
         }
-    }, [tokens?.accessToken]);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (!rateLimitData) return;
@@ -161,7 +152,9 @@ export default function RateLimitUsage() {
                     <div className='grid grid-cols-2 gap-4 text-sm'>
                         <div>
                             <p className='text-slate-500'>Usage</p>
-                            <p className={`font-semibold ${textColor}`}>{usagePercent.toFixed(1)}%</p>
+                            <p className={`font-semibold ${textColor}`}>
+                                {usagePercent.toFixed(1)}%
+                            </p>
                         </div>
                         <div>
                             <p className='text-slate-500'>Resets in</p>
@@ -171,7 +164,9 @@ export default function RateLimitUsage() {
 
                     {isOverLimit && (
                         <div className='mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg'>
-                            <p className='text-red-300 text-sm font-medium'>⚠️ Rate limit exceeded</p>
+                            <p className='text-red-300 text-sm font-medium'>
+                                ⚠️ Rate limit exceeded
+                            </p>
                             <p className='text-red-400 text-xs mt-1'>
                                 Your requests will be throttled until the limit resets.
                             </p>
@@ -179,7 +174,9 @@ export default function RateLimitUsage() {
                     )}
                     {isNearLimit && !isOverLimit && (
                         <div className='mt-4 p-3 bg-orange-900/30 border border-orange-500/50 rounded-lg'>
-                            <p className='text-orange-300 text-sm font-medium'>⚡ Approaching rate limit</p>
+                            <p className='text-orange-300 text-sm font-medium'>
+                                ⚡ Approaching rate limit
+                            </p>
                             <p className='text-orange-400 text-xs mt-1'>
                                 You've used {usagePercent.toFixed(0)}% of your hourly quota.
                             </p>

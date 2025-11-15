@@ -24,16 +24,30 @@ export default function AchievementToast() {
                 <div className='flex items-start gap-4'>
                     <div className='text-5xl'>{showAchievementToast.icon}</div>
                     <div className='flex-1'>
-                        <div className='text-yellow-400 font-bold text-sm mb-1'>Achievement Unlocked!</div>
-                        <h3 className='text-white font-bold text-lg mb-1'>{showAchievementToast.title}</h3>
+                        <div className='text-yellow-400 font-bold text-sm mb-1'>
+                            Achievement Unlocked!
+                        </div>
+                        <h3 className='text-white font-bold text-lg mb-1'>
+                            {showAchievementToast.title}
+                        </h3>
                         <p className='text-gray-300 text-sm'>{showAchievementToast.description}</p>
                     </div>
                     <button
                         onClick={dismissToast}
                         className='text-gray-400 hover:text-white transition-colors'
                     >
-                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                        <svg
+                            className='w-5 h-5'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M6 18L18 6M6 6l12 12'
+                            />
                         </svg>
                     </button>
                 </div>

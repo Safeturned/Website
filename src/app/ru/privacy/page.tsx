@@ -1,13 +1,9 @@
 'use client';
 
-import { useTranslation } from '../../../hooks/useTranslation';
 import Navigation from '../../../components/Navigation';
 import Footer from '../../../components/Footer';
-import Link from 'next/link';
 
 export default function PrivacyPage() {
-    const { t, locale } = useTranslation();
-
     return (
         <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col'>
             <Navigation />
@@ -244,7 +240,9 @@ export default function PrivacyPage() {
                         </section>
 
                         <section className='pb-6 border-b border-slate-700/50'>
-                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>9. Ваши права</h2>
+                            <h2 className='text-2xl font-bold mb-4 text-purple-300'>
+                                9. Ваши права
+                            </h2>
                             <p>
                                 Поскольку мы не собираем личную информацию, традиционные права на
                                 конфиденциальность не применяются. Однако вы можете:
@@ -312,7 +310,6 @@ export default function PrivacyPage() {
                                 наш GitHub репозиторий или другие официальные каналы.
                             </p>
                         </section>
-
                     </div>
                 </div>
             </div>

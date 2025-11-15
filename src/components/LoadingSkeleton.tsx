@@ -6,7 +6,9 @@ interface SkeletonProps {
 
 export function Skeleton({ className = '' }: SkeletonProps) {
     return (
-        <div className={`animate-pulse bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 bg-[length:200%_100%] rounded ${className}`} />
+        <div
+            className={`animate-pulse bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 bg-[length:200%_100%] rounded ${className}`}
+        />
     );
 }
 
@@ -133,7 +135,10 @@ export function DashboardStatsSkeleton() {
     return (
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
             {[...Array(3)].map((_, i) => (
-                <div key={i} className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
+                <div
+                    key={i}
+                    className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'
+                >
                     <Skeleton className='h-4 w-24 mb-3' />
                     <Skeleton className='h-8 w-20 mb-2' />
                     <Skeleton className='h-3 w-32' />

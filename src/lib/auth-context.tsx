@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createJsonAuthHeaders } from './authHelpers';
+import { api, getApiUrl } from './api-client';
 
 export interface LinkedIdentity {
     providerName: string;
@@ -69,23 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     const login = useCallback((returnUrl?: string) => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const callbackUrl = `${window.location.origin}/auth/callback`;
         const finalReturnUrl = returnUrl || window.location.pathname;
 
         sessionStorage.setItem('auth_return_url', finalReturnUrl);
 
-        window.location.href = `${apiUrl}/v1.0/auth/discord?returnUrl=${encodeURIComponent(callbackUrl)}`;
+        window.location.href = `${getApiUrl('auth/discord')}?returnUrl=${encodeURIComponent(finalReturnUrl)}`;
     }, []);
 
     const logout = useCallback(async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            await fetch(`${apiUrl}/v1.0/auth/logout`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-            });
+            await api.post('auth/logout');
         } catch (error) {
             console.error('Logout API call failed:', error);
         } finally {
@@ -97,51 +90,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const getLinkedIdentities = useCallback(async (): Promise<LinkedIdentity[] | null> => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/auth/linked-identities`, {
-                method: 'GET',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch linked identities');
-            }
-
-            return await response.json();
+            return await api.get<LinkedIdentity[]>('auth/linked-identities');
         } catch (error) {
             console.error('Failed to get linked identities:', error);
             return null;
         }
     }, []);
 
-    const unlinkIdentity = useCallback(async (providerName: string): Promise<boolean> => {
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/auth/unlink`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ providerName }),
-            });
+    const unlinkIdentity = useCallback(
+        async (providerName: string): Promise<boolean> => {
+            try {
+                await api.post('auth/unlink', { providerName });
 
-            if (!response.ok) {
-                throw new Error('Failed to unlink identity');
+                if (user) {
+                    const identities = await getLinkedIdentities();
+                    setUser({
+                        ...user,
+                        linkedIdentities: identities || undefined,
+                    });
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Failed to unlink identity:', error);
+                return false;
             }
-
-            if (user) {
-                const identities = await getLinkedIdentities();
-                setUser({
-                    ...user,
-                    linkedIdentities: identities || undefined,
-                });
-            }
-
-            return true;
-        } catch (error) {
-            console.error('Failed to unlink identity:', error);
-            return false;
-        }
-    }, [user, getLinkedIdentities]);
+        },
+        [user, getLinkedIdentities]
+    );
 
     const value: AuthContextType = {
         user,

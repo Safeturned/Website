@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { storeAnalysisResult, storeFile } from '../storage';
+import { serverApiRequest, ServerApiError } from '@/lib/api-client-server';
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const ALLOWED_FILE_TYPES = ['.dll'];
@@ -35,68 +36,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid file name' }, { status: 400 });
         }
 
-        const apiKey = process.env.SAFETURNED_API_KEY;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-        if (!apiKey) {
-            console.error('SAFETURNED_API_KEY environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
-        }
-
-        if (!apiUrl) {
-            console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-            return NextResponse.json({ error: 'API configuration error' }, { status: 500 });
-        }
-
-        const authHeader = request.headers.get('authorization');
-        const hasUserAuth = authHeader && authHeader.startsWith('Bearer ');
-
-        const headers: Record<string, string> = {};
-
-        if (hasUserAuth) {
-            headers['Authorization'] = authHeader;
-        } else {
-            headers['X-API-Key'] = apiKey;
-        }
-
-        const origin = request.headers.get('origin');
-        const referer = request.headers.get('referer');
-
-        if (origin) {
-            headers['Origin'] = origin;
-        }
-        if (referer) {
-            headers['Referer'] = referer;
-        }
-
-        const existingForwardedFor = request.headers.get('x-forwarded-for');
-        const realIP = request.headers.get('x-real-ip') || request.headers.get('cf-connecting-ip');
-
-        if (realIP) {
-            const newForwardedFor = existingForwardedFor
-                ? `${existingForwardedFor}, ${realIP}`
-                : realIP;
-            headers['X-Forwarded-For'] = newForwardedFor;
-        } else if (existingForwardedFor) {
-            headers['X-Forwarded-For'] = existingForwardedFor;
-        }
-
-        const response = await fetch(`${apiUrl}/v1.0/files`, {
+        const { data: result } = await serverApiRequest(request, 'files', {
             method: 'POST',
-            headers,
             body: formData,
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API upload failed:', response.status, errorText);
-            return NextResponse.json(
-                { error: `Upload failed: ${response.status} ${response.statusText}` },
-                { status: response.status }
-            );
-        }
-
-        const result = await response.json();
 
         const analysisId = result.fileHash
             ? result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
@@ -113,6 +56,12 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         console.error('Upload error:', error);
+        if (error instanceof ServerApiError) {
+            return NextResponse.json(
+                { error: `Upload failed: ${error.message}` },
+                { status: error.status }
+            );
+        }
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

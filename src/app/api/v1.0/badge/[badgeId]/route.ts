@@ -66,7 +66,7 @@ export async function GET(
         const badgeResponse = await fetch(`${apiUrl}/v1.0/badges/${badgeId}`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         });
 
@@ -91,7 +91,7 @@ export async function GET(
         const fileResponse = await fetch(`${apiUrl}/v1.0/files/${badge.linkedFileHash}`, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         });
 
@@ -148,5 +148,3 @@ export async function GET(
         });
     }
 }
-
-

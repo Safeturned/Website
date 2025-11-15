@@ -31,7 +31,6 @@ export function useAccountLinking() {
                 setError(null);
                 const success = await unlinkIdentity(providerName);
                 if (success) {
-                    // Refresh identities after unlinking
                     await fetchIdentities();
                 }
                 return success;
@@ -45,14 +44,14 @@ export function useAccountLinking() {
 
     const isProviderLinked = useCallback(
         (providerName: string) => {
-            return identities.some((id) => id.providerName === providerName);
+            return identities.some(id => id.providerName === providerName);
         },
         [identities]
     );
 
     const getProviderIdentity = useCallback(
         (providerName: string) => {
-            return identities.find((id) => id.providerName === providerName);
+            return identities.find(id => id.providerName === providerName);
         },
         [identities]
     );

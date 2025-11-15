@@ -2,6 +2,7 @@
 
 import { useSearchParams, usePathname } from 'next/navigation';
 import { DiscordIcon, SteamIcon } from '@/components/Icons';
+import { getApiUrl } from '@/lib/api-client';
 
 export default function LoginForm() {
     const searchParams = useSearchParams();
@@ -10,21 +11,13 @@ export default function LoginForm() {
     const returnUrl = searchParams.get('returnUrl') || `/${locale}/dashboard`;
 
     const handleDiscordLogin = () => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const callbackUrl = `${window.location.origin}/auth/callback`;
-
         sessionStorage.setItem('auth_return_url', returnUrl);
-
-        window.location.href = `${apiUrl}/v1.0/auth/discord?returnUrl=${encodeURIComponent(callbackUrl)}`;
+        window.location.href = `${getApiUrl('auth/discord')}?returnUrl=${encodeURIComponent(returnUrl)}`;
     };
 
     const handleSteamLogin = () => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const callbackUrl = `${window.location.origin}/auth/callback`;
-
         sessionStorage.setItem('auth_return_url', returnUrl);
-
-        window.location.href = `${apiUrl}/v1.0/auth/steam?returnUrl=${encodeURIComponent(callbackUrl)}`;
+        window.location.href = `${getApiUrl('auth/steam')}?returnUrl=${encodeURIComponent(returnUrl)}`;
     };
 
     return (

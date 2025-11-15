@@ -41,12 +41,15 @@ export async function GET(
         const { filename: filenameParam } = await params;
         const filename = decodeURIComponent(filenameParam);
 
-        const response = await fetch(`${apiUrl}/v1.0/files/filename/${encodeURIComponent(filename)}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            },
-        });
+        const response = await fetch(
+            `${apiUrl}/v1.0/files/filename/${encodeURIComponent(filename)}`,
+            {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                },
+            }
+        );
 
         if (!response.ok) {
             const errorBadge = makeBadge({
@@ -100,4 +103,3 @@ export async function GET(
         });
     }
 }
-

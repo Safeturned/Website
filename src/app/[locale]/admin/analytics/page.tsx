@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { getTierName, TIER_BADGE_COLORS } from '@/lib/tierConstants';
-import { createBearerToken } from '@/lib/authHelpers';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { api } from '@/lib/api-client';
 
 interface RecentUser {
     id: string;
@@ -51,7 +51,7 @@ interface SystemAnalytics {
 }
 
 export default function AdminAnalyticsPage() {
-    const { user, isAuthenticated, isLoading, getAccessToken } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { t, locale } = useTranslation();
     const router = useRouter();
     const [analytics, setAnalytics] = useState<SystemAnalytics | null>(null);
@@ -71,19 +71,7 @@ export default function AdminAnalyticsPage() {
 
     const loadAnalytics = async () => {
         try {
-            const token = getAccessToken();
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/admin/analytics/system`, {
-                headers: {
-                    Authorization: createBearerToken(token),
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(t('admin.analytics.failedToLoad'));
-            }
-
-            const data = await response.json();
+            const data = await api.get<SystemAnalytics>('admin/analytics/system');
             setAnalytics(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('admin.analytics.failedToLoad'));
@@ -127,8 +115,18 @@ export default function AdminAnalyticsPage() {
                             href={`/${locale}/admin`}
                             className='text-purple-400 hover:text-purple-300 transition-colors mb-4 inline-flex items-center gap-2'
                         >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
+                            <svg
+                                className='w-5 h-5'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M15 19l-7-7 7-7'
+                                />
                             </svg>
                             {t('admin.backToDashboard')}
                         </Link>
@@ -148,33 +146,51 @@ export default function AdminAnalyticsPage() {
                         <>
                             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>User Statistics</h3>
+                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>
+                                        User Statistics
+                                    </h3>
                                     <div className='space-y-2'>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Total Users</span>
-                                            <span className='text-white font-bold'>{analytics.users.total}</span>
+                                            <span className='text-white font-bold'>
+                                                {analytics.users.total}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
-                                            <span className='text-gray-300'>{t('admin.userManagement.active')}</span>
-                                            <span className='text-green-400 font-bold'>{analytics.users.active}</span>
+                                            <span className='text-gray-300'>
+                                                {t('admin.userManagement.active')}
+                                            </span>
+                                            <span className='text-green-400 font-bold'>
+                                                {analytics.users.active}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
-                                            <span className='text-gray-300'>{t('admin.stats.admins')}</span>
-                                            <span className='text-yellow-400 font-bold'>{analytics.users.admins}</span>
+                                            <span className='text-gray-300'>
+                                                {t('admin.stats.admins')}
+                                            </span>
+                                            <span className='text-yellow-400 font-bold'>
+                                                {analytics.users.admins}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>Scan Statistics</h3>
+                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>
+                                        Scan Statistics
+                                    </h3>
                                     <div className='space-y-2'>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Total Scans</span>
-                                            <span className='text-white font-bold'>{analytics.scans.total}</span>
+                                            <span className='text-white font-bold'>
+                                                {analytics.scans.total}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Clean</span>
-                                            <span className='text-green-400 font-bold'>{analytics.scans.clean}</span>
+                                            <span className='text-green-400 font-bold'>
+                                                {analytics.scans.clean}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Malicious</span>
@@ -186,15 +202,23 @@ export default function AdminAnalyticsPage() {
                                 </div>
 
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>API Keys</h3>
+                                    <h3 className='text-gray-400 text-sm font-medium mb-4'>
+                                        API Keys
+                                    </h3>
                                     <div className='space-y-2'>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Total Keys</span>
-                                            <span className='text-white font-bold'>{analytics.apiKeys.total}</span>
+                                            <span className='text-white font-bold'>
+                                                {analytics.apiKeys.total}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
-                                            <span className='text-gray-300'>{t('admin.userManagement.active')}</span>
-                                            <span className='text-green-400 font-bold'>{analytics.apiKeys.active}</span>
+                                            <span className='text-gray-300'>
+                                                {t('admin.userManagement.active')}
+                                            </span>
+                                            <span className='text-green-400 font-bold'>
+                                                {analytics.apiKeys.active}
+                                            </span>
                                         </div>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-300'>Inactive</span>
@@ -209,12 +233,17 @@ export default function AdminAnalyticsPage() {
                             <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6 mb-8'>
                                 <h2 className='text-xl font-bold mb-4 text-white'>Users by Tier</h2>
                                 <div className='space-y-3'>
-                                    {analytics.users.byTier.map((item) => {
-                                        const percentage = ((item.count / analytics.users.total) * 100).toFixed(1);
+                                    {analytics.users.byTier.map(item => {
+                                        const percentage = (
+                                            (item.count / analytics.users.total) *
+                                            100
+                                        ).toFixed(1);
                                         return (
                                             <div key={item.tier}>
                                                 <div className='flex justify-between mb-2'>
-                                                    <span className='text-gray-300'>{getTierName(item.tier)}</span>
+                                                    <span className='text-gray-300'>
+                                                        {getTierName(item.tier)}
+                                                    </span>
                                                     <span className='text-white font-bold'>
                                                         {item.count} ({percentage}%)
                                                     </span>
@@ -232,19 +261,29 @@ export default function AdminAnalyticsPage() {
                             </div>
 
                             <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6 mb-8'>
-                                <h2 className='text-xl font-bold mb-4 text-white'>Scan Distribution</h2>
+                                <h2 className='text-xl font-bold mb-4 text-white'>
+                                    Scan Distribution
+                                </h2>
                                 <div className='space-y-3'>
                                     <div>
                                         <div className='flex justify-between mb-2'>
                                             <span className='text-gray-300'>Clean Files</span>
                                             <span className='text-green-400 font-bold'>
-                                                {analytics.scans.clean} ({((analytics.scans.clean / analytics.scans.total) * 100).toFixed(1)}%)
+                                                {analytics.scans.clean} (
+                                                {(
+                                                    (analytics.scans.clean /
+                                                        analytics.scans.total) *
+                                                    100
+                                                ).toFixed(1)}
+                                                %)
                                             </span>
                                         </div>
                                         <div className='w-full bg-slate-700 rounded-full h-2'>
                                             <div
                                                 className='bg-green-600 h-2 rounded-full transition-all duration-300'
-                                                style={{ width: `${(analytics.scans.clean / analytics.scans.total) * 100}%` }}
+                                                style={{
+                                                    width: `${(analytics.scans.clean / analytics.scans.total) * 100}%`,
+                                                }}
                                             ></div>
                                         </div>
                                     </div>
@@ -267,18 +306,27 @@ export default function AdminAnalyticsPage() {
 
                             <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h2 className='text-xl font-bold mb-4 text-white'>Recent Users</h2>
+                                    <h2 className='text-xl font-bold mb-4 text-white'>
+                                        Recent Users
+                                    </h2>
                                     <div className='space-y-3'>
-                                        {analytics.recent.users.map((u) => (
-                                            <div key={u.id} className='bg-slate-700/30 rounded-lg p-3'>
+                                        {analytics.recent.users.map(u => (
+                                            <div
+                                                key={u.id}
+                                                className='bg-slate-700/30 rounded-lg p-3'
+                                            >
                                                 <div className='flex justify-between items-start'>
                                                     <div>
                                                         <p className='text-white font-medium'>
                                                             {u.discordUsername || u.email}
                                                         </p>
-                                                        <p className='text-gray-400 text-sm'>{u.email}</p>
+                                                        <p className='text-gray-400 text-sm'>
+                                                            {u.email}
+                                                        </p>
                                                     </div>
-                                                    <span className={`${TIER_BADGE_COLORS[u.tier]} text-white text-xs px-2 py-1 rounded`}>
+                                                    <span
+                                                        className={`${TIER_BADGE_COLORS[u.tier]} text-white text-xs px-2 py-1 rounded`}
+                                                    >
                                                         {getTierName(u.tier)}
                                                     </span>
                                                 </div>
@@ -291,18 +339,27 @@ export default function AdminAnalyticsPage() {
                                 </div>
 
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h2 className='text-xl font-bold mb-4 text-white'>Recent Scans</h2>
+                                    <h2 className='text-xl font-bold mb-4 text-white'>
+                                        Recent Scans
+                                    </h2>
                                     <div className='space-y-3'>
-                                        {analytics.recent.scans.map((scan) => (
-                                            <div key={scan.id} className='bg-slate-700/30 rounded-lg p-3'>
+                                        {analytics.recent.scans.map(scan => (
+                                            <div
+                                                key={scan.id}
+                                                className='bg-slate-700/30 rounded-lg p-3'
+                                            >
                                                 <div className='flex justify-between items-start'>
                                                     <div className='flex-1 min-w-0'>
-                                                        <p className='text-white font-medium truncate'>{scan.fileName}</p>
+                                                        <p className='text-white font-medium truncate'>
+                                                            {scan.fileName}
+                                                        </p>
                                                         <p className='text-gray-400 text-xs font-mono truncate'>
                                                             {scan.sha256Hash}
                                                         </p>
                                                         {scan.username && (
-                                                            <p className='text-gray-500 text-xs'>by {scan.username}</p>
+                                                            <p className='text-gray-500 text-xs'>
+                                                                by {scan.username}
+                                                            </p>
                                                         )}
                                                     </div>
                                                     <span

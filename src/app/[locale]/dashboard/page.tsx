@@ -7,7 +7,7 @@ import {
     getTierRateLimit,
     getTierFileSizeLimit,
     hasPrioritySupport,
-    TIER_FREE
+    TIER_FREE,
 } from '@/lib/tierConstants';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -16,6 +16,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RateLimitUsage from '@/components/RateLimitUsage';
+import { api } from '@/lib/api-client';
 
 interface ScanStats {
     totalScans: number;
@@ -35,7 +36,7 @@ interface RecentScan {
 }
 
 export default function DashboardPage() {
-    const { user, isAuthenticated, isLoading, getAccessToken } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { t, locale } = useTranslation();
     const router = useRouter();
     const [scanStats, setScanStats] = useState<ScanStats | null>(null);
@@ -56,24 +57,16 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const [statsRes, recentsRes] = await Promise.all([
-                fetch('/api/v1.0/users/me/scans/stats', { headers }),
-                fetch('/api/v1.0/users/me/scans/recent?limit=5', { headers }),
+            const [stats, recents] = await Promise.all([
+                api.get<ScanStats>('users/me/scans/stats').catch(() => null),
+                api.get<RecentScan[]>('users/me/scans/recent?limit=5').catch(() => []),
             ]);
 
-            if (statsRes.ok) {
-                const stats = await statsRes.json();
+            if (stats) {
                 setScanStats(stats);
             }
 
-            if (recentsRes.ok) {
-                const recents = await recentsRes.json();
+            if (recents) {
                 setRecentScans(recents);
             }
         } catch (error) {
@@ -126,7 +119,9 @@ export default function DashboardPage() {
                             </div>
                         )}
                         <div>
-                            <h2 className='text-2xl font-semibold'>{user.username || t('common.user')}</h2>
+                            <h2 className='text-2xl font-semibold'>
+                                {user.username || t('common.user')}
+                            </h2>
                             <div className='flex items-center gap-2 mt-2'>
                                 <p className={`text-sm ${planColor}`}>{planName}</p>
                                 {user.isAdmin && (
@@ -160,11 +155,23 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
-                        <h3 className='font-bold text-white mb-1 group-hover:text-purple-300 transition-colors'>{t('menu.apiKeys')}</h3>
+                        <h3 className='font-bold text-white mb-1 group-hover:text-purple-300 transition-colors'>
+                            {t('menu.apiKeys')}
+                        </h3>
                         <p className='text-gray-400 text-sm leading-relaxed'>
                             {t('dashboard.manageKeys')}
                         </p>
@@ -190,11 +197,23 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
-                        <h3 className='font-bold text-white mb-1 group-hover:text-teal-300 transition-colors'>{t('badges.title')}</h3>
+                        <h3 className='font-bold text-white mb-1 group-hover:text-teal-300 transition-colors'>
+                            {t('badges.title')}
+                        </h3>
                         <p className='text-gray-400 text-sm leading-relaxed'>
                             {t('badges.manageVerification')}
                         </p>
@@ -220,11 +239,23 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
-                        <h3 className='font-bold text-white mb-1 group-hover:text-blue-300 transition-colors'>{t('menu.scanHistory')}</h3>
+                        <h3 className='font-bold text-white mb-1 group-hover:text-blue-300 transition-colors'>
+                            {t('menu.scanHistory')}
+                        </h3>
                         <p className='text-gray-400 text-sm leading-relaxed'>
                             {t('dashboard.viewPastScans')}
                         </p>
@@ -250,11 +281,23 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
-                        <h3 className='font-bold text-white mb-1 group-hover:text-green-300 transition-colors'>{t('menu.usage')}</h3>
+                        <h3 className='font-bold text-white mb-1 group-hover:text-green-300 transition-colors'>
+                            {t('menu.usage')}
+                        </h3>
                         <p className='text-gray-400 text-sm leading-relaxed'>
                             {t('dashboard.apiStatistics')}
                         </p>
@@ -280,8 +323,18 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
                         <h3 className='font-bold text-white mb-1 group-hover:text-orange-300 transition-colors'>
@@ -317,8 +370,18 @@ export default function DashboardPage() {
                                     />
                                 </svg>
                             </div>
-                            <svg className='w-4 h-4 text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                            <svg
+                                className='w-4 h-4 text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
                             </svg>
                         </div>
                         <h3 className='font-bold text-white mb-1 group-hover:text-pink-300 transition-colors'>
@@ -351,12 +414,24 @@ export default function DashboardPage() {
                                         />
                                     </svg>
                                 </div>
-                                <svg className='w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                <svg
+                                    className='w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M9 5l7 7-7 7'
+                                    />
                                 </svg>
                             </div>
                             <div className='flex items-center gap-2 mb-1'>
-                                <h3 className='font-bold text-red-400 group-hover:text-red-300 transition-colors'>{t('admin.adminPanel')}</h3>
+                                <h3 className='font-bold text-red-400 group-hover:text-red-300 transition-colors'>
+                                    {t('admin.adminPanel')}
+                                </h3>
                                 <span className='text-xs'>👑</span>
                             </div>
                             <p className='text-gray-400 text-sm leading-relaxed'>

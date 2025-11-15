@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { api } from '@/lib/api-client';
 
 interface ApiResponse {
     status: number;
-    data: any;
+    data: unknown;
     error?: string;
 }
 
@@ -44,21 +45,14 @@ export default function ApiPlayground() {
             formData.append('file', selectedFile);
             formData.append('forceAnalyze', 'false');
 
-            const res = await fetch('/api/v1.0/files', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-                body: formData,
-            });
-
-            const data = await res.json();
-            setResponse({ status: res.status, data });
-        } catch (error: any) {
+            const data = await api.post('files', formData, { token: apiKey });
+            setResponse({ status: 200, data });
+        } catch (error: unknown) {
+            const apiError = error as { status?: number; message?: string };
             setResponse({
-                status: 500,
+                status: apiError.status || 500,
                 data: null,
-                error: error.message || 'Request failed'
+                error: apiError.message || 'Request failed',
             });
         } finally {
             setLoading(false);
@@ -76,20 +70,14 @@ export default function ApiPlayground() {
         setResponse(null);
 
         try {
-            const res = await fetch(`/api/v1.0/files/${hashQuery}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-            });
-
-            const data = await res.json();
-            setResponse({ status: res.status, data });
-        } catch (error: any) {
+            const data = await api.get(`files/${hashQuery}`, { token: apiKey });
+            setResponse({ status: 200, data });
+        } catch (error: unknown) {
+            const apiError = error as { status?: number; message?: string };
             setResponse({
-                status: 500,
+                status: apiError.status || 500,
                 data: null,
-                error: error.message || 'Request failed'
+                error: apiError.message || 'Request failed',
             });
         } finally {
             setLoading(false);
@@ -107,20 +95,16 @@ export default function ApiPlayground() {
         setResponse(null);
 
         try {
-            const res = await fetch(`/api/v1.0/files/filename/${encodeURIComponent(filenameQuery)}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                },
+            const data = await api.get(`files/filename/${encodeURIComponent(filenameQuery)}`, {
+                token: apiKey,
             });
-
-            const data = await res.json();
-            setResponse({ status: res.status, data });
-        } catch (error: any) {
+            setResponse({ status: 200, data });
+        } catch (error: unknown) {
+            const apiError = error as { status?: number; message?: string };
             setResponse({
-                status: 500,
+                status: apiError.status || 500,
                 data: null,
-                error: error.message || 'Request failed'
+                error: apiError.message || 'Request failed',
             });
         } finally {
             setLoading(false);
@@ -138,20 +122,14 @@ export default function ApiPlayground() {
         setResponse(null);
 
         try {
-            const res = await fetch('/api/v1.0/files/analytics', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-            });
-
-            const data = await res.json();
-            setResponse({ status: res.status, data });
-        } catch (error: any) {
+            const data = await api.get('files/analytics', { token: apiKey });
+            setResponse({ status: 200, data });
+        } catch (error: unknown) {
+            const apiError = error as { status?: number; message?: string };
             setResponse({
-                status: 500,
+                status: apiError.status || 500,
                 data: null,
-                error: error.message || 'Request failed'
+                error: apiError.message || 'Request failed',
             });
         } finally {
             setLoading(false);
@@ -189,10 +167,30 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
     const endpoints = [
         { id: 'upload' as EndpointType, name: 'Upload File', method: 'POST', path: '/v1.0/files' },
-        { id: 'getByHash' as EndpointType, name: 'Get by Hash', method: 'GET', path: '/v1.0/files/{hash}' },
-        { id: 'getByFilename' as EndpointType, name: 'Get by Filename', method: 'GET', path: '/v1.0/files/filename/{filename}' },
-        { id: 'analytics' as EndpointType, name: 'Get Analytics', method: 'GET', path: '/v1.0/files/analytics' },
-        { id: 'chunkedUpload' as EndpointType, name: 'Chunked Upload', method: 'POST', path: '/v1.0/files/upload/*' },
+        {
+            id: 'getByHash' as EndpointType,
+            name: 'Get by Hash',
+            method: 'GET',
+            path: '/v1.0/files/{hash}',
+        },
+        {
+            id: 'getByFilename' as EndpointType,
+            name: 'Get by Filename',
+            method: 'GET',
+            path: '/v1.0/files/filename/{filename}',
+        },
+        {
+            id: 'analytics' as EndpointType,
+            name: 'Get Analytics',
+            method: 'GET',
+            path: '/v1.0/files/analytics',
+        },
+        {
+            id: 'chunkedUpload' as EndpointType,
+            name: 'Chunked Upload',
+            method: 'POST',
+            path: '/v1.0/files/upload/*',
+        },
     ];
 
     return (
@@ -201,7 +199,8 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                 <p className='text-amber-300 text-sm flex items-start gap-2'>
                     <span className='text-lg'>⚠️</span>
                     <span>
-                        <strong>{t('docs.playground.securityWarning')}</strong> {t('docs.playground.securityWarningDesc')}
+                        <strong>{t('docs.playground.securityWarning')}</strong>{' '}
+                        {t('docs.playground.securityWarningDesc')}
                     </span>
                 </p>
             </div>
@@ -217,12 +216,14 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
             <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6 space-y-6'>
                 <div>
-                    <label className='block text-white font-medium mb-2'>{t('docs.playground.yourApiKey')}</label>
+                    <label className='block text-white font-medium mb-2'>
+                        {t('docs.playground.yourApiKey')}
+                    </label>
                     <div className='flex gap-2'>
                         <input
                             type={showKey ? 'text' : 'password'}
                             value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
+                            onChange={e => setApiKey(e.target.value)}
                             placeholder='sk_live_...'
                             className='flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
                         />
@@ -237,9 +238,11 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                 </div>
 
                 <div className='border-t border-slate-600 pt-6'>
-                    <label className='block text-white font-medium mb-4'>{t('docs.playground.selectEndpoint')}</label>
+                    <label className='block text-white font-medium mb-4'>
+                        {t('docs.playground.selectEndpoint')}
+                    </label>
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-                        {endpoints.map((endpoint) => (
+                        {endpoints.map(endpoint => (
                             <button
                                 key={endpoint.id}
                                 onClick={() => {
@@ -254,14 +257,22 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                 }`}
                             >
                                 <div className='flex items-center gap-2 mb-1'>
-                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                                        endpoint.method === 'POST' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
-                                    }`}>
+                                    <span
+                                        className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                            endpoint.method === 'POST'
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-blue-500/20 text-blue-400'
+                                        }`}
+                                    >
                                         {endpoint.method}
                                     </span>
                                 </div>
-                                <div className='text-white font-medium text-sm mb-1'>{endpoint.name}</div>
-                                <div className='text-purple-400 text-xs font-mono'>{endpoint.path}</div>
+                                <div className='text-white font-medium text-sm mb-1'>
+                                    {endpoint.name}
+                                </div>
+                                <div className='text-purple-400 text-xs font-mono'>
+                                    {endpoint.path}
+                                </div>
                             </button>
                         ))}
                     </div>
@@ -269,10 +280,14 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
                 {selectedEndpoint === 'upload' && (
                     <div className='border-t border-slate-600 pt-6'>
-                        <h4 className='text-white font-semibold mb-4'>{t('docs.playground.testUpload')}</h4>
+                        <h4 className='text-white font-semibold mb-4'>
+                            {t('docs.playground.testUpload')}
+                        </h4>
                         <div className='space-y-4'>
                             <div>
-                                <label className='block text-gray-300 text-sm mb-2'>{t('docs.playground.selectFile')}</label>
+                                <label className='block text-gray-300 text-sm mb-2'>
+                                    {t('docs.playground.selectFile')}
+                                </label>
                                 <input
                                     type='file'
                                     accept='.dll'
@@ -280,7 +295,10 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                     className='block w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer'
                                 />
                                 {selectedFile && (
-                                    <p className='text-green-400 text-sm mt-2'>Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)</p>
+                                    <p className='text-green-400 text-sm mt-2'>
+                                        Selected: {selectedFile.name} (
+                                        {(selectedFile.size / 1024).toFixed(2)} KB)
+                                    </p>
                                 )}
                             </div>
 
@@ -289,11 +307,15 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                 disabled={loading || !apiKey || !selectedFile}
                                 className='w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-all duration-300'
                             >
-                                {loading ? t('docs.playground.testing') : `🚀 ${t('docs.playground.testUploadBtn')}`}
+                                {loading
+                                    ? t('docs.playground.testing')
+                                    : `🚀 ${t('docs.playground.testUploadBtn')}`}
                             </button>
 
                             <div className='bg-slate-900/50 rounded-lg p-4'>
-                                <div className='text-gray-400 text-xs mb-2'>{t('docs.playground.curlCommand')}</div>
+                                <div className='text-gray-400 text-xs mb-2'>
+                                    {t('docs.playground.curlCommand')}
+                                </div>
                                 <pre className='text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                     {generateCurlCommand() || t('docs.playground.selectFileMsg')}
                                 </pre>
@@ -304,14 +326,18 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
                 {selectedEndpoint === 'getByHash' && (
                     <div className='border-t border-slate-600 pt-6'>
-                        <h4 className='text-white font-semibold mb-4'>{t('docs.playground.testGetByHash')}</h4>
+                        <h4 className='text-white font-semibold mb-4'>
+                            {t('docs.playground.testGetByHash')}
+                        </h4>
                         <div className='space-y-4'>
                             <div>
-                                <label className='block text-gray-300 text-sm mb-2'>{t('docs.playground.fileHash')}</label>
+                                <label className='block text-gray-300 text-sm mb-2'>
+                                    {t('docs.playground.fileHash')}
+                                </label>
                                 <input
                                     type='text'
                                     value={hashQuery}
-                                    onChange={(e) => setHashQuery(e.target.value)}
+                                    onChange={e => setHashQuery(e.target.value)}
                                     placeholder='a3f5b2c1d4e6f7a8...'
                                     className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
                                 />
@@ -322,11 +348,15 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                 disabled={loading || !apiKey || !hashQuery}
                                 className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-all duration-300'
                             >
-                                {loading ? t('docs.playground.fetching') : `🔍 ${t('docs.playground.testGetBtn')}`}
+                                {loading
+                                    ? t('docs.playground.fetching')
+                                    : `🔍 ${t('docs.playground.testGetBtn')}`}
                             </button>
 
                             <div className='bg-slate-900/50 rounded-lg p-4'>
-                                <div className='text-gray-400 text-xs mb-2'>{t('docs.playground.curlCommand')}</div>
+                                <div className='text-gray-400 text-xs mb-2'>
+                                    {t('docs.playground.curlCommand')}
+                                </div>
                                 <pre className='text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                     {generateCurlCommand()}
                                 </pre>
@@ -337,14 +367,18 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
                 {selectedEndpoint === 'getByFilename' && (
                     <div className='border-t border-slate-600 pt-6'>
-                        <h4 className='text-white font-semibold mb-4'>{t('docs.playground.testGetByFilename')}</h4>
+                        <h4 className='text-white font-semibold mb-4'>
+                            {t('docs.playground.testGetByFilename')}
+                        </h4>
                         <div className='space-y-4'>
                             <div>
-                                <label className='block text-gray-300 text-sm mb-2'>{t('docs.playground.filename')}</label>
+                                <label className='block text-gray-300 text-sm mb-2'>
+                                    {t('docs.playground.filename')}
+                                </label>
                                 <input
                                     type='text'
                                     value={filenameQuery}
-                                    onChange={(e) => setFilenameQuery(e.target.value)}
+                                    onChange={e => setFilenameQuery(e.target.value)}
                                     placeholder='MyPlugin.dll'
                                     className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
                                 />
@@ -355,11 +389,15 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                 disabled={loading || !apiKey || !filenameQuery}
                                 className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-all duration-300'
                             >
-                                {loading ? t('docs.playground.fetching') : `🔍 ${t('docs.playground.testGetByFilenameBtn')}`}
+                                {loading
+                                    ? t('docs.playground.fetching')
+                                    : `🔍 ${t('docs.playground.testGetByFilenameBtn')}`}
                             </button>
 
                             <div className='bg-slate-900/50 rounded-lg p-4'>
-                                <div className='text-gray-400 text-xs mb-2'>{t('docs.playground.curlCommand')}</div>
+                                <div className='text-gray-400 text-xs mb-2'>
+                                    {t('docs.playground.curlCommand')}
+                                </div>
                                 <pre className='text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                     {generateCurlCommand()}
                                 </pre>
@@ -370,7 +408,9 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
                 {selectedEndpoint === 'analytics' && (
                     <div className='border-t border-slate-600 pt-6'>
-                        <h4 className='text-white font-semibold mb-4'>{t('docs.playground.testGetAnalytics')}</h4>
+                        <h4 className='text-white font-semibold mb-4'>
+                            {t('docs.playground.testGetAnalytics')}
+                        </h4>
                         <div className='space-y-4'>
                             <p className='text-gray-300 text-sm'>
                                 {t('docs.playground.analyticsDesc')}
@@ -381,11 +421,15 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                 disabled={loading || !apiKey}
                                 className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-all duration-300'
                             >
-                                {loading ? t('docs.playground.fetching') : `📊 ${t('docs.playground.testAnalyticsBtn')}`}
+                                {loading
+                                    ? t('docs.playground.fetching')
+                                    : `📊 ${t('docs.playground.testAnalyticsBtn')}`}
                             </button>
 
                             <div className='bg-slate-900/50 rounded-lg p-4'>
-                                <div className='text-gray-400 text-xs mb-2'>{t('docs.playground.curlCommand')}</div>
+                                <div className='text-gray-400 text-xs mb-2'>
+                                    {t('docs.playground.curlCommand')}
+                                </div>
                                 <pre className='text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                     {generateCurlCommand()}
                                 </pre>
@@ -396,15 +440,23 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
 
                 {selectedEndpoint === 'chunkedUpload' && (
                     <div className='border-t border-slate-600 pt-6'>
-                        <h4 className='text-white font-semibold mb-4'>{t('docs.playground.chunkedUploadTitle')}</h4>
+                        <h4 className='text-white font-semibold mb-4'>
+                            {t('docs.playground.chunkedUploadTitle')}
+                        </h4>
                         <div className='space-y-4'>
                             <p className='text-gray-300 text-sm'>
                                 {t('docs.playground.chunkedUploadDesc')}
                             </p>
                             <ol className='list-decimal list-inside text-gray-300 text-sm space-y-2 ml-4'>
-                                <li><strong>Start:</strong> {t('docs.playground.chunkedStep1')}</li>
-                                <li><strong>Upload:</strong> {t('docs.playground.chunkedStep2')}</li>
-                                <li><strong>Finish:</strong> {t('docs.playground.chunkedStep3')}</li>
+                                <li>
+                                    <strong>Start:</strong> {t('docs.playground.chunkedStep1')}
+                                </li>
+                                <li>
+                                    <strong>Upload:</strong> {t('docs.playground.chunkedStep2')}
+                                </li>
+                                <li>
+                                    <strong>Finish:</strong> {t('docs.playground.chunkedStep3')}
+                                </li>
                             </ol>
                             <div className='bg-blue-900/20 border border-blue-500/20 rounded p-3'>
                                 <p className='text-blue-300 text-xs'>
@@ -413,7 +465,9 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                             </div>
 
                             <div className='bg-slate-900/50 rounded-lg p-4'>
-                                <div className='text-gray-400 text-xs mb-2'>{t('docs.playground.curlCommandExample')}</div>
+                                <div className='text-gray-400 text-xs mb-2'>
+                                    {t('docs.playground.curlCommandExample')}
+                                </div>
                                 <pre className='text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all'>
                                     {generateCurlCommand()}
                                 </pre>
@@ -426,11 +480,13 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                     <div className='border-t border-slate-600 pt-6'>
                         <h4 className='text-white font-semibold mb-4'>
                             {t('docs.playground.response')}
-                            <span className={`ml-3 text-sm px-3 py-1 rounded-full ${
-                                response.status >= 200 && response.status < 300
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : 'bg-red-500/20 text-red-400'
-                            }`}>
+                            <span
+                                className={`ml-3 text-sm px-3 py-1 rounded-full ${
+                                    response.status >= 200 && response.status < 300
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : 'bg-red-500/20 text-red-400'
+                                }`}
+                            >
                                 {response.status}
                             </span>
                         </h4>

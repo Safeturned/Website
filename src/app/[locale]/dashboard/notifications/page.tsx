@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { api } from '@/lib/api-client';
 
 interface RecentScan {
     id: string;
@@ -28,8 +29,8 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-    const { user, isAuthenticated, isLoading, getAccessToken } = useAuth();
-    const { t, locale } = useTranslation();
+    const { user, isAuthenticated, isLoading } = useAuth();
+    const { locale } = useTranslation();
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,43 +63,33 @@ export default function NotificationsPage() {
 
     const fetchNotifications = async () => {
         try {
-            const token = getAccessToken?.();
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+            const scans = await api.get<RecentScan[]>('users/me/scans/recent?limit=20');
 
-            const response = await fetch('/api/v1.0/users/me/scans/recent?limit=20', { headers });
+            const scanNotifications: Notification[] = scans.map(scan => {
+                if (scan.isThreat) {
+                    return {
+                        id: scan.id,
+                        type: 'threat' as const,
+                        title: 'Threat Detected',
+                        message: `${scan.fileName} - Risk Score: ${scan.score}/100`,
+                        timestamp: scan.scanDate,
+                        link: `/${locale}/result/${scan.id}`,
+                        icon: '🚨',
+                    };
+                } else {
+                    return {
+                        id: scan.id,
+                        type: 'clean' as const,
+                        title: 'File Scanned Successfully',
+                        message: `${scan.fileName} - No threats detected (Score: ${scan.score}/100)`,
+                        timestamp: scan.scanDate,
+                        link: `/${locale}/result/${scan.id}`,
+                        icon: '✅',
+                    };
+                }
+            });
 
-            if (response.ok) {
-                const scans: RecentScan[] = await response.json();
-
-                const scanNotifications: Notification[] = scans.map(scan => {
-                    if (scan.isThreat) {
-                        return {
-                            id: scan.id,
-                            type: 'threat' as const,
-                            title: 'Threat Detected',
-                            message: `${scan.fileName} - Risk Score: ${scan.score}/100`,
-                            timestamp: scan.scanDate,
-                            link: `/${locale}/result/${scan.id}`,
-                            icon: '🚨',
-                        };
-                    } else {
-                        return {
-                            id: scan.id,
-                            type: 'clean' as const,
-                            title: 'File Scanned Successfully',
-                            message: `${scan.fileName} - No threats detected (Score: ${scan.score}/100)`,
-                            timestamp: scan.scanDate,
-                            link: `/${locale}/result/${scan.id}`,
-                            icon: '✅',
-                        };
-                    }
-                });
-
-                setNotifications(scanNotifications);
-            }
+            setNotifications(scanNotifications);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         } finally {
@@ -337,9 +328,9 @@ export default function NotificationsPage() {
                                 </h3>
                                 <p className='text-slate-300 text-sm'>
                                     This page shows notifications for all your scan results. Threat
-                                    notifications indicate files that may be dangerous and require your
-                                    attention. Clean notifications confirm that files passed our
-                                    security checks.
+                                    notifications indicate files that may be dangerous and require
+                                    your attention. Clean notifications confirm that files passed
+                                    our security checks.
                                 </p>
                             </div>
                         </div>

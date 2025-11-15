@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { api } from '@/lib/api-client';
 
 interface ApiKey {
     id: string;
@@ -35,7 +36,11 @@ export default function ApiKeysPage() {
     const [newKeyName, setNewKeyName] = useState('');
     const [newKeyResult, setNewKeyResult] = useState<{ key: string; id: string } | null>(null);
     const [creating, setCreating] = useState(false);
-    const [keyLimits, setKeyLimits] = useState<{ current: number; max: number; canCreateMore: boolean } | null>(null);
+    const [keyLimits, setKeyLimits] = useState<{
+        current: number;
+        max: number;
+        canCreateMore: boolean;
+    } | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<{
         show: boolean;
         keyId: string;
@@ -81,16 +86,7 @@ export default function ApiKeysPage() {
     const fetchApiKeys = async () => {
         try {
             setLoading(true);
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch API keys');
-            }
-
-            const data = await response.json();
+            const data = await api.get<ApiKey[]>('users/me/api-keys');
             setApiKeys(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load API keys');
@@ -101,15 +97,10 @@ export default function ApiKeysPage() {
 
     const fetchKeyLimits = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/limits`, {
-                credentials: 'include',
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setKeyLimits(data);
-            }
+            const data = await api.get<{ current: number; max: number; canCreateMore: boolean }>(
+                'users/me/api-keys/limits'
+            );
+            setKeyLimits(data);
         } catch (err) {
             console.error('Failed to fetch key limits:', err);
         }
@@ -124,44 +115,33 @@ export default function ApiKeysPage() {
         try {
             setCreating(true);
             setError(null);
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: newKeyName,
-                    prefix: 'sk_live',
-                    scopes: ['read', 'analyze'],
-                }),
+            const data = await api.post<{ key: string; id: string }>('users/me/api-keys', {
+                name: newKeyName,
+                prefix: 'sk_live',
+                scopes: ['read', 'analyze'],
             });
 
-            if (!response.ok) {
-                let errorMessage = 'Failed to create API key';
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.message || errorData.error || errorMessage;
-                } catch {
-                    errorMessage = `Failed to create API key: ${response.status} ${response.statusText}`;
-                }
-                setError(errorMessage);
-                setCreating(false);
-                return;
-            }
-
-            const data = await response.json();
             setNewKeyResult({ key: data.key, id: data.id });
             setNewKeyName('');
             setShowCreateModal(false);
             setError(null);
             await fetchApiKeys();
             await fetchKeyLimits();
-        } catch (err) {
+        } catch (err: unknown) {
             if (err instanceof Error) {
-                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                if (
+                    err.message.includes('Failed to fetch') ||
+                    err.message.includes('NetworkError')
+                ) {
                     setError('Network error. Please check your connection and try again.');
                 } else {
-                    setError(err.message);
+                    setError(
+                        err.message ||
+                            (err as { data?: { message?: string; error?: string } })?.data
+                                ?.message ||
+                            (err as { data?: { message?: string; error?: string } })?.data?.error ||
+                            'Failed to create API key'
+                    );
                 }
             } else {
                 setError('An unexpected error occurred. Please try again.');
@@ -180,16 +160,7 @@ export default function ApiKeysPage() {
         setDeleteConfirm({ show: false, keyId: '', keyName: '' });
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to revoke API key');
-            }
-
+            await api.delete(`users/me/api-keys/${keyId}`);
             await fetchApiKeys();
             await fetchKeyLimits();
         } catch (err) {
@@ -206,17 +177,9 @@ export default function ApiKeysPage() {
         setRegenerateConfirm({ show: false, keyId: '', keyName: '' });
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}/regenerate`, {
-                method: 'POST',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to regenerate API key');
-            }
-
-            const data = await response.json();
+            const data = await api.post<{ key: string; id: string }>(
+                `users/me/api-keys/${keyId}/regenerate`
+            );
             setNewKeyResult({ key: data.key, id: data.id });
             await fetchApiKeys();
         } catch (err) {
@@ -255,13 +218,15 @@ export default function ApiKeysPage() {
                             {t('apiKeys.page.backToDashboard')}
                         </Link>
                         <h1 className='text-4xl font-bold'>{t('apiKeys.page.title')}</h1>
-                        <p className='text-slate-400 mt-2'>
-                            {t('apiKeys.page.subtitle')}
-                        </p>
+                        <p className='text-slate-400 mt-2'>{t('apiKeys.page.subtitle')}</p>
                         {keyLimits && (
                             <div className='mt-3 flex items-center gap-2'>
                                 <span className='text-sm text-slate-400'>
-                                    {t('apiKeys.page.keysLabel')} <span className='font-semibold text-white'>{keyLimits.current}</span> / {keyLimits.max === 9999 ? '∞' : keyLimits.max}
+                                    {t('apiKeys.page.keysLabel')}{' '}
+                                    <span className='font-semibold text-white'>
+                                        {keyLimits.current}
+                                    </span>{' '}
+                                    / {keyLimits.max === 9999 ? '∞' : keyLimits.max}
                                 </span>
                                 {!keyLimits.canCreateMore && keyLimits.max !== 9999 && (
                                     <span className='text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded'>
@@ -278,7 +243,11 @@ export default function ApiKeysPage() {
                         }}
                         disabled={keyLimits ? !keyLimits.canCreateMore : false}
                         className='bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600'
-                        title={keyLimits && !keyLimits.canCreateMore ? t('apiKeys.page.limitReachedTooltip') : ''}
+                        title={
+                            keyLimits && !keyLimits.canCreateMore
+                                ? t('apiKeys.page.limitReachedTooltip')
+                                : ''
+                        }
                     >
                         {t('apiKeys.page.createButton')}
                     </button>
@@ -300,9 +269,14 @@ export default function ApiKeysPage() {
                             />
                         </svg>
                         <div className='flex-1'>
-                            <p className='text-orange-300 font-medium mb-1'>{t('apiKeys.limitWarning.title')}</p>
+                            <p className='text-orange-300 font-medium mb-1'>
+                                {t('apiKeys.limitWarning.title')}
+                            </p>
                             <p className='text-orange-400 text-sm'>
-                                {t('apiKeys.limitWarning.message', { max: keyLimits.max, plural: keyLimits.max > 1 ? 's' : '' })}
+                                {t('apiKeys.limitWarning.message', {
+                                    max: keyLimits.max,
+                                    plural: keyLimits.max > 1 ? 's' : '',
+                                })}
                             </p>
                         </div>
                     </div>
@@ -324,7 +298,9 @@ export default function ApiKeysPage() {
                             />
                         </svg>
                         <div className='flex-1'>
-                            <p className='text-red-300 font-medium mb-1'>{t('apiKeys.error.title')}</p>
+                            <p className='text-red-300 font-medium mb-1'>
+                                {t('apiKeys.error.title')}
+                            </p>
                             <p className='text-red-400 text-sm'>{error}</p>
                         </div>
                         <button
@@ -332,7 +308,12 @@ export default function ApiKeysPage() {
                             className='text-red-400 hover:text-red-300 transition-colors'
                             aria-label='Close error'
                         >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <svg
+                                className='w-5 h-5'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
                                 <path
                                     strokeLinecap='round'
                                     strokeLinejoin='round'
@@ -350,9 +331,7 @@ export default function ApiKeysPage() {
                             <h3 className='text-2xl font-bold mb-4 text-green-400'>
                                 {t('apiKeys.keyCreated.title')}
                             </h3>
-                            <p className='text-slate-300 mb-4'>
-                                {t('apiKeys.keyCreated.message')}
-                            </p>
+                            <p className='text-slate-300 mb-4'>{t('apiKeys.keyCreated.message')}</p>
                             <div className='bg-slate-900 rounded-lg p-4 mb-6 font-mono text-sm break-all'>
                                 <div className='flex items-center justify-between'>
                                     <code className='text-green-400'>{newKeyResult.key}</code>
@@ -360,7 +339,9 @@ export default function ApiKeysPage() {
                                         onClick={() => copyToClipboard(newKeyResult.key, 'newkey')}
                                         className='ml-4 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors'
                                     >
-                                        {copiedKey === 'newkey' ? t('docs.codeExamples.copied') : t('docs.codeExamples.copy')}
+                                        {copiedKey === 'newkey'
+                                            ? t('docs.codeExamples.copied')
+                                            : t('docs.codeExamples.copy')}
                                     </button>
                                 </div>
                             </div>
@@ -487,7 +468,9 @@ export default function ApiKeysPage() {
                 {showCreateModal && (
                     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
                         <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-slate-700'>
-                            <h3 className='text-2xl font-bold mb-4'>{t('apiKeys.createModal.title')}</h3>
+                            <h3 className='text-2xl font-bold mb-4'>
+                                {t('apiKeys.createModal.title')}
+                            </h3>
                             <div className='mb-6'>
                                 <label className='block text-sm font-medium text-slate-300 mb-2'>
                                     {t('apiKeys.createModal.keyNameLabel')}
@@ -534,7 +517,9 @@ export default function ApiKeysPage() {
                                     className='flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                                     disabled={creating}
                                 >
-                                    {creating ? t('apiKeys.createModal.creating') : t('apiKeys.createModal.create')}
+                                    {creating
+                                        ? t('apiKeys.createModal.creating')
+                                        : t('apiKeys.createModal.create')}
                                 </button>
                             </div>
                         </div>
@@ -560,10 +545,10 @@ export default function ApiKeysPage() {
                                 d='M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'
                             />
                         </svg>
-                        <h3 className='text-xl font-semibold mb-2'>{t('apiKeys.emptyState.title')}</h3>
-                        <p className='text-slate-400 mb-6'>
-                            {t('apiKeys.emptyState.subtitle')}
-                        </p>
+                        <h3 className='text-xl font-semibold mb-2'>
+                            {t('apiKeys.emptyState.title')}
+                        </h3>
+                        <p className='text-slate-400 mb-6'>{t('apiKeys.emptyState.subtitle')}</p>
                         <button
                             onClick={() => {
                                 setShowCreateModal(true);
@@ -597,13 +582,17 @@ export default function ApiKeysPage() {
                                         </div>
                                         <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
                                             <div>
-                                                <p className='text-slate-500'>{t('apiKeys.keyCard.created')}</p>
+                                                <p className='text-slate-500'>
+                                                    {t('apiKeys.keyCard.created')}
+                                                </p>
                                                 <p className='text-slate-300'>
                                                     {new Date(key.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className='text-slate-500'>{t('apiKeys.keyCard.lastUsed')}</p>
+                                                <p className='text-slate-500'>
+                                                    {t('apiKeys.keyCard.lastUsed')}
+                                                </p>
                                                 <p className='text-slate-300'>
                                                     {key.lastUsedAt
                                                         ? new Date(
@@ -613,13 +602,17 @@ export default function ApiKeysPage() {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className='text-slate-500'>{t('apiKeys.keyCard.rateLimit')}</p>
+                                                <p className='text-slate-500'>
+                                                    {t('apiKeys.keyCard.rateLimit')}
+                                                </p>
                                                 <p className='text-slate-300'>
                                                     {key.requestsPerHour}/hour
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className='text-slate-500'>{t('apiKeys.keyCard.scopes')}</p>
+                                                <p className='text-slate-500'>
+                                                    {t('apiKeys.keyCard.scopes')}
+                                                </p>
                                                 <p className='text-slate-300'>
                                                     {key.scopes.join(', ')}
                                                 </p>
@@ -688,8 +681,8 @@ export default function ApiKeysPage() {
                                     className='text-blue-400 hover:text-blue-300 underline transition-colors'
                                 >
                                     API documentation
-                                </Link>
-                                {' '}for code examples and usage guides.
+                                </Link>{' '}
+                                for code examples and usage guides.
                             </p>
                         </div>
                         <Link

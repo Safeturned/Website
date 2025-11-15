@@ -28,9 +28,7 @@ export default function Footer() {
                             </div>
                             <span className='text-lg font-bold text-white'>{t('hero.title')}</span>
                         </div>
-                        <p className='text-gray-400 text-sm'>
-                            {t('footer.protectionMessage')}
-                        </p>
+                        <p className='text-gray-400 text-sm'>{t('footer.protectionMessage')}</p>
                     </div>
 
                     <div className='text-center'>
@@ -120,9 +118,7 @@ export default function Footer() {
                         <div className='text-gray-500 text-xs'>
                             © 2025 Safeturned. {t('footer.allRightsReserved')}.
                         </div>
-                        <div className='text-gray-600 text-xs'>
-                            Website {getVersionString()}
-                        </div>
+                        <div className='text-gray-600 text-xs'>Website {getVersionString()}</div>
                     </div>
                 </div>
             </div>
