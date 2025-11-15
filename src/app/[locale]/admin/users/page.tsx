@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { getTierName, TIER_BADGE_COLORS } from '@/lib/tierConstants';
-import { createBearerToken, createJsonAuthHeaders } from '@/lib/authHelpers';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -35,7 +34,7 @@ interface UsersResponse {
 }
 
 export default function AdminUsersPage() {
-    const { user, isAuthenticated, isLoading, getAccessToken } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { t, locale } = useTranslation();
     const router = useRouter();
     const [usersData, setUsersData] = useState<UsersResponse | null>(null);
@@ -110,7 +109,6 @@ export default function AdminUsersPage() {
     const loadUsers = async () => {
         try {
             setLoading(true);
-            const token = getAccessToken();
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
             const params = new URLSearchParams({
@@ -123,9 +121,7 @@ export default function AdminUsersPage() {
             if (adminFilter !== '') params.append('isAdmin', adminFilter.toString());
 
             const response = await fetch(`${apiUrl}/v1.0/admin/users?${params}`, {
-                headers: {
-                    Authorization: createBearerToken(token),
-                },
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -144,11 +140,11 @@ export default function AdminUsersPage() {
     const updateUserTier = async (userId: string, newTier: number) => {
         try {
             setActionLoading(`tier-${userId}`);
-            const token = getAccessToken();
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/admin/users/${userId}/tier`, {
                 method: 'PATCH',
-                headers: createJsonAuthHeaders(token),
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tier: newTier }),
             });
 
@@ -170,16 +166,13 @@ export default function AdminUsersPage() {
             try {
                 setActionLoading(`admin-${userId}`);
                 setConfirmDialog(null);
-                const token = getAccessToken();
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
                 const endpoint = isCurrentlyAdmin ? 'revoke-admin' : 'grant-admin';
                 const method = isCurrentlyAdmin ? 'DELETE' : 'POST';
 
                 const response = await fetch(`${apiUrl}/v1.0/admin/users/${userId}/${endpoint}`, {
                     method,
-                    headers: {
-                        Authorization: createBearerToken(token),
-                    },
+                    credentials: 'include',
                 });
 
                 if (!response.ok) {
@@ -212,13 +205,10 @@ export default function AdminUsersPage() {
             try {
                 setActionLoading(`active-${userId}`);
                 setConfirmDialog(null);
-                const token = getAccessToken();
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
                 const response = await fetch(`${apiUrl}/v1.0/admin/users/${userId}/toggle-active`, {
                     method: 'PATCH',
-                    headers: {
-                        Authorization: createBearerToken(token),
-                    },
+                    credentials: 'include',
                 });
 
                 if (!response.ok) {
@@ -256,7 +246,6 @@ export default function AdminUsersPage() {
 
         try {
             setActionLoading(`botkey-${showBotKeyModal.userId}`);
-            const token = getAccessToken();
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
             const expiresAt = new Date();
@@ -276,7 +265,8 @@ export default function AdminUsersPage() {
 
             const response = await fetch(`${apiUrl}/v1.0/admin/users/${showBotKeyModal.userId}/api-keys`, {
                 method: 'POST',
-                headers: createJsonAuthHeaders(token),
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 

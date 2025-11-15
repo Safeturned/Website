@@ -6,6 +6,7 @@ import { createJsonAuthHeaders } from './authHelpers';
 
 export interface LinkedIdentity {
     providerName: string;
+    providerId: number;
     providerUserId: string;
     providerUsername?: string;
     connectedAt: string;
@@ -22,33 +23,22 @@ export interface User {
     linkedIdentities?: LinkedIdentity[];
 }
 
-interface AuthTokens {
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-}
-
 interface AuthContextType {
     user: User | null;
-    tokens: AuthTokens | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (returnUrl?: string) => void;
     logout: () => Promise<void>;
-    refreshAccessToken: () => Promise<boolean>;
-    getAccessToken: () => string | null;
     getLinkedIdentities: () => Promise<LinkedIdentity[] | null>;
     unlinkIdentity: (providerName: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_STORAGE_KEY = 'safeturned_auth_tokens';
 const USER_STORAGE_KEY = 'safeturned_user';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [tokens, setTokens] = useState<AuthTokens | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
@@ -56,16 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const loadStoredAuth = () => {
             try {
                 const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-                const storedTokens = localStorage.getItem(TOKEN_STORAGE_KEY);
-
-                if (storedUser && storedTokens) {
+                if (storedUser) {
                     setUser(JSON.parse(storedUser));
-                    setTokens(JSON.parse(storedTokens));
                 }
             } catch (error) {
                 console.error('Failed to load stored auth:', error);
                 localStorage.removeItem(USER_STORAGE_KEY);
-                localStorage.removeItem(TOKEN_STORAGE_KEY);
             } finally {
                 setIsLoading(false);
             }
@@ -75,31 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        if (tokens) {
-            localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
-        } else {
-            localStorage.removeItem(TOKEN_STORAGE_KEY);
-        }
-    }, [tokens]);
-
-    useEffect(() => {
         if (user) {
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
         } else {
             localStorage.removeItem(USER_STORAGE_KEY);
         }
     }, [user]);
-
-    useEffect(() => {
-        if (!tokens) return;
-
-        const refreshTime = (tokens.expiresIn - 300) * 1000;
-        const timeout = setTimeout(() => {
-            refreshAccessToken();
-        }, refreshTime);
-
-        return () => clearTimeout(timeout);
-    }, [tokens]);
 
     const login = useCallback((returnUrl?: string) => {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -113,99 +80,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = useCallback(async () => {
         try {
-            if (tokens?.refreshToken) {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-                await fetch(`${apiUrl}/v1.0/auth/logout`, {
-                    method: 'POST',
-                    headers: createJsonAuthHeaders(tokens.accessToken),
-                    body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-                });
-            }
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            await fetch(`${apiUrl}/v1.0/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+            });
         } catch (error) {
             console.error('Logout API call failed:', error);
         } finally {
             setUser(null);
-            setTokens(null);
             localStorage.removeItem(USER_STORAGE_KEY);
-            localStorage.removeItem(TOKEN_STORAGE_KEY);
             router.push('/');
         }
-    }, [tokens, router]);
-
-    const refreshAccessToken = useCallback(async (): Promise<boolean> => {
-        if (!tokens?.refreshToken) {
-            return false;
-        }
-
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${apiUrl}/v1.0/auth/refresh`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Token refresh failed');
-            }
-
-            const data = await response.json();
-
-            setTokens({
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-                expiresIn: data.expiresIn,
-            });
-
-            return true;
-        } catch (error) {
-            console.error('Failed to refresh token:', error);
-            setUser(null);
-            setTokens(null);
-            return false;
-        }
-    }, [tokens]);
-
-    const getAccessToken = useCallback(() => {
-        return tokens?.accessToken || null;
-    }, [tokens]);
+    }, [router]);
 
     const getLinkedIdentities = useCallback(async (): Promise<LinkedIdentity[] | null> => {
-        if (!tokens?.accessToken) {
-            return null;
-        }
-
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/auth/linked-identities`, {
                 method: 'GET',
-                headers: createJsonAuthHeaders(tokens.accessToken),
+                credentials: 'include',
             });
 
             if (!response.ok) {
                 throw new Error('Failed to fetch linked identities');
             }
 
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             console.error('Failed to get linked identities:', error);
             return null;
         }
-    }, [tokens?.accessToken]);
+    }, []);
 
     const unlinkIdentity = useCallback(async (providerName: string): Promise<boolean> => {
-        if (!tokens?.accessToken) {
-            return false;
-        }
-
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/auth/unlink`, {
                 method: 'POST',
-                headers: createJsonAuthHeaders(tokens.accessToken),
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ providerName }),
             });
 
@@ -213,7 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error('Failed to unlink identity');
             }
 
-            // Refresh user data after unlinking
             if (user) {
                 const identities = await getLinkedIdentities();
                 setUser({
@@ -227,17 +141,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Failed to unlink identity:', error);
             return false;
         }
-    }, [tokens?.accessToken, user, getLinkedIdentities]);
+    }, [user, getLinkedIdentities]);
 
     const value: AuthContextType = {
         user,
-        tokens,
         isAuthenticated: !!user,
         isLoading,
         login,
         logout,
-        refreshAccessToken,
-        getAccessToken,
         getLinkedIdentities,
         unlinkIdentity,
     };
@@ -253,7 +164,6 @@ export function useAuth() {
     return context;
 }
 
-export function setAuthData(user: User, tokens: AuthTokens) {
+export function setAuthData(user: User) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
 }

@@ -4,7 +4,6 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { createBearerToken, createJsonAuthHeaders } from '@/lib/authHelpers';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -26,7 +25,7 @@ interface ApiKey {
 }
 
 export default function ApiKeysPage() {
-    const { user, isAuthenticated, tokens, isLoading } = useAuth();
+    const { user, isAuthenticated, isLoading } = useAuth();
     const { t, locale } = useTranslation();
     const router = useRouter();
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -52,11 +51,11 @@ export default function ApiKeysPage() {
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             router.push(`/${locale}/login?returnUrl=/dashboard/api-keys`);
-        } else if (isAuthenticated && tokens) {
+        } else if (isAuthenticated) {
             fetchApiKeys();
             fetchKeyLimits();
         }
-    }, [isAuthenticated, isLoading, tokens, router, locale]);
+    }, [isAuthenticated, isLoading, router, locale]);
 
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -84,9 +83,7 @@ export default function ApiKeysPage() {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
-                headers: {
-                    Authorization: createBearerToken(tokens?.accessToken || ''),
-                },
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -106,9 +103,7 @@ export default function ApiKeysPage() {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/limits`, {
-                headers: {
-                    Authorization: createBearerToken(tokens?.accessToken || ''),
-                },
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -132,7 +127,8 @@ export default function ApiKeysPage() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys`, {
                 method: 'POST',
-                headers: createJsonAuthHeaders(tokens?.accessToken || ''),
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: newKeyName,
                     prefix: 'sk_live',
@@ -187,9 +183,7 @@ export default function ApiKeysPage() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}`, {
                 method: 'DELETE',
-                headers: {
-                    Authorization: createBearerToken(tokens?.accessToken || ''),
-                },
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -215,9 +209,7 @@ export default function ApiKeysPage() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${apiUrl}/v1.0/users/me/api-keys/${keyId}/regenerate`, {
                 method: 'POST',
-                headers: {
-                    Authorization: createBearerToken(tokens?.accessToken || ''),
-                },
+                credentials: 'include',
             });
 
             if (!response.ok) {

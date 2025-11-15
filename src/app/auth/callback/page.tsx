@@ -10,33 +10,19 @@ export default function AuthCallbackPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const handleCallback = () => {
+        const handleCallback = async () => {
             try {
-                const accessToken = searchParams.get('access_token');
-                const refreshToken = searchParams.get('refresh_token');
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+                const response = await fetch(`${apiUrl}/v1.0/auth/me`, {
+                    credentials: 'include',
+                });
 
-                if (!accessToken || !refreshToken) {
-                    throw new Error('Missing authentication tokens');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
                 }
 
-                const payload = JSON.parse(atob(accessToken.split('.')[1]));
-
-                const user = {
-                    id: payload.sub,
-                    email: payload.email,
-                    username: payload.username || payload.email.split('@')[0],
-                    avatarUrl: payload.avatar_url,
-                    tier: parseInt(payload.tier) || 0,
-                    isAdmin: payload.is_admin === 'true',
-                };
-
-                const tokens = {
-                    accessToken,
-                    refreshToken,
-                    expiresIn: 3600,
-                };
-
-                setAuthData(user, tokens);
+                const userData = await response.json();
+                setAuthData(userData);
 
                 let returnUrl = sessionStorage.getItem('auth_return_url') || '/en';
                 sessionStorage.removeItem('auth_return_url');
@@ -57,7 +43,7 @@ export default function AuthCallbackPage() {
         };
 
         handleCallback();
-    }, [searchParams, router]);
+    }, [router]);
 
     if (error) {
         return (
