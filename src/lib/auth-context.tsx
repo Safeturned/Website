@@ -4,13 +4,22 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { createJsonAuthHeaders } from './authHelpers';
 
+export interface LinkedIdentity {
+    providerName: string;
+    providerUserId: string;
+    providerUsername?: string;
+    connectedAt: string;
+    lastAuthenticatedAt?: string;
+}
+
 export interface User {
     id: string;
-    email: string;
-    username: string;
+    email?: string;
+    username?: string;
     avatarUrl?: string;
     tier: number;
     isAdmin: boolean;
+    linkedIdentities?: LinkedIdentity[];
 }
 
 interface AuthTokens {
@@ -28,6 +37,8 @@ interface AuthContextType {
     logout: () => Promise<void>;
     refreshAccessToken: () => Promise<boolean>;
     getAccessToken: () => string | null;
+    getLinkedIdentities: () => Promise<LinkedIdentity[] | null>;
+    unlinkIdentity: (providerName: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -161,6 +172,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return tokens?.accessToken || null;
     }, [tokens]);
 
+    const getLinkedIdentities = useCallback(async (): Promise<LinkedIdentity[] | null> => {
+        if (!tokens?.accessToken) {
+            return null;
+        }
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/auth/linked-identities`, {
+                method: 'GET',
+                headers: createJsonAuthHeaders(tokens.accessToken),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch linked identities');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Failed to get linked identities:', error);
+            return null;
+        }
+    }, [tokens?.accessToken]);
+
+    const unlinkIdentity = useCallback(async (providerName: string): Promise<boolean> => {
+        if (!tokens?.accessToken) {
+            return false;
+        }
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/v1.0/auth/unlink`, {
+                method: 'POST',
+                headers: createJsonAuthHeaders(tokens.accessToken),
+                body: JSON.stringify({ providerName }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to unlink identity');
+            }
+
+            // Refresh user data after unlinking
+            if (user) {
+                const identities = await getLinkedIdentities();
+                setUser({
+                    ...user,
+                    linkedIdentities: identities || undefined,
+                });
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Failed to unlink identity:', error);
+            return false;
+        }
+    }, [tokens?.accessToken, user, getLinkedIdentities]);
+
     const value: AuthContextType = {
         user,
         tokens,
@@ -170,6 +238,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         refreshAccessToken,
         getAccessToken,
+        getLinkedIdentities,
+        unlinkIdentity,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
