@@ -14,7 +14,7 @@ export default function TermsPage() {
                         <h1 className='text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent pb-1 leading-tight'>
                             Условия использования
                         </h1>
-                        <p className='text-slate-400 text-sm'>Последнее обновление: Январь 2025</p>
+                        <p className='text-slate-400 text-sm'>Последнее обновление: ноябрь 2025</p>
                     </div>
 
                     <div className='space-y-6 text-gray-300'>

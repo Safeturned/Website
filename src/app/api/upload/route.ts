@@ -41,17 +41,18 @@ export async function POST(request: NextRequest) {
             body: formData,
         });
 
-        const analysisId = result.fileHash
-            ? result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+        const typedResult = result as { fileHash?: string; [key: string]: unknown };
+        const analysisId = typedResult.fileHash
+            ? typedResult.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
             : Date.now().toString();
 
-        storeAnalysisResult(analysisId, result);
+        storeAnalysisResult(analysisId, typedResult);
 
         const fileArrayBuffer = await file.arrayBuffer();
         storeFile(analysisId, fileArrayBuffer, file.name, file.type);
 
         return NextResponse.json({
-            ...result,
+            ...typedResult,
             id: analysisId,
         });
     } catch (error) {

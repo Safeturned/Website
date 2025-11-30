@@ -50,7 +50,7 @@ export default function ScansPage() {
     const [debouncedSearchFilter, setDebouncedSearchFilter] = useState('');
     const [isLoadingScans, setIsLoadingScans] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+    const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
@@ -165,7 +165,10 @@ export default function ScansPage() {
         return (
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
                 <div className='text-center' role='status' aria-live='polite'>
-                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4' aria-hidden='true'></div>
+                    <div
+                        className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'
+                        aria-hidden='true'
+                    ></div>
                     <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
                 </div>
             </div>
@@ -253,7 +256,10 @@ export default function ScansPage() {
 
                 {isLoadingScans ? (
                     <div className='text-center py-12' role='status' aria-live='polite'>
-                        <div className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500 mb-4' aria-hidden='true'></div>
+                        <div
+                            className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500 mb-4'
+                            aria-hidden='true'
+                        ></div>
                         <p className='text-slate-300'>{t('scans.loading', 'Loading scans...')}</p>
                     </div>
                 ) : scans.length === 0 ? (

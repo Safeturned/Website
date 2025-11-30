@@ -15,7 +15,7 @@ interface StoredFile {
 declare global {
     var __analysisResults: Map<string, AnalysisResult> | undefined;
     var __fileStorage: Map<string, StoredFile> | undefined;
-    var __cleanupInterval: NodeJS.Timeout | undefined;
+    var __cleanupInterval: ReturnType<typeof setInterval> | undefined;
 }
 
 if (!global.__analysisResults) {
@@ -85,7 +85,7 @@ function cleanupOldestFilesIfNeeded() {
         const currentGB = (totalSize / (1024 * 1024 * 1024)).toFixed(2);
         console.log(
             `[Storage Protection] Memory limit exceeded (${MAX_STORAGE_SIZE_BYTES / (1024 * 1024 * 1024)}GB). ` +
-            `Deleted ${deletedCount} oldest file(s), freed ${freedMB}MB. Current size: ${currentGB}GB`
+                `Deleted ${deletedCount} oldest file(s), freed ${freedMB}MB. Current size: ${currentGB}GB`
         );
     }
 }

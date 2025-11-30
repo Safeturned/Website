@@ -1,6 +1,6 @@
-import HomePage, { dynamic } from './[locale]/page';
+import HomePage from './[locale]/page';
 
-export { dynamic };
+export const dynamic = 'force-dynamic';
 
 export default function RootPage() {
     return <HomePage />;

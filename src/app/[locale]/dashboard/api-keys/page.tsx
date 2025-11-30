@@ -63,7 +63,7 @@ export default function ApiKeysPage() {
         API_KEY_SCOPES.READ,
         API_KEY_SCOPES.ANALYZE,
     ]);
-    const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -225,7 +225,7 @@ export default function ApiKeysPage() {
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
                 <div className='text-center'>
                     <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>Loading...</p>
+                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -300,10 +300,8 @@ export default function ApiKeysPage() {
                                 {t('apiKeys.limitWarning.title')}
                             </p>
                             <p className='text-orange-400 text-sm'>
-                                {t('apiKeys.limitWarning.message', {
-                                    max: keyLimits.max,
-                                    plural: keyLimits.max > 1 ? 's' : '',
-                                })}
+                                You can create up to {keyLimits.max} API key
+                                {keyLimits.max > 1 ? 's' : ''}.
                             </p>
                         </div>
                     </div>
@@ -764,25 +762,17 @@ export default function ApiKeysPage() {
                     <div className='flex items-start justify-between gap-4'>
                         <div>
                             <h3 className='text-lg font-semibold mb-2 flex items-center gap-2'>
-                                📚 API Documentation
+                                📚 {t('nav.apiDocumentation')}
                             </h3>
                             <p className='text-slate-300 text-sm'>
-                                Learn how to use your API keys to integrate Safeturned into your
-                                applications. Visit our{' '}
-                                <Link
-                                    href='/docs'
-                                    className='text-blue-400 hover:text-blue-300 underline transition-colors'
-                                >
-                                    API documentation
-                                </Link>{' '}
-                                for code examples and usage guides.
+                                {t('apiKeys.learnMore')} {t('apiKeys.visitDocs')}
                             </p>
                         </div>
                         <Link
                             href='/docs'
                             className='px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap'
                         >
-                            View Docs
+                            {t('apiKeys.viewDocs')}
                         </Link>
                     </div>
                 </div>

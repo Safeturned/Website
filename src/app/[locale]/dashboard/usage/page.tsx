@@ -97,14 +97,21 @@ export default function UsagePage() {
 
     const fetchSummary = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<UsageSummary>('/api/v1.0/users/me/usage/summary', { signal });
+            const data = await api.get<UsageSummary>('/api/v1.0/users/me/usage/summary', {
+                signal,
+            });
             setSummary(data);
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
                 return;
             }
             console.error('Failed to fetch summary:', err);
-            setSummary({ totalRequests: 0, last30DaysRequests: 0, averageResponseTime: 0, successRate: 100 });
+            setSummary({
+                totalRequests: 0,
+                last30DaysRequests: 0,
+                averageResponseTime: 0,
+                successRate: 100,
+            });
         }
     };
 
@@ -125,7 +132,9 @@ export default function UsagePage() {
 
     const fetchEndpointUsage = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<EndpointUsage[]>('/api/v1.0/users/me/usage/endpoints', { signal });
+            const data = await api.get<EndpointUsage[]>('/api/v1.0/users/me/usage/endpoints', {
+                signal,
+            });
             setEndpointUsage(data);
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
@@ -137,7 +146,9 @@ export default function UsagePage() {
 
     const fetchMethodUsage = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<MethodUsage[]>('/api/v1.0/users/me/usage/methods', { signal });
+            const data = await api.get<MethodUsage[]>('/api/v1.0/users/me/usage/methods', {
+                signal,
+            });
             setMethodUsage(data);
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
@@ -149,7 +160,9 @@ export default function UsagePage() {
 
     const fetchStatusCodes = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<StatusCode[]>('/api/v1.0/users/me/usage/status-codes', { signal });
+            const data = await api.get<StatusCode[]>('/api/v1.0/users/me/usage/status-codes', {
+                signal,
+            });
             setStatusCodes(data);
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
@@ -212,9 +225,7 @@ export default function UsagePage() {
                         {t('dashboard.backToDashboard')}
                     </Link>
                     <h1 className='text-4xl font-bold'>{t('usage.title')}</h1>
-                    <p className='text-slate-400 mt-2'>
-                        {t('usage.description')}
-                    </p>
+                    <p className='text-slate-400 mt-2'>{t('usage.description')}</p>
                 </div>
 
                 {isLoadingData ? (
@@ -241,11 +252,15 @@ export default function UsagePage() {
                                 </svg>
                             </div>
 
-                            <h2 className='text-2xl font-bold text-white mb-4'>{t('usage.noUsage')}</h2>
+                            <h2 className='text-2xl font-bold text-white mb-4'>
+                                {t('usage.noUsage')}
+                            </h2>
 
                             <p className='text-slate-300 mb-6 text-lg'>
                                 {t('usage.description1')}{' '}
-                                <span className='text-purple-400 font-semibold'>{t('usage.description2')}</span>
+                                <span className='text-purple-400 font-semibold'>
+                                    {t('usage.description2')}
+                                </span>
                                 {t('usage.description3')} {t('usage.description4')}
                             </p>
 
@@ -256,9 +271,7 @@ export default function UsagePage() {
                                 <ul className='space-y-2 text-slate-300'>
                                     <li className='flex items-start'>
                                         <span className='text-purple-400 mr-2'>•</span>
-                                        <span>
-                                            {t('usage.apiRequestStats')}
-                                        </span>
+                                        <span>{t('usage.apiRequestStats')}</span>
                                     </li>
                                     <li className='flex items-start'>
                                         <span className='text-purple-400 mr-2'>•</span>
@@ -342,7 +355,9 @@ export default function UsagePage() {
                                     </div>
                                 </div>
                                 <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
-                                    <div className='text-slate-400 text-sm mb-1'>{t('usage.last30Days')}</div>
+                                    <div className='text-slate-400 text-sm mb-1'>
+                                        {t('usage.last30Days')}
+                                    </div>
                                     <div className='text-3xl font-bold text-purple-400'>
                                         {summary.last30DaysRequests.toLocaleString()}
                                     </div>
@@ -356,7 +371,9 @@ export default function UsagePage() {
                                     </div>
                                 </div>
                                 <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
-                                    <div className='text-slate-400 text-sm mb-1'>{t('usage.successRate')}</div>
+                                    <div className='text-slate-400 text-sm mb-1'>
+                                        {t('usage.successRate')}
+                                    </div>
                                     <div className='text-3xl font-bold text-green-400'>
                                         {summary.successRate.toFixed(1)}%
                                     </div>
@@ -395,7 +412,9 @@ export default function UsagePage() {
                                         </svg>
                                     </div>
                                     <p className='text-slate-400 text-lg'>
-                                        {t('usage.noRequestsInDays', undefined, { days: selectedDays })}
+                                        {t('usage.noRequestsInDays', undefined, {
+                                            days: selectedDays,
+                                        })}
                                     </p>
                                     <p className='text-slate-500 text-sm mt-2'>
                                         {t('usage.startUsingKeys')}
@@ -469,7 +488,9 @@ export default function UsagePage() {
 
                         <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8'>
                             <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
-                                <h2 className='text-2xl font-bold mb-6'>{t('usage.topEndpoints')}</h2>
+                                <h2 className='text-2xl font-bold mb-6'>
+                                    {t('usage.topEndpoints')}
+                                </h2>
                                 {endpointUsage.length === 0 ? (
                                     <p className='text-slate-400 text-center py-8'>
                                         {t('usage.noEndpointData')}
@@ -507,7 +528,9 @@ export default function UsagePage() {
                             </div>
 
                             <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
-                                <h2 className='text-2xl font-bold mb-6'>{t('usage.httpMethods')}</h2>
+                                <h2 className='text-2xl font-bold mb-6'>
+                                    {t('usage.httpMethods')}
+                                </h2>
                                 {methodUsage.length === 0 ? (
                                     <p className='text-slate-400 text-center py-8'>
                                         {t('usage.noMethodData')}
@@ -546,7 +569,9 @@ export default function UsagePage() {
                         </div>
 
                         <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
-                            <h2 className='text-2xl font-bold mb-6'>{t('usage.statusCodeDistribution')}</h2>
+                            <h2 className='text-2xl font-bold mb-6'>
+                                {t('usage.statusCodeDistribution')}
+                            </h2>
                             {statusCodes.length === 0 ? (
                                 <p className='text-slate-400 text-center py-8'>
                                     {t('usage.noStatusCodeData')}

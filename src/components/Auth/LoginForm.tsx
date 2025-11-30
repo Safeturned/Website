@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { DiscordIcon, SteamIcon } from '@/components/Icons';
 import { getApiUrl } from '@/lib/api-client';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function validateReturnUrl(url: string | null): string {
     const defaultUrl = '/dashboard';
@@ -38,6 +39,7 @@ function validateReturnUrl(url: string | null): string {
 }
 
 export default function LoginForm() {
+    const { t } = useTranslation();
     const searchParams = useSearchParams();
     const rawReturnUrl = searchParams.get('returnUrl');
     const returnUrl = validateReturnUrl(rawReturnUrl);
@@ -67,9 +69,7 @@ export default function LoginForm() {
                     <h1 className='text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent mb-2'>
                         Safeturned
                     </h1>
-                    <p className='text-slate-400 text-sm'>
-                        Login to manage your API keys and scans
-                    </p>
+                    <p className='text-slate-400 text-sm'>{t('login.title')}</p>
                 </div>
 
                 <div className='space-y-3'>
@@ -78,7 +78,7 @@ export default function LoginForm() {
                         className='w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-105'
                     >
                         <DiscordIcon />
-                        Login with Discord
+                        {t('login.loginWithDiscord')}
                     </button>
 
                     <button
@@ -86,7 +86,7 @@ export default function LoginForm() {
                         className='w-full bg-gradient-to-r from-[#1b2838] to-[#2a475e] hover:from-[#171f2b] hover:to-[#1e3447] text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-105'
                     >
                         <SteamIcon />
-                        Login with Steam
+                        {t('login.loginWithSteam')}
                     </button>
                 </div>
 
@@ -95,7 +95,7 @@ export default function LoginForm() {
                         <div className='w-full border-t border-slate-700'></div>
                     </div>
                     <div className='relative flex justify-center text-sm'>
-                        <span className='px-4 bg-slate-800 text-slate-400'>or</span>
+                        <span className='px-4 bg-slate-800 text-slate-400'>{t('login.or')}</span>
                     </div>
                 </div>
 
@@ -103,28 +103,31 @@ export default function LoginForm() {
                     href='/'
                     className='block w-full text-center bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium py-3 px-6 rounded-lg transition-colors duration-200'
                 >
-                    Continue as Guest
+                    {t('login.continueGuest')}
                 </a>
 
                 <div className='mt-8 text-center'>
                     <p className='text-slate-500 text-xs'>
-                        By logging in, you agree to our{' '}
-                        <a href='/terms' className='text-purple-400 hover:text-purple-300 underline'>
-                            Terms of Service
+                        {t('login.agreeTerms')}{' '}
+                        <a
+                            href='/terms'
+                            className='text-purple-400 hover:text-purple-300 underline'
+                        >
+                            {t('login.termsOfService')}
                         </a>{' '}
-                        and{' '}
+                        {t('login.and')}{' '}
                         <a
                             href='/privacy'
                             className='text-purple-400 hover:text-purple-300 underline'
                         >
-                            Privacy Policy
+                            {t('login.privacyPolicy')}
                         </a>
                     </p>
                 </div>
 
                 <div className='mt-8 space-y-3'>
                     <p className='text-slate-400 text-sm font-medium text-center mb-4'>
-                        Why create an account?
+                        {t('login.whyCreate')}
                     </p>
                     <div className='flex items-start gap-3 text-sm text-slate-400'>
                         <svg
@@ -140,7 +143,7 @@ export default function LoginForm() {
                                 d='M5 13l4 4L19 7'
                             />
                         </svg>
-                        <span>Generate and manage API keys</span>
+                        <span>{t('login.manageKeys')}</span>
                     </div>
                     <div className='flex items-start gap-3 text-sm text-slate-400'>
                         <svg
@@ -156,7 +159,7 @@ export default function LoginForm() {
                                 d='M5 13l4 4L19 7'
                             />
                         </svg>
-                        <span>View scan history and usage analytics</span>
+                        <span>{t('login.viewHistory')}</span>
                     </div>
                     <div className='flex items-start gap-3 text-sm text-slate-400'>
                         <svg
@@ -172,7 +175,7 @@ export default function LoginForm() {
                                 d='M5 13l4 4L19 7'
                             />
                         </svg>
-                        <span>Higher rate limits (2,000 reads/hour)</span>
+                        <span>{t('login.higherLimits')}</span>
                     </div>
                 </div>
             </div>

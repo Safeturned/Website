@@ -106,17 +106,7 @@ export default function AdminUsersPage() {
         if (user?.isAdmin) {
             loadUsers();
         }
-    }, [
-        user,
-        isAuthenticated,
-        isLoading,
-        router,
-        locale,
-        page,
-        debouncedSearch,
-        tierFilter,
-        adminFilter,
-    ]);
+    }, [user, isAuthenticated, isLoading, router, page, debouncedSearch, tierFilter, adminFilter]);
 
     const loadUsers = async () => {
         try {

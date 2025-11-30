@@ -65,7 +65,7 @@ export default function DocsPage() {
     const { user, isAuthenticated } = useAuth();
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<CodeLanguage>('unity');
-    const [selectedChunkedLanguage, setSelectedChunkedLanguage] = useState<CodeLanguage>('csharp');
+    const [selectedChunkedLanguage, setSelectedChunkedLanguage] = useState<CodeLanguage>('unity');
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
     const copyCode = (code: string, id: string) => {
@@ -96,7 +96,16 @@ export default function DocsPage() {
 
     const chunkedUploadExamples: Record<CodeLanguage, { name: string; code: string; id: string }> =
         {
-            csharp: { name: 'C#', code: chunkedUploadCSharpExample, id: 'chunked-csharp' },
+            unity: {
+                name: 'Unity C# (Unturned)',
+                code: chunkedUploadCSharpExample,
+                id: 'chunked-unity',
+            },
+            csharp: {
+                name: 'C# (.NET)',
+                code: chunkedUploadCSharpNetExample,
+                id: 'chunked-csharp',
+            },
             curl: { name: 'cURL', code: chunkedUploadCurlExample, id: 'chunked-curl' },
             javascript: {
                 name: 'JavaScript (Node.js)',
@@ -734,7 +743,9 @@ export default function DocsPage() {
 
                             <div className='space-y-4'>
                                 <div>
-                                    <h3 className='text-lg font-semibold text-white mb-3'>{t('docs.badgeTokens.howItWorks')}</h3>
+                                    <h3 className='text-lg font-semibold text-white mb-3'>
+                                        {t('docs.badgeTokens.howItWorks')}
+                                    </h3>
                                     <ol className='list-decimal list-inside space-y-2 text-gray-300 ml-4'>
                                         <li>{t('docs.badgeTokens.step1')}</li>
                                         <li>{t('docs.badgeTokens.step2')}</li>
@@ -745,10 +756,22 @@ export default function DocsPage() {
 
                                 <div className='bg-purple-900/20 border border-purple-500/20 rounded-lg p-4'>
                                     <div className='flex items-center gap-2 mb-2'>
-                                        <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                                        <svg
+                                            className='w-5 h-5 text-purple-400'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                            />
                                         </svg>
-                                        <span className='text-purple-300 font-semibold text-sm'>{t('docs.badgeTokens.createBadgesTitle')}</span>
+                                        <span className='text-purple-300 font-semibold text-sm'>
+                                            {t('docs.badgeTokens.createBadgesTitle')}
+                                        </span>
                                     </div>
                                     <p className='text-slate-300 text-sm'>
                                         {t('docs.badgeTokens.createBadgesDescription')}
@@ -757,8 +780,18 @@ export default function DocsPage() {
                                         href='/dashboard/badges'
                                         className='inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 text-sm font-medium underline underline-offset-2 mt-2'
                                     >
-                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M13 7l5 5m0 0l-5 5m5-5H6'
+                                            />
                                         </svg>
                                         {t('docs.badgeTokens.goToBadgesDashboard')}
                                     </Link>
@@ -766,8 +799,18 @@ export default function DocsPage() {
 
                                 <div className='bg-green-900/20 border border-green-500/20 rounded-lg p-4'>
                                     <h4 className='text-green-300 font-semibold text-sm mb-3 flex items-center gap-2'>
-                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M13 10V3L4 14h7v7l9-11h-7z'
+                                            />
                                         </svg>
                                         {t('docs.badgeTokens.usingToken')}
                                     </h4>
@@ -787,8 +830,18 @@ export default function DocsPage() {
 
                                 <div className='bg-blue-900/20 border border-blue-500/20 rounded-lg p-4'>
                                     <h4 className='text-blue-300 font-semibold text-sm mb-2 flex items-center gap-2'>
-                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                            />
                                         </svg>
                                         {t('docs.badgeTokens.howMatching')}
                                     </h4>
@@ -799,8 +852,18 @@ export default function DocsPage() {
 
                                 <div className='bg-red-900/20 border border-red-500/20 rounded-lg p-4'>
                                     <h4 className='text-red-300 font-semibold text-sm mb-2 flex items-center gap-2'>
-                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                            />
                                         </svg>
                                         {t('docs.badgeTokens.securityPractices')}
                                     </h4>
@@ -1070,7 +1133,7 @@ async function scanFile(filePath) {
     form.append('file', fs.createReadStream(filePath));
     form.append('forceAnalyze', 'false');
 
-    const response = await fetch(`${API_BASE_URL}/v1.0/files`, {
+    const response = await fetch(\`\${API_BASE_URL}/v1.0/files\`, {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer YOUR_API_KEY'
@@ -1315,6 +1378,102 @@ public class ChunkedUploader : MonoBehaviour
 // ChunkedUploader uploader = gameObject.AddComponent<ChunkedUploader>();
 // uploader.Initialize("YOUR_API_KEY");
 // uploader.UploadLargeFile("path/to/LargePlugin.dll");`;
+
+const chunkedUploadCSharpNetExample = `using System;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+public class ChunkedUploadClient
+{
+    private const int ChunkSize = 5 * 1024 * 1024; // 5MB
+    private readonly HttpClient _client;
+    private readonly string _baseUrl;
+
+    public ChunkedUploadClient(string apiKey, string baseUrl = "${API_BASE_URL}")
+    {
+        _baseUrl = baseUrl;
+        _client = new HttpClient();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", apiKey);
+    }
+
+    public async Task UploadLargeFileAsync(string filePath)
+    {
+        var fileInfo = new FileInfo(filePath);
+        var fileBytes = await File.ReadAllBytesAsync(filePath);
+        var fileHash = ComputeFileHash(fileBytes);
+        var totalChunks = (int)Math.Ceiling((double)fileBytes.Length / ChunkSize);
+
+        // Step 1: Initiate upload
+        var initRequest = new
+        {
+            fileName = Path.GetFileName(filePath),
+            fileSizeBytes = fileBytes.Length,
+            fileHash = fileHash,
+            totalChunks = totalChunks
+        };
+
+        var initResponse = await _client.PostAsJsonAsync(
+            $"{_baseUrl}/v1.0/files/upload/initiate",
+            initRequest);
+
+        var initContent = await initResponse.Content.ReadAsStringAsync();
+        var initResult = JsonSerializer.Deserialize<JsonElement>(initContent);
+        var sessionId = initResult.GetProperty("sessionId").GetString();
+
+        // Step 2: Upload chunks
+        for (int i = 0; i < totalChunks; i++)
+        {
+            int offset = i * ChunkSize;
+            int chunkLength = Math.Min(ChunkSize, fileBytes.Length - offset);
+            byte[] chunk = new byte[chunkLength];
+            Array.Copy(fileBytes, offset, chunk, 0, chunkLength);
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(sessionId), "sessionId");
+            form.Add(new StringContent(i.ToString()), "chunkIndex");
+            form.Add(
+                new ByteArrayContent(chunk),
+                "chunk",
+                Path.GetFileName(filePath));
+
+            var response = await _client.PostAsync(
+                $"{_baseUrl}/v1.0/files/upload/chunk",
+                form);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Chunk {i + 1} failed: {response.StatusCode}");
+            }
+        }
+
+        // Step 3: Finalize upload
+        var finalizeRequest = new { sessionId = sessionId };
+        var finalResponse = await _client.PostAsJsonAsync(
+            $"{_baseUrl}/v1.0/files/upload/finalize",
+            finalizeRequest);
+
+        var finalContent = await finalResponse.Content.ReadAsStringAsync();
+        Console.WriteLine("Upload completed: " + finalContent);
+    }
+
+    private string ComputeFileHash(byte[] fileBytes)
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            var hash = sha256.ComputeHash(fileBytes);
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
+        }
+    }
+}
+
+// Usage:
+// var client = new ChunkedUploadClient("YOUR_API_KEY");
+// await client.UploadLargeFileAsync("path/to/LargePlugin.dll");`;
 
 const chunkedUploadJsExample = `const fs = require('fs');
 const crypto = require('crypto');

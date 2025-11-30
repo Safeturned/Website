@@ -247,6 +247,7 @@
             "title": "Rate Limits",
             "left": "left",
             "resettingNow": "Resetting now...",
+            "resetsIn": "Resets in",
             "resetsInMinutes": "Resets in {{minutes}}m",
             "resetsInHoursMinutes": "Resets in {{hours}}h {{minutes}}m",
             "adminUnlimited": "Admin - Unlimited requests",
@@ -291,7 +292,8 @@
         "noKeys": "No API Keys Yet",
         "createFirst": "Create your first API key to start using the Safeturned API",
         "learnMore": "Learn how to use your API keys to integrate Safeturned into your applications.",
-        "visitDocs": "Visit our API documentation for code examples and usage guides."
+        "visitDocs": "Visit our API documentation for code examples and usage guides.",
+        "viewDocs": "View Docs"
     },
     "usage": {
         "title": "API Usage & Analytics",
@@ -334,6 +336,7 @@
     },
     "notifications": {
         "title": "Notifications",
+        "description": "Stay updated with your scan results and alerts",
         "loading": "Loading notifications...",
         "noNotifications": "No Notifications",
         "noNotificationsDesc": "You don't have any notifications yet. Upload files to start scanning!",
@@ -515,7 +518,7 @@
             "title": "12. Contact Information",
             "content": "If you have any questions about these Terms of Service, please contact us through our GitHub repository or other official channels."
         },
-        "lastUpdated": "Data updated"
+        "lastUpdated": "Last updated: November 2025"
     },
     "badges": {
         "title": "Manage Badges",
@@ -704,6 +707,7 @@
     "login": {
         "title": "Login to manage your API keys and scans",
         "loginWithDiscord": "Login with Discord",
+        "loginWithSteam": "Login with Steam",
         "or": "or",
         "continueGuest": "Continue as Guest",
         "agreeTerms": "By logging in, you agree to our",
@@ -713,7 +717,7 @@
         "whyCreate": "Why create an account?",
         "manageKeys": "Generate and manage API keys",
         "viewHistory": "See your scan history and usage stats",
-        "higherLimits": "Much higher rate limits (500 reads, 100 writes, 20 uploads per hour)"
+        "higherLimits": "Rate limits: 2K reads, 150 writes, 30 uploads per hour (upgrade to Premium for 15K reads, 2K writes, 200 uploads)"
     },
     "common": {
         "loading": "Loading...",
@@ -947,7 +951,7 @@
             "filename": "Filename",
             "testGetByFilenameBtn": "Test Get by Filename",
             "testGetAnalytics": "Test Get Analytics",
-            "analyticsDesc": "See stats for all your scanned files - useful for tracking what you've uploaded and how it's doing.",
+            "analyticsDesc": "View global API usage statistics across all users. This shows system-wide analytics like total requests, average response times, and overall API performance - not your personal scan history.",
             "testAnalyticsBtn": "Test Analytics Endpoint",
             "chunkedUploadTitle": "Chunked Upload (Documentation Only)",
             "chunkedUploadDesc": "Files bigger than 100MB need to be uploaded in chunks.",

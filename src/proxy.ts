@@ -1,6 +1,11 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { DEFAULT_LOCALE, Locale, normalizeLocale, pickLocaleFromAcceptLanguage } from './lib/i18n-config';
+import {
+    DEFAULT_LOCALE,
+    Locale,
+    normalizeLocale,
+    pickLocaleFromAcceptLanguage,
+} from './lib/i18n-config';
 
 const shouldBypass = (pathname: string) =>
     pathname.startsWith('/_next') ||
@@ -29,7 +34,7 @@ const buildCookieOptions = (request: NextRequest) => ({
     path: '/',
 });
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     if (shouldBypass(pathname)) {

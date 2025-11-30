@@ -182,10 +182,10 @@ export default function ResultPage() {
             if (!hash) return;
 
             try {
-                const response = await api.post('/api/check-file-storage', {
+                const response = await api.post<{ isStored: boolean }>('/api/check-file-storage', {
                     fileHash: hash,
                 });
-                setIsFileStored(response.isStored);
+                setIsFileStored(response?.isStored ?? false);
             } catch (error) {
                 console.error('Failed to check file storage:', error);
                 setIsFileStored(false);
@@ -1190,12 +1190,20 @@ export default function ResultPage() {
                                                 </p>
                                                 <ul className='space-y-1.5 text-left'>
                                                     <li className='flex items-start gap-2'>
-                                                        <span className='text-green-400 flex-shrink-0'>✓</span>
-                                                        <span>{t('results.reanalyzeAvailableWebsite')}</span>
+                                                        <span className='text-green-400 flex-shrink-0'>
+                                                            ✓
+                                                        </span>
+                                                        <span>
+                                                            {t('results.reanalyzeAvailableWebsite')}
+                                                        </span>
                                                     </li>
                                                     <li className='flex items-start gap-2'>
-                                                        <span className='text-red-400 flex-shrink-0'>✗</span>
-                                                        <span>{t('results.reanalyzeNotAvailableApi')}</span>
+                                                        <span className='text-red-400 flex-shrink-0'>
+                                                            ✗
+                                                        </span>
+                                                        <span>
+                                                            {t('results.reanalyzeNotAvailableApi')}
+                                                        </span>
                                                     </li>
                                                 </ul>
                                                 <p className='mt-2 pt-2 border-t border-slate-700 text-slate-400'>

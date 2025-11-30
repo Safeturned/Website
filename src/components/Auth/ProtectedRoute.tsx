@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useTranslation } from '@/hooks/useTranslation';
+import TypewriterEffect from '@/components/TypewriterEffect';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -10,6 +12,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+    const { t } = useTranslation();
     const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
@@ -29,7 +32,9 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-slate-900 to-slate-800'>
                 <div className='text-center'>
                     <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>Loading...</p>
+                    <p className='text-slate-300 text-lg'>
+                        <TypewriterEffect text={t('common.loading')} speed={50} />
+                    </p>
                 </div>
             </div>
         );

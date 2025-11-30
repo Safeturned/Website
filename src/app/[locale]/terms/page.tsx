@@ -18,7 +18,7 @@ export default function TermsPage() {
                         <h1 className='text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent pb-1 leading-tight'>
                             {t('terms.title')}
                         </h1>
-                        <p className='text-slate-400 text-sm'>Last updated: January 2025</p>
+                        <p className='text-slate-400 text-sm'>{t('terms.lastUpdated')}</p>
                     </div>
 
                     <div className='space-y-8 text-gray-300'>
@@ -117,16 +117,16 @@ export default function TermsPage() {
                             </h2>
                             <ul className='list-disc list-inside space-y-2 ml-4'>
                                 <li>
-                                    <strong>{t('terms.dataHandling.websiteUploads.title')}</strong> -{' '}
-                                    {t('terms.dataHandling.websiteUploads.content')}
+                                    <strong>{t('terms.dataHandling.websiteUploads.title')}</strong>{' '}
+                                    - {t('terms.dataHandling.websiteUploads.content')}
                                 </li>
                                 <li>
                                     <strong>{t('terms.dataHandling.apiUploads.title')}</strong> -{' '}
                                     {t('terms.dataHandling.apiUploads.content')}
                                 </li>
                                 <li>
-                                    <strong>{t('terms.dataHandling.chunkedUploads.title')}</strong> -{' '}
-                                    {t('terms.dataHandling.chunkedUploads.content')}
+                                    <strong>{t('terms.dataHandling.chunkedUploads.title')}</strong>{' '}
+                                    - {t('terms.dataHandling.chunkedUploads.content')}
                                 </li>
                                 <li>
                                     <strong>{t('terms.dataHandling.metadataOnly.title')}</strong> -{' '}

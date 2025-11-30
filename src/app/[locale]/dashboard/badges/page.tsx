@@ -49,7 +49,9 @@ export default function BadgesPage() {
     const [loading, setLoading] = useState(true);
     const [loadingScans, setLoadingScans] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
-    const [copiedType, setCopiedType] = useState<'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc' | null>(null);
+    const [copiedType, setCopiedType] = useState<
+        'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc' | null
+    >(null);
     const [confirmDialog, setConfirmDialog] = useState<{
         show: boolean;
         title: string;
@@ -71,9 +73,10 @@ export default function BadgesPage() {
     const [togglingAutoUpdate, setTogglingAutoUpdate] = useState<string | null>(null);
     const [deletingBadge, setDeletingBadge] = useState<string | null>(null);
     const [showAboutBadges, setShowAboutBadges] = useState(true);
+    const [badgesExpanded, setBadgesExpanded] = useState(true);
     const abortControllerRef = useRef<AbortController | null>(null);
-    const copyTokenTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const copyBadgeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const copyTokenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const copyBadgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -148,7 +151,9 @@ export default function BadgesPage() {
     const fetchScans = async (signal?: AbortSignal) => {
         try {
             setLoadingScans(true);
-            const data = await api.get<{ scans: ScanFile[] }>('users/me/scans?pageSize=50', { signal });
+            const data = await api.get<{ scans: ScanFile[] }>('users/me/scans?pageSize=50', {
+                signal,
+            });
             setScans(data.scans || []);
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
@@ -331,7 +336,10 @@ export default function BadgesPage() {
         }
     };
 
-    const handleCopyBadge = (badge: Badge, type: 'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc') => {
+    const handleCopyBadge = (
+        badge: Badge,
+        type: 'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc'
+    ) => {
         let content = '';
         const badgeInfoUrl = `${window.location.origin}/badge/${badge.id}`;
         const badgeImageUrl = `${window.location.origin}/api/v1.0/badge/${badge.id}`;
@@ -535,11 +543,14 @@ export default function BadgesPage() {
                                         {t('badges.autoUpdateTokenDescription')}
                                     </p>
                                     <div className='bg-black/30 rounded-lg p-3 mb-2 border border-green-500/20'>
-                                        <p className='text-green-200 text-xs font-semibold mb-2'>{t('badges.howToUseToken')}</p>
+                                        <p className='text-green-200 text-xs font-semibold mb-2'>
+                                            {t('badges.howToUseToken')}
+                                        </p>
                                         <code className='text-green-300 text-xs block bg-slate-900/50 p-2 rounded mb-2 overflow-x-auto'>
-                                            curl -X POST {API_BASE_URL}/v1.0/files \<br/>
-                                            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br/>
-                                            &nbsp;&nbsp;-F "file=@plugin.dll" \<br/>
+                                            curl -X POST {API_BASE_URL}/v1.0/files \<br />
+                                            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \
+                                            <br />
+                                            &nbsp;&nbsp;-F "file=@plugin.dll" \<br />
                                             &nbsp;&nbsp;-F "badgeToken=YOUR_TOKEN_HERE"
                                         </code>
                                         <p className='text-slate-400 text-xs'>
@@ -553,8 +564,18 @@ export default function BadgesPage() {
                                         href='/docs#badge-tokens'
                                         className='text-blue-400 hover:text-blue-300 text-xs font-medium underline flex items-center gap-1'
                                     >
-                                        <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                        <svg
+                                            className='w-3 h-3'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                            />
                                         </svg>
                                         {t('badges.readFullDocumentation')}
                                     </Link>
@@ -577,49 +598,95 @@ export default function BadgesPage() {
                     <>
                         {badges.length > 0 && (
                             <div className='mb-8'>
-                                <h2 className='text-2xl font-bold text-white mb-4'>
-                                    {t('badges.yourBadges')}
-                                </h2>
-                                <div className='grid grid-cols-1 gap-6'>
-                                    {badges.map(badge => (
-                                        <div
-                                            key={badge.id}
-                                            className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 hover:border-purple-500/50 transition-all duration-200'
-                                        >
-                                            <div className='flex flex-col gap-4'>
-                                                <div className='flex items-start justify-between gap-4'>
-                                                    <div className='flex-1 min-w-0'>
-                                                        <h3 className='text-xl font-bold text-white mb-2'>
-                                                            {badge.name}
-                                                        </h3>
-                                                        {badge.description && (
-                                                            <p className='text-slate-300 text-sm mb-3 leading-relaxed'>
-                                                                {badge.description}
-                                                            </p>
-                                                        )}
-                                                        <div className='flex flex-wrap items-center gap-3 text-sm text-slate-300 mb-4'>
-                                                            <span className='flex items-center gap-1.5'>
-                                                                <svg
-                                                                    className='w-4 h-4 text-slate-400'
-                                                                    fill='none'
-                                                                    stroke='currentColor'
-                                                                    viewBox='0 0 24 24'
-                                                                >
-                                                                    <path
-                                                                        strokeLinecap='round'
-                                                                        strokeLinejoin='round'
-                                                                        strokeWidth={2}
-                                                                        d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                                                                    />
-                                                                </svg>
-                                                                {formatDate(badge.createdAt, locale)}
-                                                            </span>
-                                                            {badge.versionUpdateCount > 0 && (
-                                                                <>
-                                                                    <span className='text-slate-600'>
-                                                                        •
-                                                                    </span>
-                                                                    <span className='flex items-center gap-1.5 text-purple-400 font-medium'>
+                                <button
+                                    onClick={() => setBadgesExpanded(!badgesExpanded)}
+                                    className='w-full flex items-center justify-between p-4 bg-slate-800/50 hover:bg-slate-800/70 border border-slate-700 rounded-xl transition-colors mb-4'
+                                >
+                                    <h2 className='text-2xl font-bold text-white'>
+                                        {t('badges.yourBadges')} ({badges.length})
+                                    </h2>
+                                    <svg
+                                        className={`w-6 h-6 text-slate-400 transition-transform duration-200 ${badgesExpanded ? 'rotate-180' : ''}`}
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M19 9l-7 7-7-7'
+                                        />
+                                    </svg>
+                                </button>
+                                {badgesExpanded && (
+                                    <div className='grid grid-cols-1 gap-6'>
+                                        {badges.map(badge => (
+                                            <div
+                                                key={badge.id}
+                                                className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 hover:border-purple-500/50 transition-all duration-200'
+                                            >
+                                                <div className='flex flex-col gap-4'>
+                                                    <div className='flex items-start justify-between gap-4'>
+                                                        <div className='flex-1 min-w-0'>
+                                                            <h3 className='text-xl font-bold text-white mb-2'>
+                                                                {badge.name}
+                                                            </h3>
+                                                            {badge.description && (
+                                                                <p className='text-slate-300 text-sm mb-3 leading-relaxed'>
+                                                                    {badge.description}
+                                                                </p>
+                                                            )}
+                                                            <div className='flex flex-wrap items-center gap-3 text-sm text-slate-300 mb-4'>
+                                                                <span className='flex items-center gap-1.5'>
+                                                                    <svg
+                                                                        className='w-4 h-4 text-slate-400'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                                                                        />
+                                                                    </svg>
+                                                                    {formatDate(
+                                                                        badge.createdAt,
+                                                                        locale
+                                                                    )}
+                                                                </span>
+                                                                {badge.versionUpdateCount > 0 && (
+                                                                    <>
+                                                                        <span className='text-slate-600'>
+                                                                            •
+                                                                        </span>
+                                                                        <span className='flex items-center gap-1.5 text-purple-400 font-medium'>
+                                                                            <svg
+                                                                                className='w-4 h-4'
+                                                                                fill='none'
+                                                                                stroke='currentColor'
+                                                                                viewBox='0 0 24 24'
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                                                                />
+                                                                            </svg>
+                                                                            {
+                                                                                badge.versionUpdateCount
+                                                                            }{' '}
+                                                                            {t('badges.updates')}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <div className='flex items-center gap-3'>
+                                                                {badge.requireTokenForUpdate ? (
+                                                                    <span className='inline-flex items-center gap-2 text-sm bg-green-900/30 text-green-300 px-3 py-2 rounded-lg border border-green-500/30 font-medium'>
                                                                         <svg
                                                                             className='w-4 h-4'
                                                                             fill='none'
@@ -630,197 +697,45 @@ export default function BadgesPage() {
                                                                                 strokeLinecap='round'
                                                                                 strokeLinejoin='round'
                                                                                 strokeWidth={2}
-                                                                                d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
                                                                             />
                                                                         </svg>
-                                                                        {badge.versionUpdateCount}{' '}
-                                                                        {t('badges.updates')}
+                                                                        {t(
+                                                                            'badges.autoUpdateEnabled'
+                                                                        )}
                                                                     </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                        <div className='flex items-center gap-3'>
-                                                            {badge.requireTokenForUpdate ? (
-                                                                <span className='inline-flex items-center gap-2 text-sm bg-green-900/30 text-green-300 px-3 py-2 rounded-lg border border-green-500/30 font-medium'>
-                                                                    <svg
-                                                                        className='w-4 h-4'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
-                                                                        />
-                                                                    </svg>
-                                                                    {t('badges.autoUpdateEnabled')}
-                                                                </span>
-                                                            ) : (
-                                                                <span className='inline-flex items-center gap-2 text-sm bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg border border-slate-600 font-medium'>
-                                                                    <svg
-                                                                        className='w-4 h-4'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'
-                                                                        />
-                                                                    </svg>
-                                                                    {t('badges.autoUpdateDisabled')}
-                                                                </span>
-                                                            )}
+                                                                ) : (
+                                                                    <span className='inline-flex items-center gap-2 text-sm bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg border border-slate-600 font-medium'>
+                                                                        <svg
+                                                                            className='w-4 h-4'
+                                                                            fill='none'
+                                                                            stroke='currentColor'
+                                                                            viewBox='0 0 24 24'
+                                                                        >
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'
+                                                                            />
+                                                                        </svg>
+                                                                        {t(
+                                                                            'badges.autoUpdateDisabled'
+                                                                        )}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div className='flex flex-wrap gap-2'>
-                                                    <Link
-                                                        href={`/badge/${badge.id}`}
-                                                        target='_blank'
-                                                        className='bg-green-600/20 hover:bg-green-600/30 text-green-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-green-500/30 inline-flex items-center gap-1.5'
-                                                    >
-                                                        <svg
-                                                            className='w-3.5 h-3.5'
-                                                            fill='none'
-                                                            stroke='currentColor'
-                                                            viewBox='0 0 24 24'
+                                                    <div className='flex flex-wrap gap-2'>
+                                                        <Link
+                                                            href={`/badge/${badge.id}`}
+                                                            target='_blank'
+                                                            className='bg-green-600/20 hover:bg-green-600/30 text-green-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-green-500/30 inline-flex items-center gap-1.5'
                                                         >
-                                                            <path
-                                                                strokeLinecap='round'
-                                                                strokeLinejoin='round'
-                                                                strokeWidth={2}
-                                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
-                                                            />
-                                                        </svg>
-                                                        {t('badges.viewInfo')}
-                                                    </Link>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'verification')
-                                                        }
-                                                        className='bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-cyan-500/30 min-w-[110px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'verification'
-                                                            ? t('badges.copied')
-                                                            : t('badges.verifyLink')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'markdown')
-                                                        }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'markdown'
-                                                            ? t('badges.copied')
-                                                            : t('badges.markdown')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'html')
-                                                        }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'html'
-                                                            ? t('badges.copied')
-                                                            : t('badges.html')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'rst')
-                                                        }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'rst'
-                                                            ? t('badges.copied')
-                                                            : t('badges.rst')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'asciidoc')
-                                                        }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'asciidoc'
-                                                            ? t('badges.copied')
-                                                            : t('badges.asciidoc')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleCopyBadge(badge, 'url')
-                                                        }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
-                                                    >
-                                                        {copiedId === badge.id &&
-                                                        copiedType === 'url'
-                                                            ? t('badges.copied')
-                                                            : t('badges.directUrl')}
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleToggleAutoUpdate(
-                                                                badge.id,
-                                                                badge.requireTokenForUpdate
-                                                            )
-                                                        }
-                                                        disabled={togglingAutoUpdate === badge.id}
-                                                        className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-blue-500/30 disabled:opacity-50 min-w-[120px]'
-                                                    >
-                                                        {togglingAutoUpdate === badge.id
-                                                            ? t('common.loading')
-                                                            : badge.requireTokenForUpdate
-                                                              ? t('badges.disableAutoUpdateBtn')
-                                                              : t('badges.enableAutoUpdateBtn')}
-                                                    </button>
-                                                    {badge.requireTokenForUpdate && (
-                                                        <button
-                                                            onClick={() =>
-                                                                requestRegenerateToken(
-                                                                    badge.id,
-                                                                    badge.name
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                regeneratingToken === badge.id
-                                                            }
-                                                            className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-amber-500/30 disabled:opacity-50 min-w-[120px]'
-                                                        >
-                                                            {t('badges.regenerateTokenBtn')}
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() =>
-                                                            requestDeleteBadge(badge.id, badge.name)
-                                                        }
-                                                        className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-500/30 min-w-[70px]'
-                                                    >
-                                                        {t('badges.delete')}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className='mt-4 bg-slate-900/50 rounded-lg p-4 border border-slate-700'>
-                                                <div className='flex items-center justify-between flex-wrap gap-4'>
-                                                    <div className='flex-1 min-w-[200px]'>
-                                                        <p className='text-sm text-slate-400 mb-2 font-medium'>
-                                                            {t('badges.currentlyShowing')}
-                                                        </p>
-                                                        <p className='text-white font-semibold text-lg mb-1'>
-                                                            {badge.linkedFile.fileName}
-                                                        </p>
-                                                        <p className='text-sm text-slate-400 flex items-center gap-1.5'>
                                                             <svg
-                                                                className='w-4 h-4'
+                                                                className='w-3.5 h-3.5'
                                                                 fill='none'
                                                                 stroke='currentColor'
                                                                 viewBox='0 0 24 24'
@@ -829,53 +744,201 @@ export default function BadgesPage() {
                                                                     strokeLinecap='round'
                                                                     strokeLinejoin='round'
                                                                     strokeWidth={2}
-                                                                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                                    d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
                                                                 />
                                                             </svg>
-                                                            {formatDateTime(badge.linkedFile.lastScanned, locale)}
-                                                        </p>
-                                                    </div>
-                                                    <div className='text-right'>
-                                                        <p className='text-sm text-slate-400 mb-2 font-medium'>
-                                                            {t('badges.riskScore')}
-                                                        </p>
-                                                        <p
-                                                            className={`text-3xl font-bold ${getRiskColor(badge.linkedFile.score)} mb-1`}
+                                                            {t('badges.viewInfo')}
+                                                        </Link>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(
+                                                                    badge,
+                                                                    'verification'
+                                                                )
+                                                            }
+                                                            className='bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-cyan-500/30 min-w-[110px]'
                                                         >
-                                                            {badge.linkedFile.score}/100
-                                                        </p>
-                                                        <p
-                                                            className={`text-sm font-medium ${getRiskColor(badge.linkedFile.score)}`}
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'verification'
+                                                                ? t('badges.copied')
+                                                                : t('badges.verifyLink')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(badge, 'markdown')
+                                                            }
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
                                                         >
-                                                            {getRiskLabel(badge.linkedFile.score)}
-                                                        </p>
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'markdown'
+                                                                ? t('badges.copied')
+                                                                : t('badges.markdown')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(badge, 'html')
+                                                            }
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                        >
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'html'
+                                                                ? t('badges.copied')
+                                                                : t('badges.html')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(badge, 'rst')
+                                                            }
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                        >
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'rst'
+                                                                ? t('badges.copied')
+                                                                : t('badges.rst')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(badge, 'asciidoc')
+                                                            }
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                        >
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'asciidoc'
+                                                                ? t('badges.copied')
+                                                                : t('badges.asciidoc')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleCopyBadge(badge, 'url')
+                                                            }
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                        >
+                                                            {copiedId === badge.id &&
+                                                            copiedType === 'url'
+                                                                ? t('badges.copied')
+                                                                : t('badges.directUrl')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleToggleAutoUpdate(
+                                                                    badge.id,
+                                                                    badge.requireTokenForUpdate
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                togglingAutoUpdate === badge.id
+                                                            }
+                                                            className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-blue-500/30 disabled:opacity-50 min-w-[120px]'
+                                                        >
+                                                            {togglingAutoUpdate === badge.id
+                                                                ? t('common.loading')
+                                                                : badge.requireTokenForUpdate
+                                                                  ? t('badges.disableAutoUpdateBtn')
+                                                                  : t('badges.enableAutoUpdateBtn')}
+                                                        </button>
+                                                        {badge.requireTokenForUpdate && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    requestRegenerateToken(
+                                                                        badge.id,
+                                                                        badge.name
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    regeneratingToken === badge.id
+                                                                }
+                                                                className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-amber-500/30 disabled:opacity-50 min-w-[120px]'
+                                                            >
+                                                                {t('badges.regenerateTokenBtn')}
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() =>
+                                                                requestDeleteBadge(
+                                                                    badge.id,
+                                                                    badge.name
+                                                                )
+                                                            }
+                                                            className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-500/30 min-w-[70px]'
+                                                        >
+                                                            {t('badges.delete')}
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div className='mt-4 bg-slate-900/50 rounded-lg p-5 border border-slate-700'>
-                                                <p className='text-sm text-slate-400 mb-3 font-medium'>
-                                                    {t('common.preview')}
-                                                </p>
-                                                <div className='flex items-center gap-4 flex-wrap'>
-                                                    <img
-                                                        src={`/api/v1.0/badge/${badge.id}`}
-                                                        alt={badge.name}
-                                                        className='inline-block'
-                                                        onError={e => {
-                                                            const target =
-                                                                e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                    <span className='text-sm text-slate-400 font-mono'>
-                                                        {badge.id}
-                                                    </span>
+                                                <div className='mt-4 bg-slate-900/50 rounded-lg p-4 border border-slate-700'>
+                                                    <div className='flex items-center justify-between flex-wrap gap-4'>
+                                                        <div className='flex-1 min-w-[200px]'>
+                                                            <p className='text-sm text-slate-400 mb-2 font-medium'>
+                                                                {t('badges.currentlyShowing')}
+                                                            </p>
+                                                            <p className='text-white font-semibold text-lg mb-1'>
+                                                                {badge.linkedFile.fileName}
+                                                            </p>
+                                                            <p className='text-sm text-slate-400 flex items-center gap-1.5'>
+                                                                <svg
+                                                                    className='w-4 h-4'
+                                                                    fill='none'
+                                                                    stroke='currentColor'
+                                                                    viewBox='0 0 24 24'
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap='round'
+                                                                        strokeLinejoin='round'
+                                                                        strokeWidth={2}
+                                                                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                                    />
+                                                                </svg>
+                                                                {formatDateTime(
+                                                                    badge.linkedFile.lastScanned,
+                                                                    locale
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div className='text-right'>
+                                                            <p className='text-sm text-slate-400 mb-2 font-medium'>
+                                                                {t('badges.riskScore')}
+                                                            </p>
+                                                            <p
+                                                                className={`text-3xl font-bold ${getRiskColor(badge.linkedFile.score)} mb-1`}
+                                                            >
+                                                                {badge.linkedFile.score}/100
+                                                            </p>
+                                                            <p
+                                                                className={`text-sm font-medium ${getRiskColor(badge.linkedFile.score)}`}
+                                                            >
+                                                                {getRiskLabel(
+                                                                    badge.linkedFile.score
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className='mt-4 bg-slate-900/50 rounded-lg p-5 border border-slate-700'>
+                                                    <p className='text-sm text-slate-400 mb-3 font-medium'>
+                                                        {t('common.preview')}
+                                                    </p>
+                                                    <div className='flex items-center gap-4 flex-wrap'>
+                                                        <img
+                                                            src={`/api/v1.0/badge/${badge.id}`}
+                                                            alt={badge.name}
+                                                            className='inline-block'
+                                                            onError={e => {
+                                                                const target =
+                                                                    e.target as HTMLImageElement;
+                                                                target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                        <span className='text-sm text-slate-400 font-mono'>
+                                                            {badge.id}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 

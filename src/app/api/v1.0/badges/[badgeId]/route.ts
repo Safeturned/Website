@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthHeaders, getApiBaseUrl, API_VERSION, handleApiError } from '@/lib/server-auth-helper';
+import {
+    getAuthHeaders,
+    getApiBaseUrl,
+    API_VERSION,
+    handleApiError,
+} from '@/lib/server-auth-helper';
 
 export async function DELETE(
     request: NextRequest,

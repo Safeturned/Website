@@ -1,23 +1,19 @@
 import { AUTH_HEADERS, AUTH_STORAGE_KEYS, AUTH_EVENTS } from './auth-constants';
 
 export const API_VERSION = 'v1.0';
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
-
-if (!API_BASE_URL) {
-    throw new Error(
-        'NEXT_PUBLIC_API_URL environment variable is required in production. Please set it in your .env file.'
-    );
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function getApiUrl(endpoint: string): string {
-    // If endpoint starts with /api/, it's a Next.js API route - return as-is (relative URL)
     if (endpoint.startsWith('/api/')) {
         return endpoint;
     }
 
-    // Otherwise, it's a backend API call - prepend base URL and version
+    if (!API_BASE_URL) {
+        throw new Error(
+            'NEXT_PUBLIC_API_URL environment variable is required in production. Please set it in your .env file.'
+        );
+    }
+
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     return `${API_BASE_URL}/${API_VERSION}/${cleanEndpoint}`;
 }

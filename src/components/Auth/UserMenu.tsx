@@ -67,7 +67,7 @@ export default function UserMenu() {
             }
         };
 
-        let timeoutId: NodeJS.Timeout | null = null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
         if (isOpen) {
             timeoutId = setTimeout(() => {

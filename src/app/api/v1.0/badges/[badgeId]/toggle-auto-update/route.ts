@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthHeaders, getApiBaseUrl, API_VERSION, handleApiError } from '@/lib/server-auth-helper';
+import {
+    getAuthHeaders,
+    getApiBaseUrl,
+    API_VERSION,
+    handleApiError,
+} from '@/lib/server-auth-helper';
 
 export async function POST(
     request: NextRequest,
@@ -16,11 +21,14 @@ export async function POST(
         const { badgeId } = await params;
         const body = await request.json();
 
-        const response = await fetch(`${apiUrl}/${API_VERSION}/badges/${badgeId}/toggle-auto-update`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(body),
-        });
+        const response = await fetch(
+            `${apiUrl}/${API_VERSION}/badges/${badgeId}/toggle-auto-update`,
+            {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body),
+            }
+        );
 
         if (!response.ok) {
             return handleApiError(response, 'Failed to toggle auto-update');

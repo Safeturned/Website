@@ -207,7 +207,10 @@ export default function Navigation() {
                         aria-hidden='true'
                     />
                     <div className='fixed top-0 right-0 bottom-0 w-full max-w-sm bg-slate-900 border-l border-purple-800/50 shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-out'>
-                        <nav className='flex flex-col p-6 space-y-4 pt-24' onClick={closeMobileMenu}>
+                        <nav
+                            className='flex flex-col p-6 space-y-4 pt-24'
+                            onClick={closeMobileMenu}
+                        >
                             <Link
                                 href='/docs'
                                 className='flex items-center gap-3 text-gray-300 hover:text-purple-300 transition-colors duration-200 text-lg py-3 px-4 rounded-lg hover:bg-purple-500/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900'

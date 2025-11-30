@@ -167,7 +167,9 @@ export default function DashboardPage() {
                                 />
                             </svg>
                             <div className='flex-1'>
-                                <h3 className='text-red-400 font-semibold mb-1'>{t('dashboard.errorLoadingData')}</h3>
+                                <h3 className='text-red-400 font-semibold mb-1'>
+                                    {t('dashboard.errorLoadingData')}
+                                </h3>
                                 <p className='text-red-300 text-sm'>{error}</p>
                                 <button
                                     onClick={() => {
@@ -752,9 +754,7 @@ export default function DashboardPage() {
                             <h3 className='text-2xl font-bold text-white mb-3'>
                                 {t('dashboard.noScansYet')}
                             </h3>
-                            <p className='text-gray-400 mb-6'>
-                                {t('dashboard.uploadFirstFile')}
-                            </p>
+                            <p className='text-gray-400 mb-6'>{t('dashboard.uploadFirstFile')}</p>
                             <Link
                                 href='/'
                                 className='inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900'

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         }
                     );
 
-                    storeAnalysisResult(hash, upstreamResult);
+                    storeAnalysisResult(hash, upstreamResult as Record<string, unknown>);
                     return NextResponse.json(upstreamResult);
                 } catch (error) {
                     if (error instanceof ServerApiError && error.status === 404) {

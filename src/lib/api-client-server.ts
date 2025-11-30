@@ -1,17 +1,14 @@
 import { NextRequest } from 'next/server';
 
 export const API_VERSION = 'v1.0';
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
-
-if (!API_BASE_URL) {
-    throw new Error(
-        'NEXT_PUBLIC_API_URL environment variable is required in production. Please set it in your .env file.'
-    );
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 function getApiUrl(endpoint: string): string {
+    if (!API_BASE_URL) {
+        throw new Error(
+            'NEXT_PUBLIC_API_URL environment variable is required in production. Please set it in your .env file.'
+        );
+    }
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     return `${API_BASE_URL}/${API_VERSION}/${cleanEndpoint}`;
 }

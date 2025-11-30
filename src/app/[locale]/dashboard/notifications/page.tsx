@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
 import { STORAGE_KEYS } from '@/lib/storage-constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface RecentScan {
     id: string;
@@ -30,6 +31,7 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
+    const { t } = useTranslation();
     const { user, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -83,7 +85,7 @@ export default function NotificationsPage() {
                         title: 'Threat Detected',
                         message: `${scan.fileName} - Risk Score: ${scan.score}/100`,
                         timestamp: scan.scanDate,
-                        link: `/result/${scan.id}`,
+                        link: `/scan/${scan.id}`,
                         icon: '🚨',
                     };
                 } else {
@@ -93,7 +95,7 @@ export default function NotificationsPage() {
                         title: 'File Scanned Successfully',
                         message: `${scan.fileName} - No threats detected (Score: ${scan.score}/100)`,
                         timestamp: scan.scanDate,
-                        link: `/result/${scan.id}`,
+                        link: `/scan/${scan.id}`,
                         icon: '✅',
                     };
                 }
@@ -137,7 +139,7 @@ export default function NotificationsPage() {
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
                 <div className='text-center'>
                     <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>Loading...</p>
+                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -168,9 +170,9 @@ export default function NotificationsPage() {
                                 />
                             </svg>
                         </Link>
-                        <h1 className='text-4xl font-bold'>Notifications</h1>
+                        <h1 className='text-4xl font-bold'>{t('notifications.title')}</h1>
                     </div>
-                    <p className='text-slate-400'>Stay updated with your scan results and alerts</p>
+                    <p className='text-slate-400'>{t('notifications.description')}</p>
                 </div>
 
                 <div className='flex flex-wrap gap-3 mb-6'>
@@ -197,7 +199,7 @@ export default function NotificationsPage() {
                 {loading ? (
                     <div className='text-center py-12'>
                         <div className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                        <p className='text-slate-300'>Loading notifications...</p>
+                        <p className='text-slate-300'>{t('common.loading')}</p>
                     </div>
                 ) : filteredNotifications.length === 0 ? (
                     <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-12 text-center'>

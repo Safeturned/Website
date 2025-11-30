@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthHeaders, getApiBaseUrl, API_VERSION, handleApiError } from '@/lib/server-auth-helper';
+import {
+    getAuthHeaders,
+    getApiBaseUrl,
+    API_VERSION,
+    handleApiError,
+} from '@/lib/server-auth-helper';
 
 export async function POST(
     request: NextRequest,
@@ -15,10 +20,13 @@ export async function POST(
 
         const { badgeId } = await params;
 
-        const response = await fetch(`${apiUrl}/${API_VERSION}/badges/${badgeId}/regenerate-token`, {
-            method: 'POST',
-            headers,
-        });
+        const response = await fetch(
+            `${apiUrl}/${API_VERSION}/badges/${badgeId}/regenerate-token`,
+            {
+                method: 'POST',
+                headers,
+            }
+        );
 
         if (!response.ok) {
             return handleApiError(response, 'Failed to regenerate token');

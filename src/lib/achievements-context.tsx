@@ -92,7 +92,7 @@ const DEFAULT_ACHIEVEMENTS: Achievement[] = [
 export function AchievementsProvider({ children }: { children: ReactNode }) {
     const [achievements, setAchievements] = useState<Achievement[]>(DEFAULT_ACHIEVEMENTS);
     const [showAchievementToast, setShowAchievementToast] = useState<Achievement | null>(null);
-    const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);

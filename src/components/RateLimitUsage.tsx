@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 import Link from 'next/link';
@@ -30,6 +30,7 @@ export default function RateLimitUsage() {
     const { t } = useTranslation();
     const [rateLimitData, setRateLimitData] = useState<RateLimitDataV2 | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updateTrigger, setUpdateTrigger] = useState(0);
 
     const fetchRateLimitData = useCallback(async () => {
         try {
@@ -45,10 +46,38 @@ export default function RateLimitUsage() {
     useEffect(() => {
         if (isAuthenticated) {
             fetchRateLimitData();
-            const interval = setInterval(fetchRateLimitData, 60000);
-            return () => clearInterval(interval);
+            const fetchInterval = setInterval(fetchRateLimitData, 60000);
+            const displayInterval = setInterval(() => setUpdateTrigger(prev => prev + 1), 10000);
+            return () => {
+                clearInterval(fetchInterval);
+                clearInterval(displayInterval);
+            };
         }
     }, [isAuthenticated, fetchRateLimitData]);
+
+    const getResetTimeDisplay = useCallback((resetTime: string) => {
+        const resetDate = new Date(resetTime);
+        const now = new Date();
+        const diffMs = resetDate.getTime() - now.getTime();
+
+        if (diffMs <= 0) {
+            return t('dashboard.rateLimits.resettingNow');
+        }
+
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const remainingMinutes = diffMinutes % 60;
+        const remainingSeconds = diffSeconds % 60;
+
+        if (diffHours > 0) {
+            return `${diffHours}h ${remainingMinutes}m`;
+        } else if (diffMinutes > 0) {
+            return `${diffMinutes}m ${remainingSeconds}s`;
+        } else {
+            return `${remainingSeconds}s`;
+        }
+    }, [updateTrigger, t]);
 
     if (loading) {
         return (
@@ -148,29 +177,6 @@ export default function RateLimitUsage() {
         };
     };
 
-    const formatResetTime = (resetTime: string) => {
-        const resetDate = new Date(resetTime);
-        const now = new Date();
-        const diffMs = resetDate.getTime() - now.getTime();
-
-        if (diffMs <= 0) {
-            return t('dashboard.rateLimits.resettingNow');
-        }
-
-        const diffMinutes = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMinutes / 60);
-        const remainingMinutes = diffMinutes % 60;
-
-        if (diffHours > 0) {
-            return t('dashboard.rateLimits.resetsInHoursMinutes', undefined, {
-                hours: diffHours,
-                minutes: remainingMinutes,
-            });
-        } else {
-            return t('dashboard.rateLimits.resetsInMinutes', undefined, { minutes: diffMinutes });
-        }
-    };
-
     return (
         <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
             <div className='flex items-center justify-between mb-4'>
@@ -196,13 +202,11 @@ export default function RateLimitUsage() {
                             ? t('dashboard.rateLimits.adminUnlimited')
                             : `${rateLimitData.tierName} tier (hourly limits)`}
                     </p>
-                    {!isAdmin && rateLimitData.operations.length > 0 && (
-                        <p className='text-xs text-slate-500 mt-1'>
-                            {formatResetTime(rateLimitData.operations[0].resetTime)}
-                        </p>
-                    )}
                 </div>
-                <Link href='/dashboard/usage' className='text-xs text-purple-400 hover:text-purple-300 underline'>
+                <Link
+                    href='/dashboard/usage'
+                    className='text-xs text-purple-400 hover:text-purple-300 underline'
+                >
                     {t('dashboard.rateLimits.viewAnalytics')}
                 </Link>
             </div>
@@ -268,16 +272,23 @@ export default function RateLimitUsage() {
                                     />
                                 </div>
 
-                                {op.isOverLimit && (
-                                    <div className='mt-2 text-xs text-red-300'>
-                                        ⚠️ Limit exceeded - requests throttled
+                                <div className='mt-2 flex items-center justify-between'>
+                                    <div className='flex items-center gap-2'>
+                                        {op.isOverLimit && (
+                                            <div className='text-xs text-red-300'>
+                                                ⚠️ Limit exceeded - requests throttled
+                                            </div>
+                                        )}
+                                        {op.isNearLimit && !op.isOverLimit && (
+                                            <div className='text-xs text-orange-300'>
+                                                ⚡ {op.usagePercent.toFixed(0)}% used
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                                {op.isNearLimit && !op.isOverLimit && (
-                                    <div className='mt-2 text-xs text-orange-300'>
-                                        ⚡ {op.usagePercent.toFixed(0)}% used
+                                    <div className='text-xs text-slate-500'>
+                                        {t('dashboard.rateLimits.resetsIn')} {getResetTimeDisplay(op.resetTime)}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })}

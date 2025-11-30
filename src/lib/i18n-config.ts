@@ -19,7 +19,9 @@ export const pickLocaleFromAcceptLanguage = (acceptLanguage?: string | null): Lo
         .filter(Boolean);
 
     const match = locales.find(locale =>
-        SUPPORTED_LOCALES.some(supported => locale === supported || locale.startsWith(`${supported}-`))
+        SUPPORTED_LOCALES.some(
+            supported => locale === supported || locale.startsWith(`${supported}-`)
+        )
     );
 
     return match ? (SUPPORTED_LOCALES.find(locale => match.startsWith(locale)) as Locale) : null;

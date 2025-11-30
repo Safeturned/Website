@@ -48,8 +48,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 {
                     error: 'FILE_NOT_STORED',
-                    message: 'This file is not available for reanalysis. To scan this file again with the latest security checks, please upload it again.',
-                    details: 'Files are only stored temporarily for website uploads. Files uploaded via API are not stored for reanalysis.'
+                    message:
+                        'This file is not available for reanalysis. To scan this file again with the latest security checks, please upload it again.',
+                    details:
+                        'Files are only stored temporarily for website uploads. Files uploaded via API are not stored for reanalysis.',
                 },
                 { status: 400 }
             );
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
         });
 
         const hashToUse = existingResult.id || fileHash;
-        storeAnalysisResult(hashToUse, result);
+        storeAnalysisResult(hashToUse, result as Record<string, unknown>);
         return NextResponse.json(result);
     } catch (err) {
         console.error('Reanalysis error:', err);

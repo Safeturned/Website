@@ -62,6 +62,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (returnUrl?: string) => void;
     logout: () => Promise<void>;
+    refreshAuth: () => Promise<void>;
     getLinkedIdentities: () => Promise<LinkedIdentity[] | null>;
     unlinkIdentity: (providerName: string) => Promise<boolean>;
 }
@@ -143,6 +144,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [router]);
 
+    const refreshAuth = useCallback(async () => {
+        try {
+            const currentUser = await api.get<User>('auth/me');
+            setUser(currentUser);
+        } catch (error) {
+            console.error('Failed to refresh auth:', error);
+            setUser(null);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        }
+    }, []);
+
     const getLinkedIdentities = useCallback(async (): Promise<LinkedIdentity[] | null> => {
         try {
             return await api.get<LinkedIdentity[]>('auth/linked-identities');
@@ -180,6 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
+        refreshAuth,
         getLinkedIdentities,
         unlinkIdentity,
     };

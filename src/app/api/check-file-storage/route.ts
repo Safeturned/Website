@@ -12,7 +12,10 @@ export async function POST(request: NextRequest) {
         const storedFile = getStoredFile(fileHash);
 
         if (!storedFile) {
-            const urlSafeHash = fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+            const urlSafeHash = fileHash
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/g, '');
             const storedFileUrlSafe = getStoredFile(urlSafeHash);
 
             if (storedFileUrlSafe) {

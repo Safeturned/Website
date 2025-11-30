@@ -6,7 +6,7 @@ import { DiscordIcon, SteamIcon } from '@/components/Icons';
 import { getApiUrl } from '@/lib/api-client';
 
 export default function AccountLinking() {
-    const { tokens, getLinkedIdentities, unlinkIdentity } = useAuth();
+    const { getLinkedIdentities, unlinkIdentity, isAuthenticated } = useAuth();
     const [linkedIdentities, setLinkedIdentities] = useState<LinkedIdentity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export default function AccountLinking() {
 
     useEffect(() => {
         const fetchIdentities = async () => {
-            if (!tokens?.accessToken) {
+            if (!isAuthenticated) {
                 setIsLoading(false);
                 return;
             }
@@ -33,7 +33,7 @@ export default function AccountLinking() {
         };
 
         fetchIdentities();
-    }, [tokens?.accessToken, getLinkedIdentities]);
+    }, [isAuthenticated, getLinkedIdentities]);
 
     const handleUnlinkClick = async (providerName: string) => {
         if (linkedIdentities.length <= 1) {

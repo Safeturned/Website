@@ -104,15 +104,18 @@ export default function Page() {
                 const formData = new FormData();
                 formData.append('file', file, file.name);
 
-                const result = await api.post('/api/upload', formData);
+                const result = await api.post<{ id?: string; fileHash?: string; hash?: string }>(
+                    '/api/upload',
+                    formData
+                );
 
                 sessionStorage.setItem('uploadResult', JSON.stringify(result));
                 let hash;
-                if (result.id) {
+                if (result?.id) {
                     hash = result.id;
-                } else if (result.fileHash) {
+                } else if (result?.fileHash) {
                     hash = encodeHashForUrl(result.fileHash);
-                } else if (result.hash) {
+                } else if (result?.hash) {
                     hash = result.hash;
                 } else {
                     hash = await computeFileHash(file);
@@ -153,7 +156,9 @@ export default function Page() {
                         <div className='mb-6 flex justify-center'>
                             <div
                                 className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-300 text-sm font-medium transition-all duration-700 ${
-                                    isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                                    isLoaded
+                                        ? 'translate-y-0 opacity-100'
+                                        : 'translate-y-10 opacity-0'
                                 }`}
                             >
                                 <svg

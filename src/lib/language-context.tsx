@@ -45,9 +45,7 @@ const detectBrowserLocale = (pathname: string | null): Locale => {
     if (navigatorLocale) return navigatorLocale;
 
     const headerLocale =
-        typeof navigator === 'undefined'
-            ? pickLocaleFromAcceptLanguage(null)
-            : null;
+        typeof navigator === 'undefined' ? pickLocaleFromAcceptLanguage(null) : null;
     if (headerLocale) return headerLocale;
 
     return DEFAULT_LOCALE;
@@ -62,7 +60,9 @@ export function LanguageProvider({
 }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [locale, setLocale] = useState<Locale>(() => initialLocale ?? detectBrowserLocale(pathname));
+    const [locale, setLocale] = useState<Locale>(
+        () => initialLocale ?? detectBrowserLocale(pathname)
+    );
 
     useEffect(() => {
         const detected = detectBrowserLocale(pathname);
