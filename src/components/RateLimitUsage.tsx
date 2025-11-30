@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
 import Link from 'next/link';
@@ -55,29 +55,32 @@ export default function RateLimitUsage() {
         }
     }, [isAuthenticated, fetchRateLimitData]);
 
-    const getResetTimeDisplay = useCallback((resetTime: string) => {
-        const resetDate = new Date(resetTime);
-        const now = new Date();
-        const diffMs = resetDate.getTime() - now.getTime();
+    const getResetTimeDisplay = useCallback(
+        (resetTime: string) => {
+            const resetDate = new Date(resetTime);
+            const now = new Date();
+            const diffMs = resetDate.getTime() - now.getTime();
 
-        if (diffMs <= 0) {
-            return t('dashboard.rateLimits.resettingNow');
-        }
+            if (diffMs <= 0) {
+                return t('dashboard.rateLimits.resettingNow');
+            }
 
-        const diffSeconds = Math.floor(diffMs / 1000);
-        const diffMinutes = Math.floor(diffSeconds / 60);
-        const diffHours = Math.floor(diffMinutes / 60);
-        const remainingMinutes = diffMinutes % 60;
-        const remainingSeconds = diffSeconds % 60;
+            const diffSeconds = Math.floor(diffMs / 1000);
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            const diffHours = Math.floor(diffMinutes / 60);
+            const remainingMinutes = diffMinutes % 60;
+            const remainingSeconds = diffSeconds % 60;
 
-        if (diffHours > 0) {
-            return `${diffHours}h ${remainingMinutes}m`;
-        } else if (diffMinutes > 0) {
-            return `${diffMinutes}m ${remainingSeconds}s`;
-        } else {
-            return `${remainingSeconds}s`;
-        }
-    }, [updateTrigger, t]);
+            if (diffHours > 0) {
+                return `${diffHours}h ${remainingMinutes}m`;
+            } else if (diffMinutes > 0) {
+                return `${diffMinutes}m ${remainingSeconds}s`;
+            } else {
+                return `${remainingSeconds}s`;
+            }
+        },
+        [updateTrigger, t]
+    );
 
     if (loading) {
         return (
@@ -286,7 +289,8 @@ export default function RateLimitUsage() {
                                         )}
                                     </div>
                                     <div className='text-xs text-slate-500'>
-                                        {t('dashboard.rateLimits.resetsIn')} {getResetTimeDisplay(op.resetTime)}
+                                        {t('dashboard.rateLimits.resetsIn')}{' '}
+                                        {getResetTimeDisplay(op.resetTime)}
                                     </div>
                                 </div>
                             </div>

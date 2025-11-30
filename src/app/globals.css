@@ -69,10 +69,6 @@
 }
 
 @layer utilities {
-    @reference {
-        @import 'tailwindcss';
-    }
-
     @keyframes slideInUp {
         from {
             opacity: 0;
