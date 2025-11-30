@@ -353,7 +353,7 @@ export default function ApiKeysPage() {
                 {newKeyResult && (
                     <div
                         className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
-                        onClick={(e) => {
+                        onClick={e => {
                             if (e.target === e.currentTarget) {
                                 setNewKeyResult(null);
                             }
@@ -390,7 +390,7 @@ export default function ApiKeysPage() {
                 {deleteConfirm.show && (
                     <div
                         className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
-                        onClick={(e) => {
+                        onClick={e => {
                             if (e.target === e.currentTarget) {
                                 setDeleteConfirm({ show: false, keyId: '', keyName: '' });
                             }
@@ -450,7 +450,7 @@ export default function ApiKeysPage() {
                 {regenerateConfirm.show && (
                     <div
                         className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
-                        onClick={(e) => {
+                        onClick={e => {
                             if (e.target === e.currentTarget) {
                                 setRegenerateConfirm({
                                     show: false,
@@ -518,7 +518,7 @@ export default function ApiKeysPage() {
                 {showCreateModal && (
                     <div
                         className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
-                        onClick={(e) => {
+                        onClick={e => {
                             if (e.target === e.currentTarget) {
                                 setShowCreateModal(false);
                                 setNewKeyName('');
