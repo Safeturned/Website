@@ -46,7 +46,11 @@ export async function POST(request: NextRequest) {
 
         if (!storedFile) {
             return NextResponse.json(
-                { error: 'Original file not available for reanalysis' },
+                {
+                    error: 'FILE_NOT_STORED',
+                    message: 'This file is not available for reanalysis. To scan this file again with the latest security checks, please upload it again.',
+                    details: 'Files are only stored temporarily for website uploads. Files uploaded via API are not stored for reanalysis.'
+                },
                 { status: 400 }
             );
         }

@@ -19,7 +19,7 @@ export default function AchievementToast() {
     if (!showAchievementToast) return null;
 
     return (
-        <div className='fixed bottom-8 right-8 z-50 animate-slide-up'>
+        <div className='fixed bottom-8 right-8 z-50 animate-slideInUp'>
             <div className='bg-gradient-to-r from-purple-900 to-pink-900 border-2 border-yellow-400 rounded-xl p-6 shadow-2xl shadow-yellow-500/20 max-w-sm'>
                 <div className='flex items-start gap-4'>
                     <div className='text-5xl'>{showAchievementToast.icon}</div>
@@ -34,7 +34,8 @@ export default function AchievementToast() {
                     </div>
                     <button
                         onClick={dismissToast}
-                        className='text-gray-400 hover:text-white transition-colors'
+                        className='text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-purple-900 rounded p-1'
+                        aria-label='Dismiss achievement notification'
                     >
                         <svg
                             className='w-5 h-5'

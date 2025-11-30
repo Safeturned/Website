@@ -1,14 +1,54 @@
 'use client';
 
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { DiscordIcon, SteamIcon } from '@/components/Icons';
 import { getApiUrl } from '@/lib/api-client';
 
+function validateReturnUrl(url: string | null): string {
+    const defaultUrl = '/dashboard';
+
+    if (!url) {
+        return defaultUrl;
+    }
+
+    try {
+        const decodedUrl = decodeURIComponent(url);
+
+        if (!decodedUrl.startsWith('/')) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.match(/^\/[/\\]/)) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.toLowerCase().startsWith('/login')) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.includes(':') || decodedUrl.includes('//') || decodedUrl.includes('\\\\')) {
+            return defaultUrl;
+        }
+
+        return decodedUrl;
+    } catch {
+        return defaultUrl;
+    }
+}
+
 export default function LoginForm() {
     const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const locale = pathname?.split('/')[1] || 'en';
-    const returnUrl = searchParams.get('returnUrl') || `/${locale}/dashboard`;
+    const rawReturnUrl = searchParams.get('returnUrl');
+    const returnUrl = validateReturnUrl(rawReturnUrl);
+
+    useEffect(() => {
+        if (rawReturnUrl && rawReturnUrl !== returnUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('returnUrl');
+            window.history.replaceState({}, '', url.toString());
+        }
+    }, [rawReturnUrl, returnUrl]);
 
     const handleDiscordLogin = () => {
         sessionStorage.setItem('auth_return_url', returnUrl);
@@ -60,7 +100,7 @@ export default function LoginForm() {
                 </div>
 
                 <a
-                    href={`/${locale}`}
+                    href='/'
                     className='block w-full text-center bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium py-3 px-6 rounded-lg transition-colors duration-200'
                 >
                     Continue as Guest
@@ -69,15 +109,12 @@ export default function LoginForm() {
                 <div className='mt-8 text-center'>
                     <p className='text-slate-500 text-xs'>
                         By logging in, you agree to our{' '}
-                        <a
-                            href={`/${locale}/terms`}
-                            className='text-purple-400 hover:text-purple-300 underline'
-                        >
+                        <a href='/terms' className='text-purple-400 hover:text-purple-300 underline'>
                             Terms of Service
                         </a>{' '}
                         and{' '}
                         <a
-                            href={`/${locale}/privacy`}
+                            href='/privacy'
                             className='text-purple-400 hover:text-purple-300 underline'
                         >
                             Privacy Policy
@@ -135,7 +172,7 @@ export default function LoginForm() {
                                 d='M5 13l4 4L19 7'
                             />
                         </svg>
-                        <span>Higher rate limits (60 requests/hour)</span>
+                        <span>Higher rate limits (2,000 reads/hour)</span>
                     </div>
                 </div>
             </div>

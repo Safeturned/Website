@@ -14,6 +14,7 @@
     "hero": {
         "title": "Safeturned",
         "subtitle": "Keep your Unturned server safe. We check plugins for backdoors and sketchy stuff so you don't have to.",
+        "featureBadge": "Secure • Fast • Reliable",
         "uploadTitle": "Upload plugin for scanning",
         "uploadSubtitle": "Supported files: .dll",
         "scanButton": "Start scan",
@@ -57,6 +58,14 @@
         "reanalyzeDescription": "Want to scan this file again? Hit the button below for fresh results.",
         "reanalyzeButton": "Reanalyze",
         "reanalyzeInfo": "We don't store files. Reanalyzing updates the scan results using stored metadata (file hash and name).",
+        "reanalysisSuccess": "File reanalyzed successfully with latest security checks!",
+        "fileNotStoredError": "This file is not available for reanalysis. Please upload it again to scan with the latest security checks.",
+        "reanalyzeAvailability": "When is Reanalysis Available?",
+        "reanalyzeAvailableWebsite": "Website uploads: Stored up to 24h OR 10GB total (can reanalyze)",
+        "reanalyzeNotAvailableApi": "API uploads: Analyzed and immediately deleted (cannot reanalyze)",
+        "reanalyzeNotAvailable": "Reanalysis Not Available",
+        "reanalyzeNotStoredExplanation": "This file was uploaded via API (analyzed and deleted immediately) or expired from temporary server memory (24h/10GB limit exceeded). Files are never stored permanently.",
+        "reanalyzeUploadAgain": "If reanalysis fails, simply upload the file again to get fresh results with the latest security checks.",
         "shareDescription": "Share this scan with others",
         "shareButton": "Share",
         "shareTitle": "Plugin Analysis Result",
@@ -228,14 +237,34 @@
         "threatsFound": "Threats Found",
         "avgScore": "Avg Score",
         "apiRequests": "API Requests",
+        "reads": "reads",
+        "writes": "writes",
+        "uploads": "uploads",
+        "perHour": "per hour",
         "fileSizeLimit": "File Size Limit",
         "prioritySupport": "Priority Support",
+        "rateLimits": {
+            "title": "Rate Limits",
+            "left": "left",
+            "resettingNow": "Resetting now...",
+            "resetsInMinutes": "Resets in {{minutes}}m",
+            "resetsInHoursMinutes": "Resets in {{hours}}h {{minutes}}m",
+            "adminUnlimited": "Admin - Unlimited requests",
+            "viewAnalytics": "View Analytics →",
+            "noRateLimits": "No rate limits",
+            "unlimitedRequests": "You have unlimited API requests as an administrator."
+        },
         "uploadFile": "Upload File",
         "scanNewFile": "Scan a new file",
         "manageKeys": "Manage your keys",
         "viewPastScans": "View past scans",
         "apiStatistics": "API statistics",
-        "alertsUpdates": "Alerts & updates"
+        "alertsUpdates": "Alerts & updates",
+        "errorLoadingData": "Error Loading Data",
+        "tryAgain": "Try Again",
+        "noScansYet": "No scans yet",
+        "uploadFirstFile": "Upload your first file to get started",
+        "upgradePremium": "Upgrade to Premium for higher rate limits, larger file uploads, and priority support!"
     },
     "scans": {
         "title": "Scan History",
@@ -247,6 +276,8 @@
         "fileName": "File name",
         "threat": "Threat",
         "clean": "Clean",
+        "threatDetected": "Threat Detected",
+        "cleanFile": "Clean",
         "searchPlaceholder": "Search by filename...",
         "loading": "Loading scans...",
         "noScans": "No Scans Yet",
@@ -274,7 +305,32 @@
         "scanHistory": "Scan History",
         "notHere": "instead.",
         "createKey": "Create API Key",
-        "viewHistory": "View Scan History"
+        "viewHistory": "View Scan History",
+        "loadingAnalytics": "Loading analytics...",
+        "totalRequests": "Total Requests",
+        "last30Days": "Last 30 Days",
+        "avgResponseTime": "Avg Response Time",
+        "successRate": "Success Rate",
+        "dailyRequests": "Daily Requests",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last90Days": "Last 90 days",
+        "noRequestsInDays": "No API requests in the last {{days}} days",
+        "startUsingKeys": "Start using your API keys to see activity here",
+        "topEndpoints": "Top Endpoints",
+        "noEndpointData": "No endpoint data available",
+        "avg": "Avg:",
+        "errors": "errors",
+        "httpMethods": "HTTP Methods",
+        "noMethodData": "No method data available",
+        "requests": "requests",
+        "statusCodeDistribution": "Status Code Distribution",
+        "noStatusCodeData": "No status code data available",
+        "whatYouWillSeeHere": "What you'll see here:",
+        "apiRequestStats": "API request statistics when you use your API keys",
+        "endpointUsage": "Endpoint usage and performance metrics",
+        "successRatesTracking": "Success rates and error tracking",
+        "dailyUsageTrends": "Daily usage trends and patterns"
     },
     "notifications": {
         "title": "Notifications",
@@ -347,30 +403,30 @@
             },
             "rateLimits": {
                 "title": "Rate Limits",
-                "content": "Upload and analysis requests are rate-limited based on your account tier: Free (60/hour), Verified (300/hour), Premium (1000/hour), Bot (10,000/hour with 100/minute burst limit). Excessive usage may result in temporary suspension."
+                "content": "Requests are rate-limited by operation type. Free tier: 2,000 reads, 150 writes, 30 file uploads per hour. Verified: 5,000/500/75. Premium: 15,000/2,000/200. Bot: 50,000/20,000/1,000 with 100/min burst limit. Excessive usage may result in temporary suspension."
             }
         },
         "dataHandling": {
             "title": "5. Data Handling",
-            "temporaryStorage": {
-                "title": "Temporary File Storage",
-                "content": "For large files (>100MB), files are temporarily stored in encrypted chunks during upload and processing. All chunks and temporary files are automatically deleted after analysis completes or if the session expires (24 hours)."
+            "websiteUploads": {
+                "title": "Website Uploads (Temporary Storage)",
+                "content": "Files uploaded through the website are temporarily stored in server memory for up to 24 hours OR until total memory usage exceeds 10GB (whichever comes first). This enables the reanalysis feature. Oldest files are automatically deleted to protect server resources."
             },
-            "fileProcessing": {
-                "title": "File Processing",
-                "content": "Smaller files (<100MB) are processed in memory and immediately discarded. Larger files use chunked upload and temporary storage but are deleted after scanning."
+            "apiUploads": {
+                "title": "API Uploads (No Storage)",
+                "content": "Files uploaded via API are analyzed immediately and deleted right after analysis completes. They cannot be reanalyzed without re-uploading."
+            },
+            "chunkedUploads": {
+                "title": "Large File Chunks",
+                "content": "For large files (>100MB), files are temporarily stored in encrypted chunks during upload and processing. All chunks are automatically deleted after analysis completes or if the session expires (24 hours maximum)."
             },
             "metadataOnly": {
                 "title": "Metadata Only",
                 "content": "Only file metadata (hash, name, size, scan results, assembly information) is stored permanently. The actual file contents are never permanently stored."
             },
-            "noContentStorage": {
-                "title": "No Content Storage",
-                "content": "We do not permanently store or analyze the actual code content beyond generating the security scan results"
-            },
             "analyticsData": {
                 "title": "Analytics Data",
-                "content": "Aggregated anonymous statistics are collected for service improvement and public display"
+                "content": "Aggregated anonymous statistics are collected for service improvement and public display."
             }
         },
         "intellectualProperty": {
@@ -437,6 +493,10 @@
             "bypassingSecurity": {
                 "title": "Bypassing Security",
                 "content": "Attempting to bypass rate limits or security measures"
+            },
+            "multipleAccounts": {
+                "title": "Multiple Accounts",
+                "content": "You are not allowed to register multiple accounts to circumvent rate limits or other service limitations"
             }
         },
         "termination": {
@@ -547,7 +607,19 @@
         "directUrl": "Direct URL",
         "autoUpdateWithTokens": "Auto-Update with Tokens",
         "autoUpdateTokenDescription": "Enable auto-update to receive a secure token. Include this token when uploading new versions to automatically update your badge without changing the badge URL.",
-        "perfectForCICD": "💡 Perfect for CI/CD pipelines and automated releases"
+        "perfectForCICD": "💡 Perfect for CI/CD pipelines and automated releases",
+        "howToUseToken": "How to use your token:",
+        "tokenFieldDescription": "Include the badgeToken field when uploading to auto-update all your badges with that token.",
+        "viewInfo": "View Info",
+        "verifyLink": "Verify Link",
+        "rst": "RST",
+        "asciidoc": "AsciiDoc",
+        "enableAutoUpdateBtn": "Enable Auto-Update",
+        "disableAutoUpdateBtn": "Disable Auto-Update",
+        "regenerateTokenBtn": "Regenerate Token",
+        "badgeBranding": "Badge Branding & Verification",
+        "badgeBrandingDescription": "All badges include the Safeturned shield logo for instant recognition. Each badge has a verification page showing the linked file hash, scan results, and badge details for complete transparency.",
+        "readFullDocumentation": "Read full badge API documentation"
     },
     "risk": {
         "highRisk": "High Risk",
@@ -641,7 +713,7 @@
         "whyCreate": "Why create an account?",
         "manageKeys": "Generate and manage API keys",
         "viewHistory": "See your scan history and usage stats",
-        "higherLimits": "Higher rate limits (60 requests/hour)"
+        "higherLimits": "Much higher rate limits (500 reads, 100 writes, 20 uploads per hour)"
     },
     "common": {
         "loading": "Loading...",
@@ -736,15 +808,15 @@
                 "keyName": "Key Name",
                 "keyNamePlaceholder": "Discord Bot, CI/CD Pipeline, etc.",
                 "tier": "Tier",
-                "tierFree": "Free (60/hour)",
-                "tierVerified": "Verified (300/hour)",
-                "tierPremium": "Premium (1000/hour)",
-                "tierBot": "Bot (Unlimited)",
+                "tierFree": "Free (2,000 reads/hour)",
+                "tierVerified": "Verified (5,000 reads/hour)",
+                "tierPremium": "Premium (15,000 reads/hour)",
+                "tierBot": "Bot (50,000 reads/hour)",
                 "requestsPerHour": "Requests/Hour",
                 "ipWhitelist": "IP Whitelist (Optional)",
                 "ipWhitelistPlaceholder": "192.168.1.1, 10.0.0.0/24",
                 "ipWhitelistHint": "Comma-separated IPs or CIDR ranges",
-                "botTierNote": "💡 Bot tier bypasses rate limiting completely. API key will expire in 365 days.",
+                "botTierNote": "💡 Bot tier has very high rate limits (50,000 reads, 20,000 writes, 5,000 uploads per hour). API key will expire in 365 days.",
                 "creating": "Creating...",
                 "createButton": "Create Bot API Key"
             }
@@ -909,9 +981,32 @@
             "upToKeys": "Up to {{count}} active keys",
             "requestsPerHour": "{{count}} requests/hour",
             "tipIntro": "Tip:",
-            "tipDesc": "You can manage your API keys in the",
+            "tipDesc": "Manage your API keys in the",
             "tipLink": "API Keys dashboard",
             "tipDesc2": ". Each tier has a limit on the number of active API keys you can have simultaneously."
+        },
+        "badgeTokens": {
+            "title": "Badge Auto-Update Tokens",
+            "description": "Badge auto-update tokens allow you to automatically update your verification badges when you upload new versions of your files. This is perfect for CI/CD pipelines and automated releases.",
+            "howItWorks": "How It Works",
+            "step1": "Create a badge and enable \"Auto-Update\"",
+            "step2": "Save the secure token provided (shown only once)",
+            "step3": "Include the token when uploading new file versions",
+            "step4": "Your badge updates automatically without changing its URL",
+            "createBadgesTitle": "Create Your Badges",
+            "createBadgesDescription": "Head to your Badges Dashboard to create badges from your scanned files and enable auto-update functionality.",
+            "goToBadgesDashboard": "Go to Badges Dashboard",
+            "usingToken": "Using the Token",
+            "usingTokenDescription": "When uploading a file, include the badgeToken form field with your token:",
+            "howMatching": "How Matching Works",
+            "howMatchingDescription": "When you upload a file with a badge token, the system automatically finds all badges you own that have auto-update enabled and verifies the token. If the token matches, the badge is updated to point to the newly scanned file.",
+            "securityPractices": "Security Best Practices",
+            "securityTip1": "Never commit tokens to version control",
+            "securityTip2": "Store tokens in environment variables or secure vaults",
+            "securityTip3": "Regenerate tokens if compromised",
+            "securityTip4": "One token can update multiple badges (if you have several for the same file)",
+            "cicdTitle": "💡 Perfect for CI/CD",
+            "cicdDescription": "Add the badge token to your GitHub Actions, GitLab CI, or other automation tools to automatically update your badges when you release new versions. Your README badges will always show the latest security status!"
         }
     },
     "apiKeys": {
@@ -920,6 +1015,12 @@
             "keyNameLabel": "Key Name",
             "keyNameHelp": "Give your key a descriptive name to identify where it will be used",
             "placeholder": "e.g., My Server, Development, Personal Project",
+            "scopesLabel": "Permissions",
+            "scopesHelp": "Select which operations this API key can perform",
+            "scopeRead": "Read",
+            "scopeReadDesc": "View file scan results and analytics",
+            "scopeAnalyze": "Analyze",
+            "scopeAnalyzeDesc": "Upload and scan files for threats",
             "cancel": "Cancel",
             "create": "Create Key",
             "creating": "Creating..."
@@ -974,5 +1075,44 @@
             "regenerateTooltip": "Regenerate",
             "revokeTooltip": "Revoke"
         }
+    },
+    "badgeInfo": {
+        "backToHome": "Back to Home",
+        "badgeVerification": "Badge Verification",
+        "verificationDescription": "This page provides transparency about what this security badge represents. You can verify the linked file, scan results, and badge authenticity.",
+        "badgePreview": "Badge Preview",
+        "linkedFile": "Linked File",
+        "fileName": "File Name",
+        "fileHash": "File Hash (SHA-256)",
+        "copyHash": "Copy Hash",
+        "lastScanned": "Last Scanned",
+        "howToVerify": "How to Verify This Badge",
+        "verificationSteps": {
+            "intro": "To verify that this badge matches the plugin file you have, follow these steps:",
+            "step1": "Download or locate the {{fileName}} file",
+            "step2": "Compute the SHA-256 hash of your file:",
+            "step2Windows": "Windows:",
+            "step2LinuxMac": "Linux/Mac:",
+            "step3": "Compare the computed hash with the hash shown above",
+            "step4": "If the hashes match → the badge is verified for your file!",
+            "step5": "If they don't match → the badge may be for a different version or compromised",
+            "tip": "Tip: The hash stays the same for identical files. If the plugin developer releases a new version with auto-update enabled, this badge will automatically show the new version's hash."
+        },
+        "securityScore": "Security Score",
+        "riskAssessment": "Risk Assessment",
+        "viewFullReport": "View Full Report",
+        "badgeDetails": "Badge Details",
+        "badgeId": "Badge ID",
+        "created": "Created",
+        "lastUpdated": "Last Updated",
+        "autoUpdate": "Auto-Update",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "versionUpdates": "Version Updates",
+        "verifiedBy": "Verified by Safeturned",
+        "verifiedDescription": "This badge is an official Safeturned security verification. The file has been scanned for malicious code, backdoors, and security vulnerabilities.",
+        "shareUrl": "Share Badge URL",
+        "copy": "Copy",
+        "copied": "Copied!"
     }
 }

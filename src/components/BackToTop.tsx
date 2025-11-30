@@ -1,25 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
+import { throttle } from '@/lib/utils';
 
 export default function BackToTop() {
     const { t } = useTranslation();
     const [isVisible, setIsVisible] = useState(false);
 
+    const toggleVisibility = useMemo(
+        () =>
+            throttle(() => {
+                setIsVisible(window.scrollY > 300);
+            }, 100),
+        []
+    );
+
     useEffect(() => {
-        const toggleVisibility = () => {
-            if (window.scrollY > 300) {
-                setIsVisible(true);
-            } else {
-                setIsVisible(false);
-            }
-        };
-
         window.addEventListener('scroll', toggleVisibility);
-
         return () => window.removeEventListener('scroll', toggleVisibility);
-    }, []);
+    }, [toggleVisibility]);
 
     const scrollToTop = () => {
         window.scrollTo({
@@ -33,11 +33,17 @@ export default function BackToTop() {
             {isVisible && (
                 <button
                     onClick={scrollToTop}
-                    className='fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50'
+                    className='fixed bottom-8 right-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white p-3 rounded-full shadow-lg hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 active:scale-95 z-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900'
                     aria-label={t('nav.backToTop')}
                     title={t('nav.backToTop')}
                 >
-                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <svg
+                        className='w-6 h-6'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                        aria-hidden='true'
+                    >
                         <path
                             strokeLinecap='round'
                             strokeLinejoin='round'

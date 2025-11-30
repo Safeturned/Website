@@ -11,17 +11,38 @@ export const TIER_NAMES: Record<number, string> = {
 };
 
 export const TIER_RATE_LIMITS: Record<number, number> = {
-    [TIER_FREE]: 60,
-    [TIER_VERIFIED]: 300,
-    [TIER_PREMIUM]: 1000,
-    [TIER_BOT]: 10000,
+    [TIER_FREE]: 2000,
+    [TIER_VERIFIED]: 5000,
+    [TIER_PREMIUM]: 15000,
+    [TIER_BOT]: 50000,
 };
 
+export const TIER_WRITE_LIMITS: Record<number, number> = {
+    [TIER_FREE]: 150,
+    [TIER_VERIFIED]: 500,
+    [TIER_PREMIUM]: 2000,
+    [TIER_BOT]: 20000,
+};
+
+export const TIER_UPLOAD_LIMITS: Record<number, number> = {
+    [TIER_FREE]: 30,
+    [TIER_VERIFIED]: 75,
+    [TIER_PREMIUM]: 200,
+    [TIER_BOT]: 1000,
+};
+
+// File upload limits (same for all tiers due to Cloudflare limitations)
+// Standard upload: 100 MB max (Cloudflare limit per request)
+// Chunked upload: 500 MB max total (multiple 100 MB chunks)
+export const MAX_STANDARD_UPLOAD_MB = 100;
+export const MAX_CHUNKED_UPLOAD_MB = 500;
+
+// For display purposes (shows chunked upload limit)
 export const TIER_FILE_SIZE_LIMITS: Record<number, number> = {
-    [TIER_FREE]: 100,
-    [TIER_VERIFIED]: 200,
-    [TIER_PREMIUM]: 500,
-    [TIER_BOT]: 500,
+    [TIER_FREE]: MAX_CHUNKED_UPLOAD_MB,
+    [TIER_VERIFIED]: MAX_CHUNKED_UPLOAD_MB,
+    [TIER_PREMIUM]: MAX_CHUNKED_UPLOAD_MB,
+    [TIER_BOT]: MAX_CHUNKED_UPLOAD_MB,
 };
 
 export const TIER_API_KEY_LIMITS: Record<number, number> = {
@@ -108,6 +129,14 @@ export const getTierRateLimit = (tier: number): string => {
 
 export const getTierRateLimitNumber = (tier: number): number => {
     return TIER_RATE_LIMITS[tier] || TIER_RATE_LIMITS[TIER_FREE];
+};
+
+export const getTierWriteLimit = (tier: number): number => {
+    return TIER_WRITE_LIMITS[tier] || TIER_WRITE_LIMITS[TIER_FREE];
+};
+
+export const getTierUploadLimit = (tier: number): number => {
+    return TIER_UPLOAD_LIMITS[tier] || TIER_UPLOAD_LIMITS[TIER_FREE];
 };
 
 export const getTierFileSizeLimit = (tier: number): number => {

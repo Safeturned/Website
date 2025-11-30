@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
-import { formatFileSize, getRiskLevel, getRiskColor } from '@/lib/utils';
+import { formatFileSize, getRiskLevel, getRiskColor, encodeHashForUrl } from '@/lib/utils';
 import DynamicMetaTags from '@/components/DynamicMetaTags';
 import { api } from '@/lib/api-client';
 
@@ -99,6 +100,8 @@ export default function ResultPage() {
     const [securityAnalysisExpanded, setSecurityAnalysisExpanded] = useState(true);
     const [badgeEmbedExpanded, setBadgeEmbedExpanded] = useState(false);
     const [assemblyMetadataExpanded, setAssemblyMetadataExpanded] = useState(false);
+    const [isFileStored, setIsFileStored] = useState<boolean | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const MAX_FILE_SIZE = 500 * 1024 * 1024;
     const CHUNKED_UPLOAD_THRESHOLD = 100 * 1024 * 1024;
@@ -113,7 +116,7 @@ export default function ResultPage() {
             if (result.id) {
                 hash = result.id;
             } else if (result.fileHash && typeof result.fileHash === 'string') {
-                hash = result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                hash = encodeHashForUrl(result.fileHash);
             } else if (result.hash && typeof result.hash === 'string') {
                 hash = result.hash;
             } else {
@@ -125,7 +128,7 @@ export default function ResultPage() {
                     window.location.reload();
                 }
             } else {
-                router.push(`/${params.locale}/result/${hash}`);
+                router.push(`/result/${hash}`);
             }
         },
         onError: (error: string) => {
@@ -152,7 +155,16 @@ export default function ResultPage() {
                 }
             }
 
-            fetchAnalysisResult(hash);
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+
+            abortControllerRef.current = new AbortController();
+            fetchAnalysisResult(hash, abortControllerRef.current.signal);
+
+            return () => {
+                abortControllerRef.current?.abort();
+            };
         }
     }, [hash]);
 
@@ -164,6 +176,24 @@ export default function ResultPage() {
             return () => clearTimeout(timer);
         }
     }, [notification]);
+
+    useEffect(() => {
+        const checkFileStorage = async () => {
+            if (!hash) return;
+
+            try {
+                const response = await api.post('/api/check-file-storage', {
+                    fileHash: hash,
+                });
+                setIsFileStored(response.isStored);
+            } catch (error) {
+                console.error('Failed to check file storage:', error);
+                setIsFileStored(false);
+            }
+        };
+
+        checkFileStorage();
+    }, [hash]);
 
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
@@ -212,7 +242,7 @@ export default function ResultPage() {
     }
 
     const handleDragUpload = async () => {
-        if (!dragFile) return;
+        if (!dragFile || isUploading) return;
 
         setIsUploading(true);
         setError(null);
@@ -224,35 +254,26 @@ export default function ResultPage() {
                 const formData = new FormData();
                 formData.append('file', dragFile, dragFile.name);
 
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Upload failed: ${response.status}`);
-                }
-
-                const result = await response.json();
+                const result = (await api.post('/api/upload', formData)) as {
+                    id?: string;
+                    fileHash?: string;
+                    hash?: string;
+                };
 
                 if (typeof window !== 'undefined') {
                     sessionStorage.setItem('uploadResult', JSON.stringify(result));
                 }
 
-                let hash;
+                let hash: string;
                 if (result.id) {
                     hash = result.id;
                 } else if (result.fileHash) {
-                    hash = result.fileHash
-                        .replace(/\+/g, '-')
-                        .replace(/\//g, '_')
-                        .replace(/=+$/g, '');
+                    hash = encodeHashForUrl(result.fileHash);
                 } else if (result.hash) {
                     hash = result.hash;
                 } else {
                     hash = await computeFileHash(dragFile);
-                    hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                    hash = encodeHashForUrl(hash);
                 }
 
                 if (hash === params.hash) {
@@ -263,7 +284,7 @@ export default function ResultPage() {
                         window.location.reload();
                     }
                 } else {
-                    router.push(`/${params.locale}/result/${hash}`);
+                    router.push(`/result/${hash}`);
                 }
             }
             return;
@@ -335,23 +356,46 @@ export default function ResultPage() {
     };
 
     const handleReanalyze = async () => {
-        if (!analyticsData) return;
+        if (!analyticsData || isReanalyzing) return;
 
         setIsReanalyzing(true);
         setError(null);
 
         try {
-            const result = await api.post('/api/reanalyze', {
+            const result = await api.post<AnalyticsData>('/api/reanalyze', {
                 fileHash: hash,
                 forceAnalyze: true,
             });
 
             setAnalyticsData(result);
-        } catch (err) {
             setNotification({
-                message: err instanceof Error ? err.message : t('common.reanalysisFailed'),
-                type: 'error',
+                message: t('results.reanalysisSuccess'),
+                type: 'success',
             });
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                try {
+                    const errorData = JSON.parse(err.message);
+                    if (errorData.error === 'FILE_NOT_STORED') {
+                        setNotification({
+                            message: errorData.message || t('results.fileNotStoredError'),
+                            type: 'error',
+                        });
+                        return;
+                    }
+                } catch {
+                    // Not a JSON error, continue with regular error handling
+                }
+                setNotification({
+                    message: err.message,
+                    type: 'error',
+                });
+            } else {
+                setNotification({
+                    message: t('common.reanalysisFailed'),
+                    type: 'error',
+                });
+            }
         } finally {
             setIsReanalyzing(false);
         }
@@ -359,21 +403,24 @@ export default function ResultPage() {
 
     const handleCreateBadge = () => {
         if (!isAuthenticated) {
-            router.push(`/${params.locale}/login?returnUrl=/dashboard/badges`);
+            router.push('/login?returnUrl=/dashboard/badges');
             return;
         }
 
-        router.push(`/${params.locale}/dashboard/badges`);
+        router.push('/dashboard/badges');
     };
 
-    const fetchAnalysisResult = async (fileHash: string) => {
+    const fetchAnalysisResult = async (fileHash: string, signal?: AbortSignal) => {
         setLoading(true);
         setError(null);
 
         try {
-            const data = await api.get(`/api/files/${fileHash}`);
+            const data = await api.get<AnalyticsData>(`/api/files/${fileHash}`, { signal });
             setAnalyticsData(data);
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Failed to load analysis:', err);
             if (err instanceof Error && err.message.includes('404')) {
                 setError('Analysis not found');
@@ -393,7 +440,7 @@ export default function ResultPage() {
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=+$/g, '');
-            router.push(`/${params.locale}/result/${urlSafeHash}`);
+            router.push(`/result/${urlSafeHash}`);
         }
     };
 
@@ -419,7 +466,7 @@ export default function ResultPage() {
                         <h1 className='text-2xl font-bold mb-2'>{t('results.notFound')}</h1>
                         <p className='text-gray-300 mb-6'>{t('results.notFoundDescription')}</p>
                         <Link
-                            href={`/${params.locale}`}
+                            href='/'
                             className='bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300'
                         >
                             {t('results.backToHome')}
@@ -476,7 +523,7 @@ export default function ResultPage() {
                                     value={searchHash}
                                     onChange={e => setSearchHash(e.target.value)}
                                     placeholder={t('results.searchPlaceholder')}
-                                    className='w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors'
+                                    className='w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 transition-colors'
                                 />
                             </div>
                             <button
@@ -522,7 +569,7 @@ export default function ResultPage() {
                                             value={searchHash}
                                             onChange={e => setSearchHash(e.target.value)}
                                             placeholder={t('results.searchPlaceholder')}
-                                            className='w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors'
+                                            className='w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400 transition-colors'
                                             autoFocus
                                         />
                                     </div>
@@ -1111,7 +1158,7 @@ export default function ResultPage() {
                                 </p>
                                 <div className='group relative'>
                                     <svg
-                                        className='w-3.5 h-3.5 text-gray-600 hover:text-gray-400 transition-colors cursor-help'
+                                        className='w-4 h-4 text-gray-500 hover:text-gray-300 transition-colors cursor-help'
                                         fill='none'
                                         stroke='currentColor'
                                         viewBox='0 0 24 24'
@@ -1123,15 +1170,46 @@ export default function ResultPage() {
                                             d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                                         />
                                     </svg>
-                                    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-gray-300 text-xs rounded shadow-lg border border-gray-700 z-10'>
-                                        {t('results.reanalyzeInfo')}
+                                    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-80 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-purple-500/30 z-10'>
+                                        {isFileStored === false ? (
+                                            <>
+                                                <p className='font-semibold text-red-400 mb-2'>
+                                                    {t('results.reanalyzeNotAvailable')}
+                                                </p>
+                                                <p className='text-slate-300 mb-2'>
+                                                    {t('results.reanalyzeNotStoredExplanation')}
+                                                </p>
+                                                <p className='text-slate-400'>
+                                                    {t('results.reanalyzeUploadAgain')}
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className='font-semibold text-purple-300 mb-2'>
+                                                    {t('results.reanalyzeAvailability')}
+                                                </p>
+                                                <ul className='space-y-1.5 text-left'>
+                                                    <li className='flex items-start gap-2'>
+                                                        <span className='text-green-400 flex-shrink-0'>✓</span>
+                                                        <span>{t('results.reanalyzeAvailableWebsite')}</span>
+                                                    </li>
+                                                    <li className='flex items-start gap-2'>
+                                                        <span className='text-red-400 flex-shrink-0'>✗</span>
+                                                        <span>{t('results.reanalyzeNotAvailableApi')}</span>
+                                                    </li>
+                                                </ul>
+                                                <p className='mt-2 pt-2 border-t border-slate-700 text-slate-400'>
+                                                    {t('results.reanalyzeUploadAgain')}
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                             <button
                                 onClick={handleReanalyze}
-                                disabled={isReanalyzing}
-                                className='bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 mx-auto text-sm md:text-base'
+                                disabled={isReanalyzing || isFileStored === false}
+                                className='bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 mx-auto text-sm md:text-base'
                             >
                                 {isReanalyzing ? (
                                     <svg
@@ -1285,7 +1363,7 @@ export default function ResultPage() {
                                             <p className='text-slate-300 text-sm mb-3'>
                                                 {t('badges.createSecureDescription')}{' '}
                                                 <Link
-                                                    href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
+                                                    href={`/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/result/${hash}`)}`}
                                                     className='text-blue-400 hover:text-blue-300 underline'
                                                 >
                                                     {t('badges.signIn')}
@@ -1320,7 +1398,7 @@ export default function ResultPage() {
                                         ) : (
                                             <>
                                                 <Link
-                                                    href={`/${params.locale}/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/${params.locale}/result/${hash}`)}`}
+                                                    href={`/login?returnUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/result/${hash}`)}`}
                                                     className='text-yellow-400 hover:text-yellow-300 underline'
                                                 >
                                                     {t('badges.signIn')}
@@ -1584,6 +1662,7 @@ export default function ResultPage() {
                 </div>
             )}
 
+            <BackToTop />
             <Footer />
         </div>
     );

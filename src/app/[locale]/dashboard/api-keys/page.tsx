@@ -2,12 +2,21 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
+
+const API_KEY_SCOPES = {
+    READ: 'read',
+    ANALYZE: 'analyze',
+    RUNTIME_SCAN: 'runtime-scan',
+} as const;
+
+type ApiKeyScope = (typeof API_KEY_SCOPES)[keyof typeof API_KEY_SCOPES];
 
 interface ApiKey {
     id: string;
@@ -21,13 +30,11 @@ interface ApiKey {
     isActive: boolean;
     scopes: string[];
     ipWhitelist: string | null;
-    requestsPerHour: number;
-    tier: number;
 }
 
 export default function ApiKeysPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
     const [loading, setLoading] = useState(true);
@@ -52,15 +59,20 @@ export default function ApiKeysPage() {
         keyName: string;
     }>({ show: false, keyId: '', keyName: '' });
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
+    const [selectedScopes, setSelectedScopes] = useState<ApiKeyScope[]>([
+        API_KEY_SCOPES.READ,
+        API_KEY_SCOPES.ANALYZE,
+    ]);
+    const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push(`/${locale}/login?returnUrl=/dashboard/api-keys`);
+            router.push('/login?returnUrl=/dashboard/api-keys');
         } else if (isAuthenticated) {
             fetchApiKeys();
             fetchKeyLimits();
         }
-    }, [isAuthenticated, isLoading, router, locale]);
+    }, [isAuthenticated, isLoading, router]);
 
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -82,6 +94,14 @@ export default function ApiKeysPage() {
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, [showCreateModal, newKeyResult, deleteConfirm.show, regenerateConfirm.show]);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const fetchApiKeys = async () => {
         try {
@@ -118,11 +138,12 @@ export default function ApiKeysPage() {
             const data = await api.post<{ key: string; id: string }>('users/me/api-keys', {
                 name: newKeyName,
                 prefix: 'sk_live',
-                scopes: ['read', 'analyze'],
+                scopes: selectedScopes,
             });
 
             setNewKeyResult({ key: data.key, id: data.id });
             setNewKeyName('');
+            setSelectedScopes([API_KEY_SCOPES.READ, API_KEY_SCOPES.ANALYZE]);
             setShowCreateModal(false);
             setError(null);
             await fetchApiKeys();
@@ -190,7 +211,13 @@ export default function ApiKeysPage() {
     const copyToClipboard = (text: string, id: string = 'default') => {
         navigator.clipboard.writeText(text);
         setCopiedKey(id);
-        setTimeout(() => setCopiedKey(null), 2000);
+        if (copyTimeoutRef.current) {
+            clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => {
+            setCopiedKey(null);
+            copyTimeoutRef.current = null;
+        }, 2000);
     };
 
     if (isLoading || !isAuthenticated || !user) {
@@ -212,7 +239,7 @@ export default function ApiKeysPage() {
                 <div className='mb-8 flex items-center justify-between'>
                     <div>
                         <Link
-                            href={`/${locale}/dashboard`}
+                            href='/dashboard'
                             className='text-purple-400 hover:text-purple-300 mb-2 inline-block'
                         >
                             {t('apiKeys.page.backToDashboard')}
@@ -495,6 +522,76 @@ export default function ApiKeysPage() {
                                     autoFocus
                                 />
                             </div>
+                            <div className='mb-6'>
+                                <label className='block text-sm font-medium text-slate-300 mb-2'>
+                                    {t('apiKeys.createModal.scopesLabel')}
+                                </label>
+                                <p className='text-xs text-slate-400 mb-3'>
+                                    {t('apiKeys.createModal.scopesHelp')}
+                                </p>
+                                <div className='space-y-2'>
+                                    <label className='flex items-start gap-3 p-3 bg-slate-900/50 border border-slate-700 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors'>
+                                        <input
+                                            type='checkbox'
+                                            checked={selectedScopes.includes(API_KEY_SCOPES.READ)}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    setSelectedScopes([
+                                                        ...selectedScopes,
+                                                        API_KEY_SCOPES.READ,
+                                                    ]);
+                                                } else {
+                                                    setSelectedScopes(
+                                                        selectedScopes.filter(
+                                                            s => s !== API_KEY_SCOPES.READ
+                                                        )
+                                                    );
+                                                }
+                                            }}
+                                            className='mt-0.5 w-4 h-4 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500 focus:ring-2'
+                                        />
+                                        <div className='flex-1'>
+                                            <div className='text-sm font-medium text-white'>
+                                                {t('apiKeys.createModal.scopeRead')}
+                                            </div>
+                                            <div className='text-xs text-slate-400'>
+                                                {t('apiKeys.createModal.scopeReadDesc')}
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <label className='flex items-start gap-3 p-3 bg-slate-900/50 border border-slate-700 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors'>
+                                        <input
+                                            type='checkbox'
+                                            checked={selectedScopes.includes(
+                                                API_KEY_SCOPES.ANALYZE
+                                            )}
+                                            onChange={e => {
+                                                if (e.target.checked) {
+                                                    setSelectedScopes([
+                                                        ...selectedScopes,
+                                                        API_KEY_SCOPES.ANALYZE,
+                                                    ]);
+                                                } else {
+                                                    setSelectedScopes(
+                                                        selectedScopes.filter(
+                                                            s => s !== API_KEY_SCOPES.ANALYZE
+                                                        )
+                                                    );
+                                                }
+                                            }}
+                                            className='mt-0.5 w-4 h-4 text-purple-600 bg-slate-800 border-slate-600 rounded focus:ring-purple-500 focus:ring-2'
+                                        />
+                                        <div className='flex-1'>
+                                            <div className='text-sm font-medium text-white'>
+                                                {t('apiKeys.createModal.scopeAnalyze')}
+                                            </div>
+                                            <div className='text-xs text-slate-400'>
+                                                {t('apiKeys.createModal.scopeAnalyzeDesc')}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
                             {error && (
                                 <div className='mb-4 p-3 bg-red-900/50 border border-red-500/50 rounded-lg'>
                                     <p className='text-red-300 text-sm'>{error}</p>
@@ -505,6 +602,10 @@ export default function ApiKeysPage() {
                                     onClick={() => {
                                         setShowCreateModal(false);
                                         setNewKeyName('');
+                                        setSelectedScopes([
+                                            API_KEY_SCOPES.READ,
+                                            API_KEY_SCOPES.ANALYZE,
+                                        ]);
                                         setError(null);
                                     }}
                                     className='flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
@@ -603,14 +704,6 @@ export default function ApiKeysPage() {
                                             </div>
                                             <div>
                                                 <p className='text-slate-500'>
-                                                    {t('apiKeys.keyCard.rateLimit')}
-                                                </p>
-                                                <p className='text-slate-300'>
-                                                    {key.requestsPerHour}/hour
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className='text-slate-500'>
                                                     {t('apiKeys.keyCard.scopes')}
                                                 </p>
                                                 <p className='text-slate-300'>
@@ -677,7 +770,7 @@ export default function ApiKeysPage() {
                                 Learn how to use your API keys to integrate Safeturned into your
                                 applications. Visit our{' '}
                                 <Link
-                                    href={`/${locale}/docs`}
+                                    href='/docs'
                                     className='text-blue-400 hover:text-blue-300 underline transition-colors'
                                 >
                                     API documentation
@@ -686,7 +779,7 @@ export default function ApiKeysPage() {
                             </p>
                         </div>
                         <Link
-                            href={`/${locale}/docs`}
+                            href='/docs'
                             className='px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap'
                         >
                             View Docs
@@ -695,6 +788,7 @@ export default function ApiKeysPage() {
                 </div>
             </div>
 
+            <BackToTop />
             <Footer />
         </div>
     );

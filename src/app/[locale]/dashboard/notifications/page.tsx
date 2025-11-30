@@ -2,12 +2,13 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
+import { STORAGE_KEYS } from '@/lib/storage-constants';
 
 interface RecentScan {
     id: string;
@@ -30,15 +31,15 @@ interface Notification {
 
 export default function NotificationsPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { locale } = useTranslation();
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'threat' | 'clean' | 'info'>('all');
     const [showInfoBox, setShowInfoBox] = useState(true);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
-        const infoBoxClosed = localStorage.getItem('notifications-info-box-closed');
+        const infoBoxClosed = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS_INFO_CLOSED);
         if (infoBoxClosed === 'true') {
             setShowInfoBox(false);
         }
@@ -46,24 +47,33 @@ export default function NotificationsPage() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push(`/${locale}/login?returnUrl=/dashboard/notifications`);
+            router.push('/login?returnUrl=/dashboard/notifications');
         }
-    }, [isAuthenticated, isLoading, router, locale]);
+    }, [isAuthenticated, isLoading, router]);
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            fetchNotifications();
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+
+            abortControllerRef.current = new AbortController();
+            fetchNotifications(abortControllerRef.current.signal);
+
+            return () => {
+                abortControllerRef.current?.abort();
+            };
         }
     }, [isAuthenticated, user]);
 
     const handleCloseInfoBox = () => {
         setShowInfoBox(false);
-        localStorage.setItem('notifications-info-box-closed', 'true');
+        localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS_INFO_CLOSED, 'true');
     };
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = async (signal?: AbortSignal) => {
         try {
-            const scans = await api.get<RecentScan[]>('users/me/scans/recent?limit=20');
+            const scans = await api.get<RecentScan[]>('users/me/scans/recent?limit=20', { signal });
 
             const scanNotifications: Notification[] = scans.map(scan => {
                 if (scan.isThreat) {
@@ -73,7 +83,7 @@ export default function NotificationsPage() {
                         title: 'Threat Detected',
                         message: `${scan.fileName} - Risk Score: ${scan.score}/100`,
                         timestamp: scan.scanDate,
-                        link: `/${locale}/result/${scan.id}`,
+                        link: `/result/${scan.id}`,
                         icon: '🚨',
                     };
                 } else {
@@ -83,7 +93,7 @@ export default function NotificationsPage() {
                         title: 'File Scanned Successfully',
                         message: `${scan.fileName} - No threats detected (Score: ${scan.score}/100)`,
                         timestamp: scan.scanDate,
-                        link: `/${locale}/result/${scan.id}`,
+                        link: `/result/${scan.id}`,
                         icon: '✅',
                     };
                 }
@@ -91,6 +101,9 @@ export default function NotificationsPage() {
 
             setNotifications(scanNotifications);
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
             console.error('Failed to fetch notifications:', error);
         } finally {
             setLoading(false);
@@ -138,7 +151,7 @@ export default function NotificationsPage() {
                 <div className='mb-8'>
                     <div className='flex items-center gap-3 mb-2'>
                         <Link
-                            href={`/${locale}/dashboard`}
+                            href='/dashboard'
                             className='text-purple-400 hover:text-purple-300 transition-colors'
                         >
                             <svg
@@ -210,7 +223,7 @@ export default function NotificationsPage() {
                                 : `No ${filter} notifications found.`}
                         </p>
                         <Link
-                            href={`/${locale}`}
+                            href='/'
                             className='inline-block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300'
                         >
                             Upload Your First File
@@ -338,6 +351,7 @@ export default function NotificationsPage() {
                 )}
             </div>
 
+            <BackToTop />
             <Footer />
         </div>
     );

@@ -2,6 +2,7 @@
 
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 
 export default function PrivacyPage() {
     return (
@@ -53,6 +54,15 @@ export default function PrivacyPage() {
                                     </li>
                                 </ul>
                                 <div className='mt-3 pt-3 border-t border-red-500/20'>
+                                    <p className='text-sm text-yellow-300 mb-3'>
+                                        <strong>Note on website uploads:</strong> Files uploaded
+                                        through the website are temporarily stored in server memory
+                                        for 24 hours to enable the reanalysis feature. This allows
+                                        you to rescan files with updated security checks without
+                                        re-uploading. Files are automatically deleted after 24 hours
+                                        or when total memory usage exceeds 10GB. Oldest files are
+                                        deleted first to protect server resources.
+                                    </p>
                                     <p className='text-sm text-yellow-300'>
                                         <strong>Note on large files (&gt;100MB):</strong> Large
                                         files are temporarily stored in encrypted chunks during
@@ -364,6 +374,7 @@ export default function PrivacyPage() {
                     </div>
                 </div>
             </div>
+            <BackToTop />
             <Footer />
         </div>
     );

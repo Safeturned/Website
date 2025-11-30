@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { makeBadge } from 'badge-maker';
+import { getApiBaseUrl, API_VERSION } from '@/lib/server-auth-helper';
 
 interface Badge {
     id: string;
@@ -42,28 +43,10 @@ export async function GET(
     { params }: { params: Promise<{ badgeId: string }> }
 ) {
     try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-        if (!apiUrl) {
-            console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-            const errorBadge = makeBadge({
-                label: 'Safeturned',
-                message: 'Configuration Error',
-                color: 'lightgrey',
-                style: 'flat',
-            });
-            return new NextResponse(errorBadge, {
-                status: 200,
-                headers: {
-                    'Content-Type': 'image/svg+xml',
-                    'Cache-Control': 'public, max-age=60',
-                },
-            });
-        }
-
+        const apiUrl = getApiBaseUrl();
         const { badgeId } = await params;
 
-        const badgeResponse = await fetch(`${apiUrl}/v1.0/badges/${badgeId}`, {
+        const badgeResponse = await fetch(`${apiUrl}/${API_VERSION}/badges/${badgeId}`, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -86,16 +69,9 @@ export async function GET(
             });
         }
 
-        const badge: Badge = await badgeResponse.json();
+        const badge: Badge & { linkedFile?: FileData } = await badgeResponse.json();
 
-        const fileResponse = await fetch(`${apiUrl}/v1.0/files/${badge.linkedFileHash}`, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-            },
-        });
-
-        if (!fileResponse.ok) {
+        if (!badge.linkedFile) {
             const errorBadge = makeBadge({
                 label: badge.name || 'Safeturned',
                 message: 'File Not Found',
@@ -111,13 +87,17 @@ export async function GET(
             });
         }
 
-        const fileData: FileData = await fileResponse.json();
+        const fileData = badge.linkedFile;
+
+        const shieldIcon =
+            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDIycy04LTQtOC0xMFY1bDgtM2w4IDN2N2MwIDYtOCAxMC04IDEweiIvPjwvc3ZnPg==';
 
         const badgeSvg = makeBadge({
             label: badge.name || 'Safeturned',
             message: `${getScoreLabel(fileData.score)} (${fileData.score}/100)`,
             color: getScoreColor(fileData.score),
             style: 'flat',
+            logoBase64: shieldIcon,
         });
 
         return new NextResponse(badgeSvg, {

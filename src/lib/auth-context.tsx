@@ -3,6 +3,39 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, getApiUrl } from './api-client';
+import { AUTH_STORAGE_KEYS, AUTH_EVENTS } from './auth-constants';
+
+function validateReturnUrl(url: string): string {
+    const defaultUrl = '/en/dashboard';
+
+    if (!url) {
+        return defaultUrl;
+    }
+
+    try {
+        const decodedUrl = decodeURIComponent(url);
+
+        if (!decodedUrl.startsWith('/')) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.match(/^\/[/\\]/)) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.toLowerCase().startsWith('/login')) {
+            return defaultUrl;
+        }
+
+        if (decodedUrl.includes(':') || decodedUrl.includes('//') || decodedUrl.includes('\\\\')) {
+            return defaultUrl;
+        }
+
+        return decodedUrl;
+    } catch {
+        return defaultUrl;
+    }
+}
 
 export interface LinkedIdentity {
     providerName: string;
@@ -35,55 +68,77 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'safeturned_user';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        const loadStoredAuth = () => {
+        const loadAndValidateAuth = async () => {
+            // Check if we have stored auth data (don't set user yet!)
+            const storedUserStr = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+
+            if (!storedUserStr) {
+                setIsLoading(false);
+                return;
+            }
+
+            // Validate the stored session with the server
             try {
-                const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                }
+                const currentUser = await api.get<User>('auth/me');
+                setUser(currentUser); // Only set user after server validates the session
             } catch (error) {
-                console.error('Failed to load stored auth:', error);
-                localStorage.removeItem(USER_STORAGE_KEY);
+                console.warn('Stored user session is invalid, clearing:', error);
+                setUser(null);
+                localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadStoredAuth();
+        loadAndValidateAuth();
     }, []);
 
     useEffect(() => {
         if (user) {
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+            localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
         } else {
-            localStorage.removeItem(USER_STORAGE_KEY);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
         }
     }, [user]);
 
+    useEffect(() => {
+        const handleSessionInvalid = () => {
+            console.warn('Session invalid event received, clearing user');
+            setUser(null);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener(AUTH_EVENTS.SESSION_INVALID, handleSessionInvalid);
+            return () => {
+                window.removeEventListener(AUTH_EVENTS.SESSION_INVALID, handleSessionInvalid);
+            };
+        }
+    }, []);
+
     const login = useCallback((returnUrl?: string) => {
-        const finalReturnUrl = returnUrl || window.location.pathname;
+        const rawReturnUrl = returnUrl || window.location.pathname;
+        const validatedReturnUrl = validateReturnUrl(rawReturnUrl);
 
-        sessionStorage.setItem('auth_return_url', finalReturnUrl);
+        sessionStorage.setItem('auth_return_url', validatedReturnUrl);
 
-        window.location.href = `${getApiUrl('auth/discord')}?returnUrl=${encodeURIComponent(finalReturnUrl)}`;
+        window.location.href = `${getApiUrl('auth/discord')}?returnUrl=${encodeURIComponent(validatedReturnUrl)}`;
     }, []);
 
     const logout = useCallback(async () => {
         try {
-            await api.post('auth/logout');
+            await api.post('auth/logout', { refreshToken: null });
         } catch (error) {
             console.error('Logout API call failed:', error);
         } finally {
             setUser(null);
-            localStorage.removeItem(USER_STORAGE_KEY);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
             router.push('/');
         }
     }, [router]);
@@ -141,5 +196,5 @@ export function useAuth() {
 }
 
 export function setAuthData(user: User) {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
 }

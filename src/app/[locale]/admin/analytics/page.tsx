@@ -8,6 +8,7 @@ import { getTierName, TIER_BADGE_COLORS } from '@/lib/tierConstants';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
 
 interface RecentUser {
@@ -52,7 +53,7 @@ interface SystemAnalytics {
 
 export default function AdminAnalyticsPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [analytics, setAnalytics] = useState<SystemAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
@@ -60,14 +61,14 @@ export default function AdminAnalyticsPage() {
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || !user?.isAdmin)) {
-            router.push(`/${locale}`);
+            router.push('/');
             return;
         }
 
         if (user?.isAdmin) {
             loadAnalytics();
         }
-    }, [user, isAuthenticated, isLoading, router, locale]);
+    }, [user, isAuthenticated, isLoading, router]);
 
     const loadAnalytics = async () => {
         try {
@@ -112,7 +113,7 @@ export default function AdminAnalyticsPage() {
                 <div className='max-w-7xl mx-auto'>
                     <div className='mb-8'>
                         <Link
-                            href={`/${locale}/admin`}
+                            href='/admin'
                             className='text-purple-400 hover:text-purple-300 transition-colors mb-4 inline-flex items-center gap-2'
                         >
                             <svg
@@ -380,6 +381,7 @@ export default function AdminAnalyticsPage() {
                     )}
                 </div>
             </div>
+            <BackToTop />
             <Footer />
         </div>
     );

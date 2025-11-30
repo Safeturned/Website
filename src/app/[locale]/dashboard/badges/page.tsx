@@ -2,12 +2,17 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
+import { encodeHashForUrl } from '@/lib/utils';
+import { STORAGE_KEYS } from '@/lib/storage-constants';
+import { formatDate, formatDateTime } from '@/lib/dateUtils';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 interface Badge {
     id: string;
@@ -44,7 +49,7 @@ export default function BadgesPage() {
     const [loading, setLoading] = useState(true);
     const [loadingScans, setLoadingScans] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
-    const [copiedType, setCopiedType] = useState<'markdown' | 'html' | 'url' | null>(null);
+    const [copiedType, setCopiedType] = useState<'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc' | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{
         show: boolean;
         title: string;
@@ -65,23 +70,54 @@ export default function BadgesPage() {
     const [regeneratingToken, setRegeneratingToken] = useState<string | null>(null);
     const [togglingAutoUpdate, setTogglingAutoUpdate] = useState<string | null>(null);
     const [deletingBadge, setDeletingBadge] = useState<string | null>(null);
+    const [showAboutBadges, setShowAboutBadges] = useState(true);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const copyTokenTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const copyBadgeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push(`/${locale}/login?returnUrl=/dashboard/badges`);
+            router.push('/login?returnUrl=/dashboard/badges');
         }
-    }, [isAuthenticated, isLoading, router, locale]);
+    }, [isAuthenticated, isLoading, router]);
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            fetchBadges();
-            fetchScans();
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+
+            abortControllerRef.current = new AbortController();
+            fetchBadges(abortControllerRef.current.signal);
+            fetchScans(abortControllerRef.current.signal);
+
+            return () => {
+                abortControllerRef.current?.abort();
+                if (copyTokenTimeoutRef.current) {
+                    clearTimeout(copyTokenTimeoutRef.current);
+                }
+                if (copyBadgeTimeoutRef.current) {
+                    clearTimeout(copyBadgeTimeoutRef.current);
+                }
+            };
         }
     }, [isAuthenticated, user]);
 
-    const fetchBadges = async () => {
+    useEffect(() => {
+        const dismissed = localStorage.getItem(STORAGE_KEYS.BADGES_ABOUT_DISMISSED);
+        if (dismissed === 'true') {
+            setShowAboutBadges(false);
+        }
+    }, []);
+
+    const handleDismissAbout = () => {
+        setShowAboutBadges(false);
+        localStorage.setItem(STORAGE_KEYS.BADGES_ABOUT_DISMISSED, 'true');
+    };
+
+    const fetchBadges = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<Badge[]>('badges');
+            const data = await api.get<Badge[]>('badges', { signal });
 
             setBadges(prevBadges => {
                 const badgesMap = new Map(prevBadges.map(b => [b.id, b]));
@@ -100,18 +136,24 @@ export default function BadgesPage() {
                 });
             });
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
             console.error('Failed to fetch badges:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchScans = async () => {
+    const fetchScans = async (signal?: AbortSignal) => {
         try {
             setLoadingScans(true);
-            const data = await api.get<{ scans: ScanFile[] }>('users/me/scans?pageSize=50');
+            const data = await api.get<{ scans: ScanFile[] }>('users/me/scans?pageSize=50', { signal });
             setScans(data.scans || []);
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
             console.error('Failed to fetch scans:', error);
         } finally {
             setLoadingScans(false);
@@ -224,7 +266,13 @@ export default function BadgesPage() {
         if (newBadgeToken) {
             navigator.clipboard.writeText(newBadgeToken);
             setCopiedToken(true);
-            setTimeout(() => setCopiedToken(false), 2000);
+            if (copyTokenTimeoutRef.current) {
+                clearTimeout(copyTokenTimeoutRef.current);
+            }
+            copyTokenTimeoutRef.current = setTimeout(() => {
+                setCopiedToken(false);
+                copyTokenTimeoutRef.current = null;
+            }, 2000);
         }
     };
 
@@ -274,35 +322,44 @@ export default function BadgesPage() {
                             : badge
                     );
                 });
-            } else {
-                await fetchBadges();
             }
         } catch (error) {
             console.error('Failed to toggle auto-update:', error);
             alert(error instanceof Error ? error.message : t('badges.toggleFailed'));
-            await fetchBadges();
         } finally {
             setTogglingAutoUpdate(null);
         }
     };
 
-    const handleCopyBadge = (badgeId: string, type: 'markdown' | 'html' | 'url') => {
+    const handleCopyBadge = (badge: Badge, type: 'markdown' | 'html' | 'url' | 'verification' | 'rst' | 'asciidoc') => {
         let content = '';
+        const badgeInfoUrl = `${window.location.origin}/badge/${badge.id}`;
+        const badgeImageUrl = `${window.location.origin}/api/v1.0/badge/${badge.id}`;
 
         if (type === 'markdown') {
-            content = `[![Safeturned](${window.location.origin}/api/v1.0/badge/${badgeId})](${window.location.origin}/result/${badgeId})`;
+            content = `[![Safeturned](${badgeImageUrl})](${badgeInfoUrl})`;
         } else if (type === 'html') {
-            content = `<a href="${window.location.origin}/result/${badgeId}"><img src="${window.location.origin}/api/v1.0/badge/${badgeId}" alt="Safeturned" /></a>`;
+            content = `<a href="${badgeInfoUrl}"><img src="${badgeImageUrl}" alt="Safeturned" /></a>`;
+        } else if (type === 'rst') {
+            content = `.. image:: ${badgeImageUrl}\n   :target: ${badgeInfoUrl}\n   :alt: Safeturned`;
+        } else if (type === 'asciidoc') {
+            content = `image:${badgeImageUrl}[link="${badgeInfoUrl}",alt="Safeturned"]`;
+        } else if (type === 'verification') {
+            content = badgeInfoUrl;
         } else {
-            content = `${window.location.origin}/api/v1.0/badge/${badgeId}`;
+            content = badgeImageUrl;
         }
 
         navigator.clipboard.writeText(content);
-        setCopiedId(badgeId);
+        setCopiedId(badge.id);
         setCopiedType(type);
-        setTimeout(() => {
+        if (copyBadgeTimeoutRef.current) {
+            clearTimeout(copyBadgeTimeoutRef.current);
+        }
+        copyBadgeTimeoutRef.current = setTimeout(() => {
             setCopiedId(null);
             setCopiedType(null);
+            copyBadgeTimeoutRef.current = null;
         }, 2000);
     };
 
@@ -364,7 +421,7 @@ export default function BadgesPage() {
                 <div className='mb-8'>
                     <div className='flex items-center gap-3 mb-2'>
                         <Link
-                            href={`/${locale}/dashboard`}
+                            href='/dashboard'
                             className='text-purple-400 hover:text-purple-300 transition-colors'
                         >
                             <svg
@@ -386,63 +443,126 @@ export default function BadgesPage() {
                     <p className='text-slate-400'>{t('badges.description')}</p>
                 </div>
 
-                <div className='mb-8 bg-blue-900/20 border border-blue-500/30 rounded-xl p-6'>
-                    <div className='flex items-start gap-3'>
-                        <svg
-                            className='w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
+                {showAboutBadges && (
+                    <div className='mb-8 bg-blue-900/20 border border-blue-500/30 rounded-xl p-6 relative'>
+                        <button
+                            onClick={handleDismissAbout}
+                            className='absolute top-4 right-4 text-slate-400 hover:text-white transition-colors'
+                            aria-label='Dismiss'
                         >
-                            <path
-                                strokeLinecap='round'
-                                strokeLinejoin='round'
-                                strokeWidth={2}
-                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                            />
-                        </svg>
-                        <div className='flex-1'>
-                            <h3 className='text-blue-400 font-semibold mb-3'>
-                                {t('badges.about')}
-                            </h3>
-                            <p className='text-slate-300 text-sm mb-3'>
-                                {t('badges.aboutDescription')}
-                            </p>
-                            <div className='bg-blue-900/30 border border-blue-500/20 rounded-lg p-4 mb-3'>
-                                <h4 className='text-blue-300 font-semibold text-sm mb-2'>
-                                    {t('badges.security')}
-                                </h4>
-                                <p className='text-slate-300 text-sm mb-2'>
-                                    {t('badges.securityDescription')}
+                            <svg
+                                className='w-5 h-5'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M6 18L18 6M6 6l12 12'
+                                />
+                            </svg>
+                        </button>
+                        <div className='flex items-start gap-3'>
+                            <svg
+                                className='w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                />
+                            </svg>
+                            <div className='flex-1 pr-8'>
+                                <h3 className='text-blue-400 font-semibold mb-3'>
+                                    {t('badges.about')}
+                                </h3>
+                                <p className='text-slate-300 text-sm mb-3'>
+                                    {t('badges.aboutDescription')}
                                 </p>
-                            </div>
-                            <div className='bg-green-900/20 border border-green-500/20 rounded-lg p-4'>
-                                <h4 className='text-green-300 font-semibold text-sm mb-2 flex items-center gap-2'>
-                                    <svg
-                                        className='w-4 h-4'
-                                        fill='none'
-                                        stroke='currentColor'
-                                        viewBox='0 0 24 24'
+                                <div className='bg-purple-900/30 border border-purple-500/20 rounded-lg p-4 mb-3'>
+                                    <h4 className='text-purple-300 font-semibold text-sm mb-2 flex items-center gap-2'>
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                            />
+                                        </svg>
+                                        {t('badges.badgeBranding')}
+                                    </h4>
+                                    <p className='text-slate-300 text-sm mb-2'>
+                                        {t('badges.badgeBrandingDescription')}
+                                    </p>
+                                </div>
+                                <div className='bg-blue-900/30 border border-blue-500/20 rounded-lg p-4 mb-3'>
+                                    <h4 className='text-blue-300 font-semibold text-sm mb-2'>
+                                        {t('badges.security')}
+                                    </h4>
+                                    <p className='text-slate-300 text-sm mb-2'>
+                                        {t('badges.securityDescription')}
+                                    </p>
+                                </div>
+                                <div className='bg-green-900/20 border border-green-500/20 rounded-lg p-4'>
+                                    <h4 className='text-green-300 font-semibold text-sm mb-2 flex items-center gap-2'>
+                                        <svg
+                                            className='w-4 h-4'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
+                                            />
+                                        </svg>
+                                        {t('badges.autoUpdateWithTokens')}
+                                    </h4>
+                                    <p className='text-slate-300 text-sm mb-3'>
+                                        {t('badges.autoUpdateTokenDescription')}
+                                    </p>
+                                    <div className='bg-black/30 rounded-lg p-3 mb-2 border border-green-500/20'>
+                                        <p className='text-green-200 text-xs font-semibold mb-2'>{t('badges.howToUseToken')}</p>
+                                        <code className='text-green-300 text-xs block bg-slate-900/50 p-2 rounded mb-2 overflow-x-auto'>
+                                            curl -X POST {API_BASE_URL}/v1.0/files \<br/>
+                                            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br/>
+                                            &nbsp;&nbsp;-F "file=@plugin.dll" \<br/>
+                                            &nbsp;&nbsp;-F "badgeToken=YOUR_TOKEN_HERE"
+                                        </code>
+                                        <p className='text-slate-400 text-xs'>
+                                            {t('badges.tokenFieldDescription')}
+                                        </p>
+                                    </div>
+                                    <p className='text-slate-400 text-xs mb-2'>
+                                        {t('badges.perfectForCICD')}
+                                    </p>
+                                    <Link
+                                        href='/docs#badge-tokens'
+                                        className='text-blue-400 hover:text-blue-300 text-xs font-medium underline flex items-center gap-1'
                                     >
-                                        <path
-                                            strokeLinecap='round'
-                                            strokeLinejoin='round'
-                                            strokeWidth={2}
-                                            d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
-                                        />
-                                    </svg>
-                                    {t('badges.autoUpdateWithTokens')}
-                                </h4>
-                                <p className='text-slate-300 text-sm mb-2'>
-                                    {t('badges.autoUpdateTokenDescription')}
-                                </p>
-                                <p className='text-slate-400 text-xs'>
-                                    {t('badges.perfectForCICD')}
-                                </p>
+                                        <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                        </svg>
+                                        {t('badges.readFullDocumentation')}
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 <div className='mb-6'>
                     <p className='text-slate-400 text-sm'>{t('badges.createFromResult')}</p>
@@ -464,16 +584,16 @@ export default function BadgesPage() {
                                     {badges.map(badge => (
                                         <div
                                             key={badge.id}
-                                            className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8 hover:border-purple-500/50 transition-all duration-200'
+                                            className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 hover:border-purple-500/50 transition-all duration-200'
                                         >
-                                            <div className='flex flex-col gap-6'>
-                                                <div className='flex items-start justify-between gap-6'>
+                                            <div className='flex flex-col gap-4'>
+                                                <div className='flex items-start justify-between gap-4'>
                                                     <div className='flex-1 min-w-0'>
-                                                        <h3 className='text-2xl font-bold text-white mb-3'>
+                                                        <h3 className='text-xl font-bold text-white mb-2'>
                                                             {badge.name}
                                                         </h3>
                                                         {badge.description && (
-                                                            <p className='text-slate-300 text-base mb-4 leading-relaxed'>
+                                                            <p className='text-slate-300 text-sm mb-3 leading-relaxed'>
                                                                 {badge.description}
                                                             </p>
                                                         )}
@@ -492,9 +612,7 @@ export default function BadgesPage() {
                                                                         d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
                                                                     />
                                                                 </svg>
-                                                                {new Date(
-                                                                    badge.createdAt
-                                                                ).toLocaleDateString()}
+                                                                {formatDate(badge.createdAt, locale)}
                                                             </span>
                                                             {badge.versionUpdateCount > 0 && (
                                                                 <>
@@ -561,12 +679,43 @@ export default function BadgesPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className='flex flex-wrap gap-3'>
+                                                <div className='flex flex-wrap gap-2'>
+                                                    <Link
+                                                        href={`/badge/${badge.id}`}
+                                                        target='_blank'
+                                                        className='bg-green-600/20 hover:bg-green-600/30 text-green-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-green-500/30 inline-flex items-center gap-1.5'
+                                                    >
+                                                        <svg
+                                                            className='w-3.5 h-3.5'
+                                                            fill='none'
+                                                            stroke='currentColor'
+                                                            viewBox='0 0 24 24'
+                                                        >
+                                                            <path
+                                                                strokeLinecap='round'
+                                                                strokeLinejoin='round'
+                                                                strokeWidth={2}
+                                                                d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                                            />
+                                                        </svg>
+                                                        {t('badges.viewInfo')}
+                                                    </Link>
                                                     <button
                                                         onClick={() =>
-                                                            handleCopyBadge(badge.id, 'markdown')
+                                                            handleCopyBadge(badge, 'verification')
                                                         }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-purple-500/20'
+                                                        className='bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-cyan-500/30 min-w-[110px]'
+                                                    >
+                                                        {copiedId === badge.id &&
+                                                        copiedType === 'verification'
+                                                            ? t('badges.copied')
+                                                            : t('badges.verifyLink')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCopyBadge(badge, 'markdown')
+                                                        }
+                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
                                                     >
                                                         {copiedId === badge.id &&
                                                         copiedType === 'markdown'
@@ -575,9 +724,9 @@ export default function BadgesPage() {
                                                     </button>
                                                     <button
                                                         onClick={() =>
-                                                            handleCopyBadge(badge.id, 'html')
+                                                            handleCopyBadge(badge, 'html')
                                                         }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-purple-500/20'
+                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
                                                     >
                                                         {copiedId === badge.id &&
                                                         copiedType === 'html'
@@ -586,9 +735,31 @@ export default function BadgesPage() {
                                                     </button>
                                                     <button
                                                         onClick={() =>
-                                                            handleCopyBadge(badge.id, 'url')
+                                                            handleCopyBadge(badge, 'rst')
                                                         }
-                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-purple-500/20'
+                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                    >
+                                                        {copiedId === badge.id &&
+                                                        copiedType === 'rst'
+                                                            ? t('badges.copied')
+                                                            : t('badges.rst')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCopyBadge(badge, 'asciidoc')
+                                                        }
+                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                    >
+                                                        {copiedId === badge.id &&
+                                                        copiedType === 'asciidoc'
+                                                            ? t('badges.copied')
+                                                            : t('badges.asciidoc')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCopyBadge(badge, 'url')
+                                                        }
+                                                        className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
                                                     >
                                                         {copiedId === badge.id &&
                                                         copiedType === 'url'
@@ -603,13 +774,13 @@ export default function BadgesPage() {
                                                             )
                                                         }
                                                         disabled={togglingAutoUpdate === badge.id}
-                                                        className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors border border-blue-500/30 disabled:opacity-50'
+                                                        className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-blue-500/30 disabled:opacity-50 min-w-[120px]'
                                                     >
                                                         {togglingAutoUpdate === badge.id
                                                             ? t('common.loading')
                                                             : badge.requireTokenForUpdate
-                                                              ? t('badges.disableAutoUpdate')
-                                                              : t('badges.enableAutoUpdate')}
+                                                              ? t('badges.disableAutoUpdateBtn')
+                                                              : t('badges.enableAutoUpdateBtn')}
                                                     </button>
                                                     {badge.requireTokenForUpdate && (
                                                         <button
@@ -622,23 +793,23 @@ export default function BadgesPage() {
                                                             disabled={
                                                                 regeneratingToken === badge.id
                                                             }
-                                                            className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors border border-amber-500/30 disabled:opacity-50'
+                                                            className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-amber-500/30 disabled:opacity-50 min-w-[120px]'
                                                         >
-                                                            {t('badges.regenerateToken')}
+                                                            {t('badges.regenerateTokenBtn')}
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={() =>
                                                             requestDeleteBadge(badge.id, badge.name)
                                                         }
-                                                        className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors border border-red-500/30'
+                                                        className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-500/30 min-w-[70px]'
                                                     >
                                                         {t('badges.delete')}
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div className='mt-6 bg-slate-900/50 rounded-lg p-5 border border-slate-700'>
+                                            <div className='mt-4 bg-slate-900/50 rounded-lg p-4 border border-slate-700'>
                                                 <div className='flex items-center justify-between flex-wrap gap-4'>
                                                     <div className='flex-1 min-w-[200px]'>
                                                         <p className='text-sm text-slate-400 mb-2 font-medium'>
@@ -661,9 +832,7 @@ export default function BadgesPage() {
                                                                     d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
                                                                 />
                                                             </svg>
-                                                            {new Date(
-                                                                badge.linkedFile.lastScanned
-                                                            ).toLocaleString()}
+                                                            {formatDateTime(badge.linkedFile.lastScanned, locale)}
                                                         </p>
                                                     </div>
                                                     <div className='text-right'>
@@ -749,7 +918,7 @@ export default function BadgesPage() {
                                         {t('badges.noScannedFilesDesc')}
                                     </p>
                                     <Link
-                                        href={`/${locale}`}
+                                        href='/'
                                         className='inline-block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300'
                                     >
                                         {t('badges.scanFile')}
@@ -817,16 +986,14 @@ export default function BadgesPage() {
                                                                         d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
                                                                     />
                                                                 </svg>
-                                                                {new Date(
-                                                                    scan.scanDate
-                                                                ).toLocaleDateString()}
+                                                                {formatDate(scan.scanDate, locale)}
                                                             </span>
                                                         </div>
                                                     </div>
                                                     <div className='flex items-center gap-3 flex-wrap'>
                                                         {scan.fileHash && (
                                                             <Link
-                                                                href={`/${locale}/result/${scan.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')}`}
+                                                                href={`/result/${encodeHashForUrl(scan.fileHash)}`}
                                                                 className='text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium underline underline-offset-2'
                                                             >
                                                                 {t('badges.viewResult')}
@@ -1060,6 +1227,7 @@ export default function BadgesPage() {
                 </div>
             )}
 
+            <BackToTop />
             <Footer />
         </div>
     );

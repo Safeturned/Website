@@ -15,8 +15,8 @@ const PLAN_COLORS = {
 };
 
 export default function UserMenu() {
-    const { user, isAuthenticated, logout } = useAuth();
-    const { t, locale } = useTranslation();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -67,21 +67,50 @@ export default function UserMenu() {
             }
         };
 
+        let timeoutId: NodeJS.Timeout | null = null;
+
         if (isOpen) {
-            setTimeout(() => {
+            timeoutId = setTimeout(() => {
                 document.addEventListener('mousedown', handleClickOutside);
             }, 0);
         }
 
         return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
 
+    if (isLoading) {
+        if (user) {
+            return (
+                <div className='flex items-center gap-3 px-3 py-2 rounded-lg self-center'>
+                    {user.avatarUrl ? (
+                        <img
+                            src={user.avatarUrl}
+                            alt={user.username || user.email || 'User'}
+                            className='w-8 h-8 rounded-full object-cover flex-shrink-0'
+                            loading='eager'
+                            decoding='async'
+                        />
+                    ) : (
+                        <div className='w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-medium flex-shrink-0'>
+                            {(user.username || user.email || 'U')[0].toUpperCase()}
+                        </div>
+                    )}
+                    <span className='text-slate-300'>{user.username || user.email || 'User'}</span>
+                </div>
+            );
+        }
+        return null;
+    }
+
     if (!isAuthenticated || !user) {
         return (
             <Link
-                href={`/${locale}/login`}
+                href='/login'
                 className='bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors'
             >
                 {t('menu.login', 'Login')}
@@ -111,13 +140,14 @@ export default function UserMenu() {
                 ) : (
                     <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0'>
                         {user.username?.charAt(0).toUpperCase() ||
-                            user.email.charAt(0).toUpperCase()}
+                            user.email?.charAt(0).toUpperCase() ||
+                            'U'}
                     </div>
                 )}
 
                 <div className='hidden md:block text-left'>
                     <div className='text-sm font-medium text-white'>
-                        {user.username || user.email.split('@')[0]}
+                        {user.username || user.email?.split('@')[0] || 'User'}
                     </div>
                     <div className={`text-xs ${planColor} mt-1`}>{planName}</div>
                 </div>
@@ -162,7 +192,7 @@ export default function UserMenu() {
 
                         <div className='py-2'>
                             <Link
-                                href={`/${locale}/dashboard`}
+                                href='/dashboard'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -188,7 +218,7 @@ export default function UserMenu() {
                             </Link>
 
                             <Link
-                                href={`/${locale}/dashboard/api-keys`}
+                                href='/dashboard/api-keys'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -214,7 +244,7 @@ export default function UserMenu() {
                             </Link>
 
                             <Link
-                                href={`/${locale}/dashboard/badges`}
+                                href='/dashboard/badges'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -240,7 +270,7 @@ export default function UserMenu() {
                             </Link>
 
                             <Link
-                                href={`/${locale}/dashboard/scans`}
+                                href='/dashboard/scans'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -266,7 +296,7 @@ export default function UserMenu() {
                             </Link>
 
                             <Link
-                                href={`/${locale}/dashboard/usage`}
+                                href='/dashboard/usage'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -292,7 +322,7 @@ export default function UserMenu() {
                             </Link>
 
                             <Link
-                                href={`/${locale}/dashboard/notifications`}
+                                href='/dashboard/notifications'
                                 className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer relative'
                                 onClick={e => {
                                     e.stopPropagation();
@@ -326,7 +356,7 @@ export default function UserMenu() {
                                 <>
                                     <div className='border-t border-slate-700 my-2'></div>
                                     <Link
-                                        href={`/${locale}/admin`}
+                                        href='/admin'
                                         className='block px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50 hover:text-red-300 transition-colors cursor-pointer'
                                         onClick={e => {
                                             e.stopPropagation();

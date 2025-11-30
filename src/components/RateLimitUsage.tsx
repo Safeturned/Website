@@ -1,113 +1,178 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api-client';
+import Link from 'next/link';
+import { useTranslation } from '@/hooks/useTranslation';
 
-interface RateLimitData {
+interface OperationLimit {
+    operation: string;
     current: number;
-    max: number;
+    limit: number;
     remaining: number;
     usagePercent: number;
     resetTime: string;
-    minutesUntilReset: number;
-    secondsUntilReset: number;
     isNearLimit: boolean;
     isOverLimit: boolean;
-    tier: string;
+}
+
+interface RateLimitDataV2 {
+    tier: number;
+    tierName: string;
+    isAdmin: boolean;
+    hasApiKeys: boolean;
+    operations: OperationLimit[];
 }
 
 export default function RateLimitUsage() {
     const { isAuthenticated } = useAuth();
-    const [rateLimitData, setRateLimitData] = useState<RateLimitData | null>(null);
+    const { t } = useTranslation();
+    const [rateLimitData, setRateLimitData] = useState<RateLimitDataV2 | null>(null);
     const [loading, setLoading] = useState(true);
-    const [timeUntilReset, setTimeUntilReset] = useState<string>('');
 
-    const fetchRateLimitData = async () => {
+    const fetchRateLimitData = useCallback(async () => {
         try {
-            const data = await api.get<RateLimitData>('users/me/usage/rate-limit');
+            const data = await api.get<RateLimitDataV2>('users/me/usage/rate-limit');
             setRateLimitData(data);
         } catch (err) {
             console.error('Failed to fetch rate limit data:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated) {
             fetchRateLimitData();
-            const interval = setInterval(fetchRateLimitData, 30000);
+            const interval = setInterval(fetchRateLimitData, 60000);
             return () => clearInterval(interval);
         }
-    }, [isAuthenticated]);
-
-    useEffect(() => {
-        if (!rateLimitData) return;
-
-        const updateCountdown = () => {
-            const resetDate = new Date(rateLimitData.resetTime);
-            const now = new Date();
-            const diff = resetDate.getTime() - now.getTime();
-
-            if (diff <= 0) {
-                setTimeUntilReset('Resetting...');
-                fetchRateLimitData(); // Refresh data when reset
-                return;
-            }
-
-            const minutes = Math.floor(diff / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            setTimeUntilReset(`${minutes}m ${seconds}s`);
-        };
-
-        updateCountdown();
-        const interval = setInterval(updateCountdown, 1000);
-        return () => clearInterval(interval);
-    }, [rateLimitData]);
+    }, [isAuthenticated, fetchRateLimitData]);
 
     if (loading) {
         return (
             <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 animate-pulse'>
                 <div className='h-4 bg-slate-700 rounded w-1/3 mb-4'></div>
-                <div className='h-2 bg-slate-700 rounded w-full mb-2'></div>
-                <div className='h-3 bg-slate-700 rounded w-1/4'></div>
+                <div className='space-y-3'>
+                    <div className='h-16 bg-slate-700 rounded'></div>
+                    <div className='h-16 bg-slate-700 rounded'></div>
+                    <div className='h-16 bg-slate-700 rounded'></div>
+                </div>
             </div>
         );
     }
 
-    if (!rateLimitData) {
+    if (!rateLimitData || !rateLimitData.hasApiKeys) {
         return null;
     }
 
-    const { current, max, remaining, usagePercent, isNearLimit, isOverLimit } = rateLimitData;
+    const isAdmin = rateLimitData.isAdmin;
 
-    let progressColor = 'bg-green-500';
-    let textColor = 'text-green-400';
-    let borderColor = 'border-green-500/50';
-    let bgColor = 'bg-green-500/10';
+    const getOperationIcon = (operation: string) => {
+        switch (operation) {
+            case 'Read':
+                return (
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+                        />
+                        <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
+                        />
+                    </svg>
+                );
+            case 'Write':
+                return (
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                        />
+                    </svg>
+                );
+            case 'Expensive':
+                return (
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                        />
+                    </svg>
+                );
+            default:
+                return null;
+        }
+    };
 
-    if (isOverLimit) {
-        progressColor = 'bg-red-500';
-        textColor = 'text-red-400';
-        borderColor = 'border-red-500/50';
-        bgColor = 'bg-red-500/10';
-    } else if (isNearLimit) {
-        progressColor = 'bg-orange-500';
-        textColor = 'text-orange-400';
-        borderColor = 'border-orange-500/50';
-        bgColor = 'bg-orange-500/10';
-    } else if (usagePercent >= 50) {
-        progressColor = 'bg-yellow-500';
-        textColor = 'text-yellow-400';
-        borderColor = 'border-yellow-500/50';
-        bgColor = 'bg-yellow-500/10';
-    }
+    const getOperationColor = (operation: OperationLimit) => {
+        if (operation.isOverLimit) {
+            return {
+                progress: 'bg-red-500',
+                text: 'text-red-400',
+                border: 'border-red-500/30',
+                bg: 'bg-red-500/5',
+            };
+        }
+        if (operation.isNearLimit) {
+            return {
+                progress: 'bg-orange-500',
+                text: 'text-orange-400',
+                border: 'border-orange-500/30',
+                bg: 'bg-orange-500/5',
+            };
+        }
+        if (operation.usagePercent >= 50) {
+            return {
+                progress: 'bg-yellow-500',
+                text: 'text-yellow-400',
+                border: 'border-yellow-500/30',
+                bg: 'bg-yellow-500/5',
+            };
+        }
+        return {
+            progress: 'bg-green-500',
+            text: 'text-green-400',
+            border: 'border-green-500/30',
+            bg: 'bg-green-500/5',
+        };
+    };
 
-    const isAdmin = max === 99999;
+    const formatResetTime = (resetTime: string) => {
+        const resetDate = new Date(resetTime);
+        const now = new Date();
+        const diffMs = resetDate.getTime() - now.getTime();
+
+        if (diffMs <= 0) {
+            return t('dashboard.rateLimits.resettingNow');
+        }
+
+        const diffMinutes = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const remainingMinutes = diffMinutes % 60;
+
+        if (diffHours > 0) {
+            return t('dashboard.rateLimits.resetsInHoursMinutes', undefined, {
+                hours: diffHours,
+                minutes: remainingMinutes,
+            });
+        } else {
+            return t('dashboard.rateLimits.resetsInMinutes', undefined, { minutes: diffMinutes });
+        }
+    };
 
     return (
-        <div className={`border ${borderColor} ${bgColor} rounded-xl p-6`}>
+        <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'>
             <div className='flex items-center justify-between mb-4'>
                 <div>
                     <h3 className='text-lg font-semibold text-white flex items-center gap-2'>
@@ -124,69 +189,26 @@ export default function RateLimitUsage() {
                                 d='M13 10V3L4 14h7v7l9-11h-7z'
                             />
                         </svg>
-                        API Rate Limit
+                        {t('dashboard.rateLimits.title')}
                     </h3>
-                    <p className='text-sm text-slate-400 mt-1'>Hourly request usage</p>
+                    <p className='text-sm text-slate-400 mt-1'>
+                        {isAdmin
+                            ? t('dashboard.rateLimits.adminUnlimited')
+                            : `${rateLimitData.tierName} tier (hourly limits)`}
+                    </p>
+                    {!isAdmin && rateLimitData.operations.length > 0 && (
+                        <p className='text-xs text-slate-500 mt-1'>
+                            {formatResetTime(rateLimitData.operations[0].resetTime)}
+                        </p>
+                    )}
                 </div>
-                <div className='text-right'>
-                    <div className={`text-2xl font-bold ${textColor}`}>
-                        {isAdmin ? '∞' : `${current}/${max}`}
-                    </div>
-                    <div className='text-xs text-slate-500'>
-                        {isAdmin ? 'Unlimited' : `${remaining} remaining`}
-                    </div>
-                </div>
+                <Link href='/dashboard/usage' className='text-xs text-purple-400 hover:text-purple-300 underline'>
+                    {t('dashboard.rateLimits.viewAnalytics')}
+                </Link>
             </div>
 
-            {!isAdmin && (
-                <>
-                    <div className='mb-4'>
-                        <div className='w-full bg-slate-700 rounded-full h-3 overflow-hidden'>
-                            <div
-                                className={`h-full ${progressColor} transition-all duration-500 ease-out`}
-                                style={{ width: `${Math.min(usagePercent, 100)}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                        <div>
-                            <p className='text-slate-500'>Usage</p>
-                            <p className={`font-semibold ${textColor}`}>
-                                {usagePercent.toFixed(1)}%
-                            </p>
-                        </div>
-                        <div>
-                            <p className='text-slate-500'>Resets in</p>
-                            <p className='font-semibold text-white'>{timeUntilReset}</p>
-                        </div>
-                    </div>
-
-                    {isOverLimit && (
-                        <div className='mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg'>
-                            <p className='text-red-300 text-sm font-medium'>
-                                ⚠️ Rate limit exceeded
-                            </p>
-                            <p className='text-red-400 text-xs mt-1'>
-                                Your requests will be throttled until the limit resets.
-                            </p>
-                        </div>
-                    )}
-                    {isNearLimit && !isOverLimit && (
-                        <div className='mt-4 p-3 bg-orange-900/30 border border-orange-500/50 rounded-lg'>
-                            <p className='text-orange-300 text-sm font-medium'>
-                                ⚡ Approaching rate limit
-                            </p>
-                            <p className='text-orange-400 text-xs mt-1'>
-                                You've used {usagePercent.toFixed(0)}% of your hourly quota.
-                            </p>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {isAdmin && (
-                <div className='mt-4 p-3 bg-purple-900/30 border border-purple-500/50 rounded-lg'>
+            {isAdmin ? (
+                <div className='mt-4 p-4 bg-purple-900/30 border border-purple-500/50 rounded-lg'>
                     <p className='text-purple-300 text-sm font-medium flex items-center gap-2'>
                         <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                             <path
@@ -195,11 +217,70 @@ export default function RateLimitUsage() {
                                 clipRule='evenodd'
                             />
                         </svg>
-                        Admin - Unlimited Requests
+                        {t('dashboard.rateLimits.noRateLimits')}
                     </p>
                     <p className='text-purple-400 text-xs mt-1'>
-                        As an administrator, you have no rate limits.
+                        {t('dashboard.rateLimits.unlimitedRequests')}
                     </p>
+                </div>
+            ) : (
+                <div className='space-y-3'>
+                    {rateLimitData.operations.map((op, index) => {
+                        const colors = getOperationColor(op);
+                        return (
+                            <div
+                                key={index}
+                                className={`border ${colors.border} ${colors.bg} rounded-lg p-3`}
+                            >
+                                <div className='flex items-center justify-between mb-2'>
+                                    <div className='flex items-center gap-2'>
+                                        <div className='text-slate-400'>
+                                            {getOperationIcon(op.operation)}
+                                        </div>
+                                        <div>
+                                            <div className='text-sm font-medium text-white'>
+                                                {op.operation === 'Expensive'
+                                                    ? 'File Uploads'
+                                                    : `${op.operation} Operations`}
+                                            </div>
+                                            <div className='text-xs text-slate-500'>
+                                                {op.operation === 'Read' && 'GET requests'}
+                                                {op.operation === 'Write' &&
+                                                    'POST, PUT, DELETE, PATCH'}
+                                                {op.operation === 'Expensive' && 'File operations'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='text-right'>
+                                        <div className={`text-lg font-bold ${colors.text}`}>
+                                            {op.current}/{op.limit}
+                                        </div>
+                                        <div className='text-xs text-slate-500'>
+                                            {op.remaining} {t('dashboard.rateLimits.left')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className='w-full bg-slate-700/50 rounded-full h-2 overflow-hidden'>
+                                    <div
+                                        className={`h-full ${colors.progress} transition-all duration-500 ease-out`}
+                                        style={{ width: `${Math.min(op.usagePercent, 100)}%` }}
+                                    />
+                                </div>
+
+                                {op.isOverLimit && (
+                                    <div className='mt-2 text-xs text-red-300'>
+                                        ⚠️ Limit exceeded - requests throttled
+                                    </div>
+                                )}
+                                {op.isNearLimit && !op.isOverLimit && (
+                                    <div className='mt-2 text-xs text-orange-300'>
+                                        ⚡ {op.usagePercent.toFixed(0)}% used
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>

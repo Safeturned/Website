@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { api } from '@/lib/api-client';
 
 export interface ChunkedUploadState {
     isUploading: boolean;
@@ -59,6 +60,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
     const startTimeRef = useRef<number>(0);
     const uploadedBytesRef = useRef<number>(0);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const isUploadingRef = useRef<boolean>(false);
 
     const computeFileHash = useCallback(async (file: File): Promise<string> => {
         const arrayBuffer = await file.arrayBuffer();
@@ -90,23 +92,25 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
             const remainingBytes = totalBytes - uploadedBytes;
             const eta = speed > 0 ? remainingBytes / speed : 0;
 
-            const newState: ChunkedUploadState = {
-                isUploading: true,
-                progress,
-                currentChunk,
-                totalChunks,
-                sessionId: state.sessionId,
-                error: null,
-                speed,
-                eta,
-                status,
-                isPreparing: false,
-            };
+            setState(prevState => {
+                const newState: ChunkedUploadState = {
+                    isUploading: true,
+                    progress,
+                    currentChunk,
+                    totalChunks,
+                    sessionId: prevState.sessionId,
+                    error: null,
+                    speed,
+                    eta,
+                    status,
+                    isPreparing: false,
+                };
 
-            setState(newState);
-            onProgress?.(newState);
+                onProgress?.(newState);
+                return newState;
+            });
         },
-        [state.sessionId, onProgress]
+        [onProgress]
     );
 
     const uploadChunk = useCallback(
@@ -124,42 +128,9 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
                 formData.append('chunk', chunk);
                 formData.append('chunkHash', chunkHash);
 
-                const response = await fetch('/api/upload-chunked/chunk', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData,
+                await api.post('/api/upload-chunked/chunk', formData, {
                     signal: abortControllerRef.current?.signal,
                 });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    const errorMsg =
-                        errorData.error || `Upload failed with status ${response.status}`;
-
-                    if (
-                        response.status === 413 ||
-                        errorMsg.includes('size') ||
-                        errorMsg.includes('large')
-                    ) {
-                        throw new Error(
-                            `Chunk ${chunkIndex + 1} upload failed: File chunk too large. Please try again or contact support.`
-                        );
-                    } else if (response.status === 429) {
-                        throw new Error(
-                            'Rate limit exceeded during chunk upload. Please wait a moment before trying again.'
-                        );
-                    } else if (response.status === 401 || response.status === 403) {
-                        throw new Error(
-                            'Authentication error during chunk upload. Please try logging out and back in.'
-                        );
-                    } else if (response.status >= 500) {
-                        throw new Error(
-                            `Server error (${response.status}) during chunk ${chunkIndex + 1} upload. Our servers are experiencing issues. Please try again in a few moments.`
-                        );
-                    } else {
-                        throw new Error(`Chunk ${chunkIndex + 1} upload failed: ${errorMsg}`);
-                    }
-                }
 
                 return true;
             } catch (error) {
@@ -189,62 +160,18 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
             retryCount = 0
         ): Promise<string> => {
             try {
-                const response = await fetch('/api/upload-chunked/initiate', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
+                const result = await api.post<{ sessionId: string }>(
+                    '/api/upload-chunked/initiate',
+                    {
                         fileName,
                         fileSizeBytes,
                         fileHash,
                         totalChunks,
-                    }),
-                    signal: abortControllerRef.current?.signal,
-                });
+                    },
+                    { signal: abortControllerRef.current?.signal }
+                );
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    const errorMsg =
-                        errorData.error ||
-                        `Failed to initiate upload session with status ${response.status}`;
-
-                    if (
-                        response.status === 413 ||
-                        errorMsg.includes('size') ||
-                        errorMsg.includes('large')
-                    ) {
-                        throw new Error(
-                            `File too large: ${fileName} (${(fileSizeBytes / (1024 * 1024)).toFixed(2)} MB). Maximum file size exceeded.`
-                        );
-                    } else if (
-                        response.status === 415 ||
-                        errorMsg.includes('type') ||
-                        errorMsg.includes('format')
-                    ) {
-                        throw new Error(
-                            `Invalid file type: ${fileName}. Only .dll files are supported.`
-                        );
-                    } else if (response.status === 429) {
-                        throw new Error(
-                            'Rate limit exceeded. Please wait a moment before uploading again.'
-                        );
-                    } else if (response.status === 401 || response.status === 403) {
-                        throw new Error(
-                            'Authentication error. Please try logging out and back in.'
-                        );
-                    } else if (response.status >= 500) {
-                        throw new Error(
-                            `Server error (${response.status}). Our servers are experiencing issues. Please try again in a few moments.`
-                        );
-                    } else {
-                        throw new Error(errorMsg);
-                    }
-                }
-
-                const { sessionId } = await response.json();
-                return sessionId;
+                return result.sessionId;
             } catch (error) {
                 if (retryCount < maxRetries) {
                     console.warn(
@@ -270,10 +197,11 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
 
     const uploadFile = useCallback(
         async (file: File) => {
-            if (state.isUploading) {
+            if (isUploadingRef.current) {
                 throw new Error('Upload already in progress');
             }
 
+            isUploadingRef.current = true;
             setState(prev => ({
                 ...prev,
                 isUploading: true,
@@ -333,43 +261,13 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
 
                 setState(prev => ({ ...prev, status: MESSAGES.PROCESSING }));
 
-                const completeResponse = await fetch('/api/upload-chunked/complete', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ sessionId }),
-                    signal: abortControllerRef.current.signal,
-                });
+                const result = await api.post<Record<string, unknown>>(
+                    '/api/upload-chunked/complete',
+                    { sessionId },
+                    { signal: abortControllerRef.current.signal }
+                );
 
-                if (!completeResponse.ok) {
-                    const errorData = await completeResponse.json();
-                    const errorMsg = errorData.error || `Status ${completeResponse.status}`;
-
-                    if (completeResponse.status === 429) {
-                        throw new Error(
-                            'Rate limit exceeded while completing upload. Please wait a moment before trying again.'
-                        );
-                    } else if (completeResponse.status === 401 || completeResponse.status === 403) {
-                        throw new Error(
-                            'Authentication error while completing upload. Please try logging out and back in.'
-                        );
-                    } else if (completeResponse.status === 404) {
-                        throw new Error(
-                            'Upload session expired or not found. Please try uploading the file again.'
-                        );
-                    } else if (completeResponse.status >= 500) {
-                        throw new Error(
-                            `Server error (${completeResponse.status}) while completing upload. Our servers are experiencing issues. Please try again in a few moments.`
-                        );
-                    } else {
-                        throw new Error(errorMsg);
-                    }
-                }
-
-                const result = await completeResponse.json();
-
+                isUploadingRef.current = false;
                 setState(prev => ({
                     ...prev,
                     isUploading: false,
@@ -402,6 +300,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
                     errorMessage = 'An unexpected error occurred during upload. Please try again.';
                 }
 
+                isUploadingRef.current = false;
                 setState(prev => ({
                     ...prev,
                     isUploading: false,
@@ -414,7 +313,6 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
             }
         },
         [
-            state.isUploading,
             chunkSize,
             computeFileHash,
             computeChunkHash,
@@ -429,9 +327,10 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
     const cancelUpload = useCallback(() => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
-            abortControllerRef.current = null; // Clean up reference
+            abortControllerRef.current = null;
         }
 
+        isUploadingRef.current = false;
         setState(prev => ({
             ...prev,
             isUploading: false,
@@ -441,6 +340,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
     }, []);
 
     const reset = useCallback(() => {
+        isUploadingRef.current = false;
         setState({
             isUploading: false,
             progress: 0,

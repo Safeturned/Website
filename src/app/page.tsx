@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation';
+import HomePage, { dynamic } from './[locale]/page';
+
+export { dynamic };
 
 export default function RootPage() {
-    redirect('/en');
+    return <HomePage />;
 }

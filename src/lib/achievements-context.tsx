@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { STORAGE_KEYS } from './storage-constants';
 
 export interface Achievement {
     id: string;
@@ -22,8 +23,6 @@ interface AchievementsContextType {
 }
 
 const AchievementsContext = createContext<AchievementsContextType | undefined>(undefined);
-
-const ACHIEVEMENTS_STORAGE_KEY = 'safeturned_achievements';
 
 const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     {
@@ -93,9 +92,10 @@ const DEFAULT_ACHIEVEMENTS: Achievement[] = [
 export function AchievementsProvider({ children }: { children: ReactNode }) {
     const [achievements, setAchievements] = useState<Achievement[]>(DEFAULT_ACHIEVEMENTS);
     const [showAchievementToast, setShowAchievementToast] = useState<Achievement | null>(null);
+    const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        const stored = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
+        const stored = localStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -104,11 +104,17 @@ export function AchievementsProvider({ children }: { children: ReactNode }) {
                 console.error('Failed to parse achievements:', error);
             }
         }
+
+        return () => {
+            if (toastTimeoutRef.current) {
+                clearTimeout(toastTimeoutRef.current);
+            }
+        };
     }, []);
 
     const saveAchievements = (newAchievements: Achievement[]) => {
         setAchievements(newAchievements);
-        localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(newAchievements));
+        localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(newAchievements));
     };
 
     const unlockAchievement = (id: string) => {
@@ -122,8 +128,13 @@ export function AchievementsProvider({ children }: { children: ReactNode }) {
         saveAchievements(newAchievements);
         setShowAchievementToast(newAchievements.find(a => a.id === id) || null);
 
-        setTimeout(() => {
+        if (toastTimeoutRef.current) {
+            clearTimeout(toastTimeoutRef.current);
+        }
+
+        toastTimeoutRef.current = setTimeout(() => {
             setShowAchievementToast(null);
+            toastTimeoutRef.current = null;
         }, 5000);
     };
 
@@ -144,6 +155,10 @@ export function AchievementsProvider({ children }: { children: ReactNode }) {
     };
 
     const dismissToast = () => {
+        if (toastTimeoutRef.current) {
+            clearTimeout(toastTimeoutRef.current);
+            toastTimeoutRef.current = null;
+        }
         setShowAchievementToast(null);
     };
 

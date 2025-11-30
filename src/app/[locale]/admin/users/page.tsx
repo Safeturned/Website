@@ -8,6 +8,7 @@ import { TIER_BADGE_COLORS } from '@/lib/tierConstants';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
 
 interface User {
@@ -36,7 +37,7 @@ interface UsersResponse {
 
 export default function AdminUsersPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [usersData, setUsersData] = useState<UsersResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function AdminUsersPage() {
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || !user?.isAdmin)) {
-            router.push(`/${locale}`);
+            router.push('/');
             return;
         }
 
@@ -319,7 +320,7 @@ export default function AdminUsersPage() {
                 <div className='max-w-7xl mx-auto'>
                     <div className='mb-8'>
                         <Link
-                            href={`/${locale}/admin`}
+                            href='/admin'
                             className='text-purple-400 hover:text-purple-300 transition-colors mb-4 inline-flex items-center gap-2'
                         >
                             <svg
@@ -365,7 +366,7 @@ export default function AdminUsersPage() {
                                         'admin.userManagement.searchPlaceholder',
                                         'Email or username...'
                                     )}
-                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500'
+                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                                 />
                             </div>
                             <div>
@@ -380,7 +381,7 @@ export default function AdminUsersPage() {
                                         );
                                         setPage(1);
                                     }}
-                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
+                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                                 >
                                     <option value=''>{t('admin.userManagement.allTiers')}</option>
                                     <option value='0'>{t('admin.userManagement.tierFree')}</option>
@@ -404,7 +405,7 @@ export default function AdminUsersPage() {
                                         );
                                         setPage(1);
                                     }}
-                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
+                                    className='w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                                 >
                                     <option value=''>{t('admin.userManagement.allUsers')}</option>
                                     <option value='true'>
@@ -800,7 +801,7 @@ export default function AdminUsersPage() {
                                                             placeholder={t(
                                                                 'admin.userManagement.botKey.keyNamePlaceholder'
                                                             )}
-                                                            className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500'
+                                                            className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500'
                                                         />
                                                     </div>
 
@@ -821,7 +822,7 @@ export default function AdminUsersPage() {
                                                                         ),
                                                                     })
                                                                 }
-                                                                className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500'
+                                                                className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500'
                                                             >
                                                                 <option value='0'>
                                                                     {t(
@@ -855,15 +856,20 @@ export default function AdminUsersPage() {
                                                             <input
                                                                 type='number'
                                                                 value={botKeyForm.requestsPerHour}
-                                                                onChange={e =>
+                                                                onChange={e => {
+                                                                    const value = parseInt(
+                                                                        e.target.value
+                                                                    );
                                                                     setBotKeyForm({
                                                                         ...botKeyForm,
-                                                                        requestsPerHour: parseInt(
-                                                                            e.target.value
-                                                                        ),
-                                                                    })
-                                                                }
-                                                                className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500'
+                                                                        requestsPerHour: isNaN(
+                                                                            value
+                                                                        )
+                                                                            ? 0
+                                                                            : value,
+                                                                    });
+                                                                }}
+                                                                className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500'
                                                             />
                                                         </div>
                                                     </div>
@@ -886,7 +892,7 @@ export default function AdminUsersPage() {
                                                             placeholder={t(
                                                                 'admin.userManagement.botKey.ipWhitelistPlaceholder'
                                                             )}
-                                                            className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-green-500'
+                                                            className='w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500'
                                                         />
                                                         <p className='text-xs text-gray-400 mt-1'>
                                                             {t(
@@ -983,6 +989,7 @@ export default function AdminUsersPage() {
                     )}
                 </div>
             </div>
+            <BackToTop />
             <Footer />
 
             {successMessage && (

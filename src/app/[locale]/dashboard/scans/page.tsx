@@ -2,12 +2,14 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
+import { encodeHashForUrl } from '@/lib/utils';
 
 interface ScanRecord {
     id: number;
@@ -38,47 +40,76 @@ interface ScanStats {
 
 export default function ScansPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [scans, setScans] = useState<ScanRecord[]>([]);
     const [stats, setStats] = useState<ScanStats | null>(null);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchFilter, setSearchFilter] = useState('');
+    const [debouncedSearchFilter, setDebouncedSearchFilter] = useState('');
     const [isLoadingScans, setIsLoadingScans] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push(`/${locale}/login?returnUrl=/dashboard/scans`);
+            router.push('/login?returnUrl=/dashboard/scans');
         }
-    }, [isAuthenticated, isLoading, router, locale]);
+    }, [isAuthenticated, isLoading, router]);
+
+    useEffect(() => {
+        if (searchDebounceRef.current) {
+            clearTimeout(searchDebounceRef.current);
+        }
+
+        searchDebounceRef.current = setTimeout(() => {
+            setDebouncedSearchFilter(searchFilter);
+            searchDebounceRef.current = null;
+        }, 500);
+
+        return () => {
+            if (searchDebounceRef.current) {
+                clearTimeout(searchDebounceRef.current);
+            }
+        };
+    }, [searchFilter]);
 
     useEffect(() => {
         if (isAuthenticated) {
-            fetchScans();
-            fetchStats();
-        }
-    }, [isAuthenticated, currentPage, searchFilter]);
+            abortControllerRef.current?.abort();
+            abortControllerRef.current = new AbortController();
+            fetchScans(abortControllerRef.current.signal);
+            fetchStats(abortControllerRef.current.signal);
 
-    const fetchScans = async () => {
+            return () => {
+                abortControllerRef.current?.abort();
+            };
+        }
+    }, [isAuthenticated, currentPage, debouncedSearchFilter]);
+
+    const fetchScans = async (signal?: AbortSignal) => {
         try {
             setIsLoadingScans(true);
             setError(null);
             const params = new URLSearchParams({
                 page: currentPage.toString(),
                 pageSize: '20',
-                ...(searchFilter && { filter: searchFilter }),
+                ...(debouncedSearchFilter && { filter: debouncedSearchFilter }),
             });
 
             const data = await api.get<{ scans: ScanRecord[]; pagination: PaginationInfo }>(
-                `users/me/scans?${params}`
+                `users/me/scans?${params}`,
+                { signal }
             );
 
-            console.log('Scans data received:', data);
             setScans(data.scans || []);
             setPagination(data.pagination);
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Error fetching scans:', err);
             setError(err instanceof Error ? err.message : 'Failed to load scans');
         } finally {
@@ -86,12 +117,14 @@ export default function ScansPage() {
         }
     };
 
-    const fetchStats = async () => {
+    const fetchStats = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<ScanStats>('users/me/scans/stats');
-            console.log('Stats data received:', data);
+            const data = await api.get<ScanStats>('users/me/scans/stats', { signal });
             setStats(data);
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Failed to fetch stats:', err);
         }
     };
@@ -111,13 +144,13 @@ export default function ScansPage() {
         if (isThreat) {
             return (
                 <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-900/30 text-red-300 border border-red-700'>
-                    Threat Detected
+                    {t('scans.threatDetected')}
                 </span>
             );
         }
         return (
             <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-900/30 text-green-300 border border-green-700'>
-                Clean
+                {t('scans.cleanFile')}
             </span>
         );
     };
@@ -131,9 +164,9 @@ export default function ScansPage() {
     if (isLoading || !isAuthenticated || !user) {
         return (
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
-                <div className='text-center'>
-                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>Loading...</p>
+                <div className='text-center' role='status' aria-live='polite'>
+                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4' aria-hidden='true'></div>
+                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -146,7 +179,7 @@ export default function ScansPage() {
             <div className='max-w-7xl mx-auto px-6 py-12'>
                 <div className='mb-10'>
                     <Link
-                        href={`/${locale}/dashboard`}
+                        href='/dashboard'
                         className='text-purple-400 hover:text-purple-300 mb-3 inline-block text-sm'
                     >
                         {t('dashboard.backToDashboard')}
@@ -219,8 +252,8 @@ export default function ScansPage() {
                 )}
 
                 {isLoadingScans ? (
-                    <div className='text-center py-12'>
-                        <div className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500 mb-4'></div>
+                    <div className='text-center py-12' role='status' aria-live='polite'>
+                        <div className='inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500 mb-4' aria-hidden='true'></div>
                         <p className='text-slate-300'>{t('scans.loading', 'Loading scans...')}</p>
                     </div>
                 ) : scans.length === 0 ? (
@@ -245,7 +278,7 @@ export default function ScansPage() {
                             {t('scans.noScansDesc', 'Upload a file to see scan results here')}
                         </p>
                         <Link
-                            href={`/${locale}`}
+                            href='/'
                             className='inline-block bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors'
                         >
                             {t('dashboard.uploadFile')}
@@ -282,12 +315,8 @@ export default function ScansPage() {
                                                 className={`hover:bg-slate-900/30 transition-colors ${scan.fileHash ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}`}
                                                 onClick={() => {
                                                     if (scan.fileHash) {
-                                                        const urlSafeHash = scan.fileHash
-                                                            .replace(/\+/g, '-')
-                                                            .replace(/\//g, '_')
-                                                            .replace(/=+$/g, '');
                                                         router.push(
-                                                            `/${locale}/result/${urlSafeHash}`
+                                                            `/result/${encodeHashForUrl(scan.fileHash)}`
                                                         );
                                                     } else {
                                                         alert(
@@ -355,6 +384,7 @@ export default function ScansPage() {
                 )}
             </div>
 
+            <BackToTop />
             <Footer />
         </div>
     );

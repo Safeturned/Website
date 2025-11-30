@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { API_VERSION } from '@/lib/server-auth-helper';
 
 const FALLBACK_DATA = {
     totalFilesScanned: 0,
@@ -32,7 +33,7 @@ export async function GET() {
             return NextResponse.json(FALLBACK_DATA);
         }
 
-        const response = await fetch(`${apiUrl}/v1.0/files/analytics`, {
+        const response = await fetch(`${apiUrl}/${API_VERSION}/files/analytics`, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',

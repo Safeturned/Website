@@ -56,11 +56,15 @@ export default function AuthCallbackPage() {
                     userData.returnUrl || sessionStorage.getItem('auth_return_url') || '/en';
                 sessionStorage.removeItem('auth_return_url');
 
-                if (!returnUrl.startsWith('/en/') && !returnUrl.startsWith('/ru/')) {
+                if (!returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+                    returnUrl = '/en/dashboard';
+                } else if (returnUrl.startsWith('/login')) {
+                    returnUrl = '/en/dashboard';
+                } else if (!returnUrl.startsWith('/en/') && !returnUrl.startsWith('/ru/')) {
                     if (returnUrl.startsWith('/')) {
                         returnUrl = `/en${returnUrl}`;
                     } else {
-                        returnUrl = `/en/${returnUrl}`;
+                        returnUrl = `/en/dashboard`;
                     }
                 }
 

@@ -1,44 +1,28 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 import ru from '../locales/ru.json';
 import en from '../locales/en.json';
+import { useLanguage } from '@/lib/language-context';
+import { Locale } from '@/lib/i18n-config';
+
+const getByPath = (obj: Record<string, unknown>, path: string) => {
+    return path
+        .split('.')
+        .reduce<unknown>(
+            (acc, key) =>
+                acc && typeof acc === 'object' && acc !== null && key in acc
+                    ? (acc as Record<string, unknown>)[key]
+                    : undefined,
+            obj
+        );
+};
 
 export function useTranslation() {
-    const pathname = usePathname();
-    const router = useRouter();
-
-    const supportedLocales = ['ru', 'en'] as const;
-
-    const locale = useMemo(() => {
-        if (!pathname) return 'en';
-
-        const cleanPathname = pathname.replace(/\/undefined/g, '');
-        const segments = cleanPathname.split('/').filter(Boolean);
-        const firstSegment = segments[0] || '';
-
-        const detectedLocale = supportedLocales.includes(firstSegment as 'ru' | 'en')
-            ? (firstSegment as 'ru' | 'en')
-            : 'en';
-
-        return detectedLocale || 'en';
-    }, [pathname]);
+    const { locale, changeLanguage } = useLanguage();
 
     const messages =
         locale === 'ru' ? (ru as Record<string, unknown>) : (en as Record<string, unknown>);
-
-    const getByPath = (obj: Record<string, unknown>, path: string) => {
-        return path
-            .split('.')
-            .reduce<unknown>(
-                (acc, key) =>
-                    acc && typeof acc === 'object' && acc !== null && key in acc
-                        ? (acc as Record<string, unknown>)[key]
-                        : undefined,
-                obj
-            );
-    };
 
     const t = useCallback(
         (key: string, fallback?: string, variables?: Record<string, unknown>) => {
@@ -47,7 +31,8 @@ export function useTranslation() {
 
             if (variables) {
                 Object.entries(variables).forEach(([varKey, varValue]) => {
-                    result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), String(varValue));
+                    const escapedKey = varKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    result = result.replace(new RegExp(`{{${escapedKey}}}`, 'g'), String(varValue));
                 });
             }
 
@@ -56,28 +41,18 @@ export function useTranslation() {
         [messages]
     );
 
-    const changeLanguage = useCallback(
-        (newLocale: 'ru' | 'en') => {
+    const handleLanguageChange = useCallback(
+        (newLocale: Locale) => {
             if (newLocale === locale) return;
-
-            document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-
-            const segments = (pathname || '/').split('/');
-            if (segments.length > 1 && supportedLocales.includes(segments[1] as 'ru' | 'en')) {
-                segments[1] = newLocale;
-            } else {
-                segments.splice(1, 0, newLocale);
-            }
-            const newPath = segments.join('/') || `/${newLocale}`;
-            router.push(newPath);
+            changeLanguage(newLocale);
         },
-        [locale, pathname, router]
+        [changeLanguage, locale]
     );
 
     return {
         t,
         locale,
-        changeLanguage,
+        changeLanguage: handleLanguageChange,
         isRTL: false,
     };
 }

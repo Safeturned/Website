@@ -5,6 +5,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
+        if (!body.sessionId || typeof body.sessionId !== 'string') {
+            return NextResponse.json({ error: 'Invalid sessionId' }, { status: 400 });
+        }
+
         const { data: result } = await serverApiRequest(request, 'files/upload/complete', {
             method: 'POST',
             body,

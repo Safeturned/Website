@@ -9,7 +9,9 @@ import {
     getTierBgColor,
     getTierBorderColor,
     getTierBadgeColor,
-    getTierRateLimit,
+    getTierRateLimitNumber,
+    getTierWriteLimit,
+    getTierUploadLimit,
     TIER_FREE,
     TIER_VERIFIED,
     TIER_PREMIUM,
@@ -19,10 +21,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import ApiPlayground from '@/components/ApiPlayground';
 import BackToTop from '@/components/BackToTop';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
-type CodeLanguage = 'csharp' | 'curl' | 'javascript' | 'python';
+type CodeLanguage = 'unity' | 'csharp' | 'curl' | 'javascript' | 'python';
 
 const languageMap: Record<CodeLanguage, string> = {
+    unity: 'csharp',
     csharp: 'csharp',
     curl: 'bash',
     javascript: 'javascript',
@@ -57,10 +61,10 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language, customStyle }) =>
 };
 
 export default function DocsPage() {
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const { user, isAuthenticated } = useAuth();
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
-    const [selectedLanguage, setSelectedLanguage] = useState<CodeLanguage>('csharp');
+    const [selectedLanguage, setSelectedLanguage] = useState<CodeLanguage>('unity');
     const [selectedChunkedLanguage, setSelectedChunkedLanguage] = useState<CodeLanguage>('csharp');
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
@@ -83,7 +87,8 @@ export default function DocsPage() {
     };
 
     const codeExamples: Record<CodeLanguage, { name: string; code: string; id: string }> = {
-        csharp: { name: 'C#', code: csharpExample, id: 'csharp' },
+        unity: { name: 'Unity C# (Unturned)', code: unityExample, id: 'unity' },
+        csharp: { name: 'C# (.NET)', code: csharpExample, id: 'csharp' },
         curl: { name: 'cURL', code: curlExample, id: 'curl' },
         javascript: { name: 'JavaScript (Node.js)', code: jsExample, id: 'js' },
         python: { name: 'Python', code: pythonExample, id: 'python' },
@@ -105,7 +110,7 @@ export default function DocsPage() {
         <div className='min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900'>
             <div className='max-w-4xl mx-auto px-6 py-12'>
                 <Link
-                    href={`/${locale}`}
+                    href='/'
                     className='inline-flex items-center text-gray-400 hover:text-purple-300 transition-colors mb-8'
                 >
                     ← {t('docs.backToHome')}
@@ -124,7 +129,7 @@ export default function DocsPage() {
                                 {!isAuthenticated && (
                                     <li>
                                         <Link
-                                            href={`/${locale}/login`}
+                                            href='/login'
                                             className='text-purple-400 hover:text-purple-300'
                                         >
                                             {t('docs.gettingStarted.signIn')}
@@ -135,7 +140,7 @@ export default function DocsPage() {
                                 <li>
                                     {t('docs.gettingStarted.step2')}{' '}
                                     <Link
-                                        href={`/${locale}/dashboard/api-keys`}
+                                        href='/dashboard/api-keys'
                                         className='text-purple-400 hover:text-purple-300'
                                     >
                                         {t('docs.gettingStarted.apiKeysPage')}
@@ -174,10 +179,27 @@ export default function DocsPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>
-                                        {getTierRateLimit(TIER_FREE)}/hour
+                                    <div className='text-lg font-bold text-white leading-tight'>
+                                        <span className='text-green-400'>
+                                            {getTierRateLimitNumber(TIER_FREE).toLocaleString()}
+                                        </span>{' '}
+                                        {t('dashboard.reads')}
+                                        <br />
+                                        <span className='text-blue-400'>
+                                            {getTierWriteLimit(TIER_FREE)}
+                                        </span>{' '}
+                                        {t('dashboard.writes')}
+                                        <br />
+                                        <span className='text-purple-400'>
+                                            {getTierUploadLimit(TIER_FREE)}
+                                        </span>{' '}
+                                        {t('dashboard.uploads')}
+                                        <br />
+                                        <span className='text-xs text-gray-400'>
+                                            {t('dashboard.perHour')}
+                                        </span>
                                     </div>
-                                    <div className='text-gray-400 text-sm'>
+                                    <div className='text-gray-400 text-sm mt-2'>
                                         {t('docs.rateLimits.freeDesc')}
                                     </div>
                                 </div>
@@ -202,10 +224,27 @@ export default function DocsPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>
-                                        {getTierRateLimit(TIER_VERIFIED)}/hour
+                                    <div className='text-lg font-bold text-white leading-tight'>
+                                        <span className='text-green-400'>
+                                            {getTierRateLimitNumber(TIER_VERIFIED).toLocaleString()}
+                                        </span>{' '}
+                                        {t('dashboard.reads')}
+                                        <br />
+                                        <span className='text-blue-400'>
+                                            {getTierWriteLimit(TIER_VERIFIED)}
+                                        </span>{' '}
+                                        {t('dashboard.writes')}
+                                        <br />
+                                        <span className='text-purple-400'>
+                                            {getTierUploadLimit(TIER_VERIFIED)}
+                                        </span>{' '}
+                                        {t('dashboard.uploads')}
+                                        <br />
+                                        <span className='text-xs text-gray-400'>
+                                            {t('dashboard.perHour')}
+                                        </span>
                                     </div>
-                                    <div className='text-gray-400 text-sm'>
+                                    <div className='text-gray-400 text-sm mt-2'>
                                         {t('docs.rateLimits.verifiedDesc')}
                                     </div>
                                 </div>
@@ -230,10 +269,27 @@ export default function DocsPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <div className='text-2xl font-bold text-white'>
-                                        {getTierRateLimit(TIER_PREMIUM)}/hour
+                                    <div className='text-lg font-bold text-white leading-tight'>
+                                        <span className='text-green-400'>
+                                            {getTierRateLimitNumber(TIER_PREMIUM).toLocaleString()}
+                                        </span>{' '}
+                                        {t('dashboard.reads')}
+                                        <br />
+                                        <span className='text-blue-400'>
+                                            {getTierWriteLimit(TIER_PREMIUM)}
+                                        </span>{' '}
+                                        {t('dashboard.writes')}
+                                        <br />
+                                        <span className='text-purple-400'>
+                                            {getTierUploadLimit(TIER_PREMIUM)}
+                                        </span>{' '}
+                                        {t('dashboard.uploads')}
+                                        <br />
+                                        <span className='text-xs text-gray-400'>
+                                            {t('dashboard.perHour')}
+                                        </span>
                                     </div>
-                                    <div className='text-gray-400 text-sm'>
+                                    <div className='text-gray-400 text-sm mt-2'>
                                         {t('docs.rateLimits.premiumDesc')}
                                     </div>
                                 </div>
@@ -306,7 +362,7 @@ export default function DocsPage() {
                                             </li>
                                             <li>
                                                 <code className='text-purple-400'>
-                                                    POST /v1.0/files/upload/finalize
+                                                    POST /v1.0/files/upload/complete
                                                 </code>{' '}
                                                 - {t('docs.endpoints.chunkedUpload.step3')}
                                             </li>
@@ -669,6 +725,107 @@ export default function DocsPage() {
 
                     <section>
                         <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('docs.badgeTokens.title')}
+                        </h2>
+                        <div className='bg-slate-700/40 backdrop-blur-sm border border-slate-600/50 rounded-lg p-6'>
+                            <p className='text-gray-300 mb-4'>
+                                {t('docs.badgeTokens.description')}
+                            </p>
+
+                            <div className='space-y-4'>
+                                <div>
+                                    <h3 className='text-lg font-semibold text-white mb-3'>{t('docs.badgeTokens.howItWorks')}</h3>
+                                    <ol className='list-decimal list-inside space-y-2 text-gray-300 ml-4'>
+                                        <li>{t('docs.badgeTokens.step1')}</li>
+                                        <li>{t('docs.badgeTokens.step2')}</li>
+                                        <li>{t('docs.badgeTokens.step3')}</li>
+                                        <li>{t('docs.badgeTokens.step4')}</li>
+                                    </ol>
+                                </div>
+
+                                <div className='bg-purple-900/20 border border-purple-500/20 rounded-lg p-4'>
+                                    <div className='flex items-center gap-2 mb-2'>
+                                        <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                                        </svg>
+                                        <span className='text-purple-300 font-semibold text-sm'>{t('docs.badgeTokens.createBadgesTitle')}</span>
+                                    </div>
+                                    <p className='text-slate-300 text-sm'>
+                                        {t('docs.badgeTokens.createBadgesDescription')}
+                                    </p>
+                                    <Link
+                                        href='/dashboard/badges'
+                                        className='inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 text-sm font-medium underline underline-offset-2 mt-2'
+                                    >
+                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                                        </svg>
+                                        {t('docs.badgeTokens.goToBadgesDashboard')}
+                                    </Link>
+                                </div>
+
+                                <div className='bg-green-900/20 border border-green-500/20 rounded-lg p-4'>
+                                    <h4 className='text-green-300 font-semibold text-sm mb-3 flex items-center gap-2'>
+                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                                        </svg>
+                                        {t('docs.badgeTokens.usingToken')}
+                                    </h4>
+                                    <p className='text-gray-300 text-sm mb-3'>
+                                        {t('docs.badgeTokens.usingTokenDescription')}
+                                    </p>
+                                    <CodeBlock
+                                        code={`curl -X POST ${API_BASE_URL}/v1.0/files \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -F "file=@/path/to/your/plugin.dll" \\
+  -F "forceAnalyze=false" \\
+  -F "badgeToken=YOUR_BADGE_TOKEN"`}
+                                        language='bash'
+                                        customStyle={{ padding: '0.75rem' }}
+                                    />
+                                </div>
+
+                                <div className='bg-blue-900/20 border border-blue-500/20 rounded-lg p-4'>
+                                    <h4 className='text-blue-300 font-semibold text-sm mb-2 flex items-center gap-2'>
+                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                        </svg>
+                                        {t('docs.badgeTokens.howMatching')}
+                                    </h4>
+                                    <p className='text-gray-300 text-sm'>
+                                        {t('docs.badgeTokens.howMatchingDescription')}
+                                    </p>
+                                </div>
+
+                                <div className='bg-red-900/20 border border-red-500/20 rounded-lg p-4'>
+                                    <h4 className='text-red-300 font-semibold text-sm mb-2 flex items-center gap-2'>
+                                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                                        </svg>
+                                        {t('docs.badgeTokens.securityPractices')}
+                                    </h4>
+                                    <ul className='text-gray-300 text-sm space-y-1 list-disc list-inside ml-4'>
+                                        <li>{t('docs.badgeTokens.securityTip1')}</li>
+                                        <li>{t('docs.badgeTokens.securityTip2')}</li>
+                                        <li>{t('docs.badgeTokens.securityTip3')}</li>
+                                        <li>{t('docs.badgeTokens.securityTip4')}</li>
+                                    </ul>
+                                </div>
+
+                                <div className='bg-purple-900/20 border border-purple-500/20 rounded-lg p-4'>
+                                    <h4 className='text-purple-300 font-semibold text-sm mb-2'>
+                                        {t('docs.badgeTokens.cicdTitle')}
+                                    </h4>
+                                    <p className='text-gray-300 text-sm'>
+                                        {t('docs.badgeTokens.cicdDescription')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
                             {t('docs.playground.title')}
                         </h2>
                         <p className='text-gray-300 mb-6'>{t('docs.playground.intro')}</p>
@@ -691,13 +848,15 @@ export default function DocsPage() {
                                         <span
                                             className={`px-2 py-1 rounded text-xs ${getTierBgColor(TIER_FREE)} ${getTierTextColor(TIER_FREE)}`}
                                         >
-                                            Default
+                                            {t('docs.tierFeatures.default')}
                                         </span>
                                     </div>
                                     <ul className='space-y-2 text-sm text-gray-300'>
                                         <li>
                                             <span className='font-semibold'>
-                                                {getTierRateLimit(TIER_FREE)} requests/hour
+                                                {getTierRateLimitNumber(TIER_FREE).toLocaleString()}{' '}
+                                                reads, {getTierWriteLimit(TIER_FREE)} writes,{' '}
+                                                {getTierUploadLimit(TIER_FREE)} uploads/hour
                                             </span>
                                         </li>
                                         <li>
@@ -708,7 +867,7 @@ export default function DocsPage() {
                                             <span className='font-semibold'>Up to 3</span> active
                                             API keys
                                         </li>
-                                        <li>Community support</li>
+                                        <li>{t('docs.tierFeatures.communitySupport')}</li>
                                     </ul>
                                 </div>
 
@@ -723,7 +882,11 @@ export default function DocsPage() {
                                     <ul className='space-y-2 text-sm text-gray-300'>
                                         <li>
                                             <span className='font-semibold'>
-                                                {getTierRateLimit(TIER_VERIFIED)} requests/hour
+                                                {getTierRateLimitNumber(
+                                                    TIER_VERIFIED
+                                                ).toLocaleString()}{' '}
+                                                reads, {getTierWriteLimit(TIER_VERIFIED)} writes,{' '}
+                                                {getTierUploadLimit(TIER_VERIFIED)} uploads/hour
                                             </span>
                                         </li>
                                         <li>
@@ -734,7 +897,7 @@ export default function DocsPage() {
                                             <span className='font-semibold'>Up to 5</span> active
                                             API keys
                                         </li>
-                                        <li>Priority support</li>
+                                        <li>{t('docs.tierFeatures.prioritySupport')}</li>
                                     </ul>
                                 </div>
 
@@ -746,13 +909,19 @@ export default function DocsPage() {
                                             {getTierName(TIER_PREMIUM)}
                                         </h3>
                                         <span className='px-2 py-1 rounded text-xs bg-yellow-500/20 text-yellow-400'>
-                                            Recommended
+                                            {t('docs.tierFeatures.recommended')}
                                         </span>
                                     </div>
                                     <ul className='space-y-2 text-sm text-gray-300'>
                                         <li>
                                             <span className='font-semibold'>
-                                                {getTierRateLimit(TIER_PREMIUM)} requests/hour
+                                                {getTierRateLimitNumber(
+                                                    TIER_PREMIUM
+                                                ).toLocaleString()}{' '}
+                                                reads,{' '}
+                                                {getTierWriteLimit(TIER_PREMIUM).toLocaleString()}{' '}
+                                                writes, {getTierUploadLimit(TIER_PREMIUM)}{' '}
+                                                uploads/hour
                                             </span>
                                         </li>
                                         <li>
@@ -763,8 +932,8 @@ export default function DocsPage() {
                                             <span className='font-semibold'>Up to 10</span> active
                                             API keys
                                         </li>
-                                        <li>Priority support</li>
-                                        <li>Additional features and higher limits</li>
+                                        <li>{t('docs.tierFeatures.prioritySupport')}</li>
+                                        <li>{t('docs.tierFeatures.additionalFeatures')}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -772,9 +941,9 @@ export default function DocsPage() {
                             <div className='mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg'>
                                 <p className='text-sm text-gray-300'>
                                     <span className='font-semibold text-blue-400'>💡 Tip:</span>{' '}
-                                    Manage your API keys in the{' '}
+                                    {t('docs.tierFeatures.tipDesc')}{' '}
                                     <Link
-                                        href={`/${locale}/dashboard/api-keys`}
+                                        href='/dashboard/api-keys'
                                         className='text-purple-400 hover:text-purple-300 underline'
                                     >
                                         API Keys dashboard
@@ -823,7 +992,71 @@ export default function DocsPage() {
     );
 }
 
-const curlExample = `curl -X POST https://api.safeturned.com/v1.0/files \\
+const unityExample = `using System.Collections;
+using System.IO;
+using UnityEngine;
+using UnityEngine.Networking;
+
+// Best practice for Unturned plugins - uses Unity's built-in UnityWebRequest
+// No external dependencies required
+//
+// SECURITY NOTE: Never hardcode API keys in production code!
+// Load from encrypted config or environment variables instead.
+public class SafeturnedScanner : MonoBehaviour
+{
+    private const string API_KEY = "YOUR_API_KEY"; // TODO: Load from secure storage
+    private const string BASE_URL = "${API_BASE_URL}/v1.0";
+
+    public IEnumerator ScanPlugin(string pluginPath)
+    {
+        byte[] fileData = File.ReadAllBytes(pluginPath);
+        string fileName = Path.GetFileName(pluginPath);
+
+        List<IMultipartFormSection> formData = new List<IMultipartFormSection>
+        {
+            new MultipartFormFileSection("file", fileData, fileName, "application/octet-stream"),
+            new MultipartFormDataSection("forceAnalyze", "false")
+        };
+
+        using (UnityWebRequest www = UnityWebRequest.Post($"{BASE_URL}/files", formData))
+        {
+            www.SetRequestHeader("Authorization", $"Bearer {API_KEY}");
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                string response = www.downloadHandler.text;
+                Debug.Log($"Scan complete: {response}");
+
+                // Parse the response
+                var result = JsonUtility.FromJson<ScanResult>(response);
+                Debug.Log($"Risk Score: {result.score}/100");
+                Debug.Log($"File Hash: {result.hash}");
+            }
+            else
+            {
+                Debug.LogError($"Scan failed: {www.error}");
+                Debug.LogError($"Response: {www.downloadHandler.text}");
+            }
+        }
+    }
+}
+
+[System.Serializable]
+public class ScanResult
+{
+    public string fileName;
+    public string hash;
+    public int score;
+    public bool isNew;
+    public string message;
+}
+
+// Usage in Unturned plugin:
+// StartCoroutine(ScanPlugin("./Plugins/MyPlugin.dll"));`;
+
+const curlExample = `curl -X POST ${API_BASE_URL}/v1.0/files \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -F "file=@/path/to/your/plugin.dll" \\
   -F "forceAnalyze=false"`;
@@ -837,7 +1070,7 @@ async function scanFile(filePath) {
     form.append('file', fs.createReadStream(filePath));
     form.append('forceAnalyze', 'false');
 
-    const response = await fetch('https://api.safeturned.com/v1.0/files', {
+    const response = await fetch(`${API_BASE_URL}/v1.0/files`, {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer YOUR_API_KEY'
@@ -857,7 +1090,7 @@ scanFile('./MyPlugin.dll');`;
 const pythonExample = `import requests
 
 def scan_file(file_path):
-    url = 'https://api.safeturned.com/v1.0/files'
+    url = '${API_BASE_URL}/v1.0/files'
     headers = {
         'Authorization': 'Bearer YOUR_API_KEY'
     }
@@ -903,7 +1136,7 @@ public class SafeturnedClient
         form.Add(new StringContent("false"), "forceAnalyze");
 
         var response = await _client.PostAsync(
-            "https://api.safeturned.com/v1.0/files", form);
+            "${API_BASE_URL}/v1.0/files", form);
 
         var result = await response.Content.ReadAsStringAsync();
         Console.WriteLine($"Scan result: {result}");
@@ -933,86 +1166,162 @@ const errorExample401 = `{
 
 const errorExample429 = `{
   "error": "Rate limit exceeded",
-  "message": "You have exceeded the rate limit of 60 requests per hour.",
+  "message": "You have exceeded the read operation rate limit of 500 requests per hour.",
   "retryAfter": 1800,
-  "limit": 60,
-  "remaining": 0
+  "limit": 500,
+  "remaining": 0,
+  "operationTier": "Read",
+  "userTier": "Free"
 }`;
 
 const chunkedUploadCSharpExample = `using System;
+using System.Collections;
 using System.IO;
-using System.Net.Http;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
+using System.Text;
+using UnityEngine;
+using UnityEngine.Networking;
 
-public class ChunkedUploader
+[Serializable]
+public class InitiateUploadRequest
 {
-    private readonly HttpClient _client;
-    private const int ChunkSize = 5 * 1024 * 1024;
+    public string fileName;
+    public long fileSizeBytes;
+    public string fileHash;
+    public int totalChunks;
+}
 
-    public ChunkedUploader(string apiKey)
+[Serializable]
+public class InitiateUploadResponse
+{
+    public string sessionId;
+    public string message;
+}
+
+[Serializable]
+public class FinalizeUploadRequest
+{
+    public string sessionId;
+}
+
+public class ChunkedUploader : MonoBehaviour
+{
+    private const int ChunkSize = 5 * 1024 * 1024; // 5MB
+    private string _apiKey;
+
+    public void Initialize(string apiKey)
     {
-        _client = new HttpClient();
-        _client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+        _apiKey = apiKey;
     }
 
-    public async Task<string> UploadLargeFileAsync(string filePath)
+    public void UploadLargeFile(string filePath)
     {
-        var fileInfo = new FileInfo(filePath);
-        var fileHash = await ComputeFileHashAsync(filePath);
-        var totalChunks = (int)Math.Ceiling((double)fileInfo.Length / ChunkSize);
+        StartCoroutine(UploadLargeFileCoroutine(filePath));
+    }
 
-        var initPayload = new
+    private IEnumerator UploadLargeFileCoroutine(string filePath)
+    {
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        string fileName = Path.GetFileName(filePath);
+        string fileHash = ComputeFileHash(fileBytes);
+        int totalChunks = Mathf.CeilToInt((float)fileBytes.Length / ChunkSize);
+
+        // Step 1: Initiate upload
+        var initRequest = new InitiateUploadRequest
         {
-            fileName = fileInfo.Name,
-            fileSizeBytes = fileInfo.Length,
+            fileName = fileName,
+            fileSizeBytes = fileBytes.Length,
             fileHash = fileHash,
             totalChunks = totalChunks
         };
 
-        var initResponse = await _client.PostAsJsonAsync(
-            "https://api.safeturned.com/v1.0/files/upload/initiate", initPayload);
-        var sessionData = await initResponse.Content.ReadFromJsonAsync<dynamic>();
-        var sessionId = sessionData.sessionId;
-
-        using var fileStream = File.OpenRead(filePath);
-        for (int i = 0; i < totalChunks; i++)
+        string initJson = JsonUtility.ToJson(initRequest);
+        using (UnityWebRequest www = UnityWebRequest.Post(
+            "${API_BASE_URL}/v1.0/files/upload/initiate", initJson, "application/json"))
         {
-            var buffer = new byte[Math.Min(ChunkSize, fileInfo.Length - (i * ChunkSize))];
-            await fileStream.ReadAsync(buffer, 0, buffer.Length);
+            www.SetRequestHeader("Authorization", "Bearer " + _apiKey);
+            yield return www.SendWebRequest();
 
-            var form = new MultipartFormDataContent();
-            form.Add(new StringContent(sessionId), "sessionId");
-            form.Add(new StringContent(i.ToString()), "chunkIndex");
-            form.Add(new ByteArrayContent(buffer), "chunk", fileInfo.Name);
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Initiate failed: " + www.error);
+                yield break;
+            }
 
-            await _client.PostAsync("https://api.safeturned.com/v1.0/files/upload/chunk", form);
-            Console.WriteLine($"Uploaded chunk {i + 1}/{totalChunks}");
+            var response = JsonUtility.FromJson<InitiateUploadResponse>(www.downloadHandler.text);
+            string sessionId = response.sessionId;
+
+            // Step 2: Upload chunks
+            for (int i = 0; i < totalChunks; i++)
+            {
+                int offset = i * ChunkSize;
+                int chunkLength = Mathf.Min(ChunkSize, fileBytes.Length - offset);
+                byte[] chunk = new byte[chunkLength];
+                Array.Copy(fileBytes, offset, chunk, 0, chunkLength);
+
+                WWWForm form = new WWWForm();
+                form.AddField("sessionId", sessionId);
+                form.AddField("chunkIndex", i);
+                form.AddBinaryData("chunk", chunk, fileName);
+
+                using (UnityWebRequest chunkWww = UnityWebRequest.Post(
+                    "${API_BASE_URL}/v1.0/files/upload/chunk", form))
+                {
+                    chunkWww.SetRequestHeader("Authorization", "Bearer " + _apiKey);
+                    yield return chunkWww.SendWebRequest();
+
+                    if (chunkWww.result != UnityWebRequest.Result.Success)
+                    {
+                        Debug.LogError($"Chunk {i + 1} failed: " + chunkWww.error);
+                        yield break;
+                    }
+
+                    Debug.Log($"Uploaded chunk {i + 1}/{totalChunks}");
+                }
+            }
+
+            // Step 3: Finalize upload
+            var finalizeRequest = new FinalizeUploadRequest { sessionId = sessionId };
+            string finalizeJson = JsonUtility.ToJson(finalizeRequest);
+
+            using (UnityWebRequest finalizeWww = UnityWebRequest.Post(
+                "${API_BASE_URL}/v1.0/files/upload/complete", finalizeJson, "application/json"))
+            {
+                finalizeWww.SetRequestHeader("Authorization", "Bearer " + _apiKey);
+                yield return finalizeWww.SendWebRequest();
+
+                if (finalizeWww.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError("Finalize failed: " + finalizeWww.error);
+                    yield break;
+                }
+
+                Debug.Log("Upload completed: " + finalizeWww.downloadHandler.text);
+            }
         }
-
-        var finalizePayload = new { sessionId = sessionId };
-        var result = await _client.PostAsJsonAsync(
-            "https://api.safeturned.com/v1.0/files/upload/finalize", finalizePayload);
-
-        return await result.Content.ReadAsStringAsync();
     }
 
-    private async Task<string> ComputeFileHashAsync(string filePath)
+    private string ComputeFileHash(byte[] fileBytes)
     {
-        using var sha256 = SHA256.Create();
-        using var stream = File.OpenRead(filePath);
-        var hash = await sha256.ComputeHashAsync(stream);
-        return BitConverter.ToString(hash).Replace("-", "").ToLower();
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            byte[] hash = sha256.ComputeHash(fileBytes);
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
+        }
     }
-}`;
+}
+
+// Usage:
+// ChunkedUploader uploader = gameObject.AddComponent<ChunkedUploader>();
+// uploader.Initialize("YOUR_API_KEY");
+// uploader.UploadLargeFile("path/to/LargePlugin.dll");`;
 
 const chunkedUploadJsExample = `const fs = require('fs');
 const crypto = require('crypto');
 const FormData = require('form-data');
 const fetch = require('node-fetch');
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+const CHUNK_SIZE = 5 * 1024 * 1024;
 
 async function computeFileHash(filePath) {
     return new Promise((resolve, reject) => {
@@ -1029,7 +1338,7 @@ async function uploadLargeFile(filePath, apiKey) {
     const fileHash = await computeFileHash(filePath);
     const totalChunks = Math.ceil(stats.size / CHUNK_SIZE);
 
-    const initResponse = await fetch('https://api.safeturned.com/v1.0/files/upload/initiate', {
+    const initResponse = await fetch(\`${API_BASE_URL}/v1.0/files/upload/initiate\`, {
         method: 'POST',
         headers: {
             'Authorization': \`Bearer \${apiKey}\`,
@@ -1054,7 +1363,7 @@ async function uploadLargeFile(filePath, apiKey) {
         form.append('chunkIndex', chunkIndex.toString());
         form.append('chunk', chunk, { filename: filePath.split('/').pop() });
 
-        await fetch('https://api.safeturned.com/v1.0/files/upload/chunk', {
+        await fetch(\`${API_BASE_URL}/v1.0/files/upload/chunk\`, {
             method: 'POST',
             headers: { 'Authorization': \`Bearer \${apiKey}\` },
             body: form
@@ -1064,7 +1373,7 @@ async function uploadLargeFile(filePath, apiKey) {
         chunkIndex++;
     }
 
-    const finalizeResponse = await fetch('https://api.safeturned.com/v1.0/files/upload/finalize', {
+    const finalizeResponse = await fetch(\`${API_BASE_URL}/v1.0/files/upload/complete\`, {
         method: 'POST',
         headers: {
             'Authorization': \`Bearer \${apiKey}\`,
@@ -1101,7 +1410,7 @@ def upload_large_file(file_path, api_key):
 
     # Step 1: Initiate upload
     init_response = requests.post(
-        'https://api.safeturned.com/v1.0/files/upload/initiate',
+        '${API_BASE_URL}/v1.0/files/upload/initiate',
         headers=headers,
         json={
             'fileName': os.path.basename(file_path),
@@ -1124,7 +1433,7 @@ def upload_large_file(file_path, api_key):
             }
 
             requests.post(
-                'https://api.safeturned.com/v1.0/files/upload/chunk',
+                '${API_BASE_URL}/v1.0/files/upload/chunk',
                 headers=headers,
                 files=files,
                 data=data
@@ -1132,9 +1441,9 @@ def upload_large_file(file_path, api_key):
 
             print(f'Uploaded chunk {chunk_index + 1}/{total_chunks}')
 
-    # Step 3: Finalize upload
+    # Step 3: Complete upload
     finalize_response = requests.post(
-        'https://api.safeturned.com/v1.0/files/upload/finalize',
+        '${API_BASE_URL}/v1.0/files/upload/complete',
         headers=headers,
         json={'sessionId': session_id}
     )
@@ -1149,7 +1458,7 @@ const chunkedUploadCurlExample = `#!/bin/bash
 API_KEY="YOUR_API_KEY"
 FILE_PATH="./LargePlugin.dll"
 CHUNK_SIZE=5242880  # 5MB
-API_BASE="https://api.safeturned.com/v1.0/files/upload"
+API_BASE="${API_BASE_URL}/v1.0/files/upload"
 
 # Compute file hash
 FILE_HASH=$(sha256sum "$FILE_PATH" | awk '{print $1}')
@@ -1185,9 +1494,9 @@ for ((i=0; i<$TOTAL_CHUNKS; i++)); do
       -F "chunk=@-;filename=$FILE_NAME"
 done
 
-# Step 3: Finalize upload
-echo "Finalizing upload..."
-curl -X POST "$API_BASE/finalize" \\
+# Step 3: Complete upload
+echo "Completing upload..."
+curl -X POST "$API_BASE/complete" \\
   -H "Authorization: Bearer $API_KEY" \\
   -H "Content-Type: application/json" \\
   -d "{\\"sessionId\\": \\"$SESSION_ID\\"}"`;

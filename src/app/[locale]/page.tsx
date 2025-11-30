@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import StandardFileUpload from '@/components/StandardFileUpload';
-import { formatScanTime, computeFileHash } from '@/lib/utils';
+import { formatScanTime, computeFileHash, encodeHashForUrl } from '@/lib/utils';
+import { api } from '@/lib/api-client';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 
 interface SystemAnalytics {
     totalFilesScanned: number;
@@ -26,7 +28,7 @@ interface SystemAnalytics {
 export const dynamic = 'force-dynamic';
 
 export default function Page() {
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [isScanning, setIsScanning] = useState(false);
     const [systemAnalytics, setSystemAnalytics] = useState<SystemAnalytics | null>(null);
@@ -45,16 +47,16 @@ export default function Page() {
             if (result.id) {
                 hash = result.id;
             } else if (result.fileHash && typeof result.fileHash === 'string') {
-                hash = result.fileHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                hash = encodeHashForUrl(result.fileHash);
             } else if (result.hash && typeof result.hash === 'string') {
                 hash = result.hash;
             } else {
                 hash =
                     typeof result.fileHash === 'string' ? result.fileHash : Date.now().toString();
-                hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                hash = encodeHashForUrl(hash);
             }
 
-            router.push(`/${locale}/result/${hash}`);
+            router.push(`/result/${hash}`);
         },
         onError: (error: string) => {
             setError(error);
@@ -65,12 +67,8 @@ export default function Page() {
     const fetchSystemAnalytics = async () => {
         try {
             setIsLoadingAnalytics(true);
-            const response = await fetch('/api/analytics');
-
-            if (response.ok) {
-                const data = await response.json();
-                setSystemAnalytics(data);
-            }
+            const data = await api.get<SystemAnalytics>('/api/analytics');
+            setSystemAnalytics(data);
         } catch (error) {
             console.error('Failed to fetch system analytics:', error);
         } finally {
@@ -106,69 +104,22 @@ export default function Page() {
                 const formData = new FormData();
                 formData.append('file', file, file.name);
 
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    const errorMsg =
-                        errorData.error || `Upload failed with status ${response.status}`;
-
-                    if (
-                        response.status === 413 ||
-                        errorMsg.includes('size') ||
-                        errorMsg.includes('large')
-                    ) {
-                        throw new Error(
-                            `File too large: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB). Maximum file size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`
-                        );
-                    } else if (
-                        response.status === 415 ||
-                        errorMsg.includes('type') ||
-                        errorMsg.includes('format')
-                    ) {
-                        throw new Error(
-                            `Invalid file type: ${file.name}. Only .dll files are supported.`
-                        );
-                    } else if (response.status === 429) {
-                        throw new Error(
-                            'Rate limit exceeded. Please wait a moment before uploading again.'
-                        );
-                    } else if (response.status === 401 || response.status === 403) {
-                        throw new Error(
-                            'Authentication error. Please try logging out and back in.'
-                        );
-                    } else if (response.status >= 500) {
-                        throw new Error(
-                            `Server error (${response.status}). Our servers are experiencing issues. Please try again in a few moments.`
-                        );
-                    } else {
-                        throw new Error(errorMsg);
-                    }
-                }
-
-                const result = await response.json();
+                const result = await api.post('/api/upload', formData);
 
                 sessionStorage.setItem('uploadResult', JSON.stringify(result));
                 let hash;
                 if (result.id) {
                     hash = result.id;
                 } else if (result.fileHash) {
-                    hash = result.fileHash
-                        .replace(/\+/g, '-')
-                        .replace(/\//g, '_')
-                        .replace(/=+$/g, '');
+                    hash = encodeHashForUrl(result.fileHash);
                 } else if (result.hash) {
                     hash = result.hash;
                 } else {
                     hash = await computeFileHash(file);
-                    hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                    hash = encodeHashForUrl(hash);
                 }
 
-                router.push(`/${locale}/result/${hash}`);
+                router.push(`/result/${hash}`);
             }
         } catch (err) {
             if (err instanceof Error) {
@@ -196,18 +147,43 @@ export default function Page() {
         <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative'>
             <Navigation />
 
-            <section className='px-6 py-20'>
+            <section className='px-6 py-8 md:py-12'>
                 <div className='max-w-6xl mx-auto text-center'>
                     <div className='mb-8'>
+                        <div className='mb-6 flex justify-center'>
+                            <div
+                                className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-300 text-sm font-medium transition-all duration-700 ${
+                                    isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                                }`}
+                            >
+                                <svg
+                                    className='w-4 h-4'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                    aria-hidden='true'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                    />
+                                </svg>
+                                <span>{t('hero.featureBadge')}</span>
+                            </div>
+                        </div>
                         <h1
-                            className={`text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white transition-all duration-700 ${
+                            className={`text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 text-white transition-all duration-700 delay-100 ${
                                 isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                             }`}
                         >
-                            {t('hero.title')}
+                            <span className='bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent'>
+                                {t('hero.title')}
+                            </span>
                         </h1>
                         <p
-                            className={`text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${
+                            className={`text-lg md:text-xl text-gray-300 mb-6 max-w-3xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${
                                 isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                             }`}
                         >
@@ -219,21 +195,21 @@ export default function Page() {
                         <p className='text-xs text-gray-500 text-center leading-relaxed'>
                             {t('consent.prefix')}
                             <Link
-                                href={`/${locale}/terms`}
+                                href='/terms'
                                 className='text-purple-400 hover:text-purple-300 underline transition-colors duration-200'
                             >
                                 {t('consent.termsOfService')}
                             </Link>
                             {t('consent.and')}
                             <Link
-                                href={`/${locale}/privacy`}
+                                href='/privacy'
                                 className='text-purple-400 hover:text-purple-300 underline transition-colors duration-200'
                             >
                                 {t('consent.privacyNotice')}
                             </Link>
                             {t('consent.suffix')}
                             <Link
-                                href={`/${locale}/privacy`}
+                                href='/privacy'
                                 className='text-purple-400 hover:text-purple-300 underline transition-colors duration-200'
                             >
                                 {t('consent.learnMore')}
@@ -243,11 +219,11 @@ export default function Page() {
                     </div>
 
                     <div
-                        className={`max-w-2xl mx-auto mb-16 transition-all duration-700 delay-300 ${
+                        className={`max-w-2xl mx-auto mb-10 transition-all duration-700 delay-300 ${
                             isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                         }`}
                     >
-                        <div className='bg-slate-800/60 backdrop-blur-sm border border-purple-500/40 rounded-xl p-6 md:p-10 hover:border-purple-400/60 transition-all duration-300'>
+                        <div className='bg-slate-800/60 backdrop-blur-sm border border-purple-500/40 rounded-xl p-5 md:p-8 hover:border-purple-400/60 transition-all duration-300'>
                             <StandardFileUpload
                                 onFileSelect={handleFileSelect}
                                 onUpload={handleUpload}
@@ -292,14 +268,14 @@ export default function Page() {
                             {[1, 2, 3].map(i => (
                                 <div
                                     key={i}
-                                    className='bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-lg p-5 md:p-6 animate-pulse'
+                                    className='bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-lg p-5 md:p-6 overflow-hidden'
                                 >
-                                    <div className='h-10 bg-slate-700/50 rounded mb-2 w-3/4'></div>
-                                    <div className='h-5 bg-slate-700/50 rounded w-full'></div>
+                                    <div className='h-10 bg-slate-700/50 rounded mb-2 w-3/4 animate-shimmer'></div>
+                                    <div className='h-5 bg-slate-700/50 rounded w-full animate-shimmer'></div>
                                 </div>
                             ))}
                         </div>
-                    ) : systemAnalytics && systemAnalytics.totalFilesScanned > 0 ? (
+                    ) : systemAnalytics ? (
                         <>
                             <div
                                 className={`grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto transition-all duration-700 delay-400 ${
@@ -308,27 +284,81 @@ export default function Page() {
                                         : 'translate-y-10 opacity-0'
                                 }`}
                             >
-                                <div className='bg-slate-800/40 backdrop-blur-sm border border-purple-500/30 rounded-lg p-5 md:p-6 hover:bg-slate-800/60 hover:border-purple-400/50 transition-all duration-200'>
-                                    <div className='text-3xl md:text-4xl font-bold text-purple-400 mb-2'>
-                                        {systemAnalytics.totalFilesScanned.toLocaleString()}
+                                <div className='group bg-gradient-to-br from-slate-800/60 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-lg p-5 md:p-6 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105 cursor-default'>
+                                    <div className='flex items-center gap-3 mb-2'>
+                                        <div className='w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors'>
+                                            <svg
+                                                className='w-5 h-5 text-purple-400'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                viewBox='0 0 24 24'
+                                                aria-hidden='true'
+                                            >
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className='text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>
+                                            {systemAnalytics.totalFilesScanned.toLocaleString()}
+                                        </div>
                                     </div>
-                                    <div className='text-gray-300 text-sm md:text-base'>
+                                    <div className='text-sm md:text-base text-gray-300 font-medium'>
                                         {t('stats.checkedPlugins')}
                                     </div>
                                 </div>
-                                <div className='bg-slate-800/40 backdrop-blur-sm border border-red-500/30 rounded-lg p-5 md:p-6 hover:bg-slate-800/60 hover:border-red-400/50 transition-all duration-200'>
-                                    <div className='text-3xl md:text-4xl font-bold text-red-400 mb-2'>
-                                        {systemAnalytics.totalThreatsDetected.toLocaleString()}
+                                <div className='group bg-gradient-to-br from-slate-800/60 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-lg p-5 md:p-6 hover:border-red-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 hover:scale-105 cursor-default'>
+                                    <div className='flex items-center gap-3 mb-2'>
+                                        <div className='w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500/30 transition-colors'>
+                                            <svg
+                                                className='w-5 h-5 text-red-400'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                viewBox='0 0 24 24'
+                                                aria-hidden='true'
+                                            >
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className='text-3xl md:text-4xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent'>
+                                            {systemAnalytics.totalThreatsDetected.toLocaleString()}
+                                        </div>
                                     </div>
-                                    <div className='text-gray-300 text-sm md:text-base'>
+                                    <div className='text-sm md:text-base text-gray-300 font-medium'>
                                         {t('stats.threatsDetected')}
                                     </div>
                                 </div>
-                                <div className='bg-slate-800/40 backdrop-blur-sm border border-blue-500/30 rounded-lg p-5 md:p-6 hover:bg-slate-800/60 hover:border-blue-400/50 transition-all duration-200'>
-                                    <div className='text-3xl md:text-4xl font-bold text-blue-400 mb-2'>
-                                        {formatScanTime(systemAnalytics.averageScanTimeMs, t)}
+                                <div className='group bg-gradient-to-br from-slate-800/60 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-lg p-5 md:p-6 hover:border-green-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 hover:scale-105 cursor-default'>
+                                    <div className='flex items-center gap-3 mb-2'>
+                                        <div className='w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors'>
+                                            <svg
+                                                className='w-5 h-5 text-green-400'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                viewBox='0 0 24 24'
+                                                aria-hidden='true'
+                                            >
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M13 10V3L4 14h7v7l9-11h-7z'
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className='text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent'>
+                                            {formatScanTime(systemAnalytics.averageScanTimeMs, t)}
+                                        </div>
                                     </div>
-                                    <div className='text-gray-300 text-sm md:text-base'>
+                                    <div className='text-sm md:text-base text-gray-300 font-medium'>
                                         {t('stats.averageScanTime')}
                                     </div>
                                 </div>
@@ -469,6 +499,7 @@ export default function Page() {
                 </div>
             </section>
 
+            <BackToTop />
             <Footer />
         </div>
     );

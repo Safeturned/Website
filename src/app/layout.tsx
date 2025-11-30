@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
+import { LanguageProvider } from '@/lib/language-context';
+import { DEFAULT_LOCALE, Locale, normalizeLocale, pickLocaleFromAcceptLanguage } from '@/lib/i18n-config';
 
 export const metadata: Metadata = {
     title: 'Safeturned',
@@ -12,11 +15,23 @@ export const metadata: Metadata = {
     },
 };
 
+const resolveInitialLocale = (): Locale => {
+    const cookieLocale = normalizeLocale(cookies().get('NEXT_LOCALE')?.value);
+    if (cookieLocale) return cookieLocale;
+
+    const headerLocale = pickLocaleFromAcceptLanguage(headers().get('accept-language'));
+    return headerLocale ?? DEFAULT_LOCALE;
+};
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+    const initialLocale = resolveInitialLocale();
+
     return (
-        <html lang='en' suppressHydrationWarning>
+        <html lang={initialLocale} suppressHydrationWarning>
             <body suppressHydrationWarning>
-                <AuthProvider>{children}</AuthProvider>
+                <LanguageProvider initialLocale={initialLocale}>
+                    <AuthProvider>{children}</AuthProvider>
+                </LanguageProvider>
             </body>
         </html>
     );

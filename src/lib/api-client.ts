@@ -1,7 +1,23 @@
-const API_VERSION = 'v1.0';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { AUTH_HEADERS, AUTH_STORAGE_KEYS, AUTH_EVENTS } from './auth-constants';
+
+export const API_VERSION = 'v1.0';
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
+
+if (!API_BASE_URL) {
+    throw new Error(
+        'NEXT_PUBLIC_API_URL environment variable is required in production. Please set it in your .env file.'
+    );
+}
 
 export function getApiUrl(endpoint: string): string {
+    // If endpoint starts with /api/, it's a Next.js API route - return as-is (relative URL)
+    if (endpoint.startsWith('/api/')) {
+        return endpoint;
+    }
+
+    // Otherwise, it's a backend API call - prepend base URL and version
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     return `${API_BASE_URL}/${API_VERSION}/${cleanEndpoint}`;
 }
@@ -16,10 +32,24 @@ function getDefaultHeaders(token?: string): HeadersInit {
     };
 
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers[AUTH_HEADERS.API_KEY] = token;
     }
 
     return headers;
+}
+
+function mergeHeaders(target: Record<string, string>, source: HeadersInit): void {
+    if (source instanceof Headers) {
+        source.forEach((value, key) => {
+            target[key] = value;
+        });
+    } else if (Array.isArray(source)) {
+        source.forEach(([key, value]) => {
+            target[key] = value;
+        });
+    } else {
+        Object.assign(target, source);
+    }
 }
 
 export async function apiRequest<T = unknown>(
@@ -35,10 +65,10 @@ export async function apiRequest<T = unknown>(
     const { method = 'GET', body, token, headers: customHeaders = {}, signal } = options;
 
     const url = getApiUrl(endpoint);
-    const headers: Record<string, string> = {
-        ...getDefaultHeaders(token),
-        ...(customHeaders as Record<string, string>),
-    };
+    const headers: Record<string, string> = {};
+
+    mergeHeaders(headers, getDefaultHeaders(token));
+    mergeHeaders(headers, customHeaders);
 
     if (body instanceof FormData) {
         delete headers['Content-Type'];
@@ -62,19 +92,37 @@ export async function apiRequest<T = unknown>(
     const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
-        const errorText = await response.text();
         let errorData: { error?: string; [key: string]: unknown };
+
         try {
-            errorData = JSON.parse(errorText) as { error?: string; [key: string]: unknown };
+            const errorText = await response.text();
+            if (errorText) {
+                try {
+                    errorData = JSON.parse(errorText) as { error?: string; [key: string]: unknown };
+                } catch {
+                    errorData = { error: errorText };
+                }
+            } else {
+                errorData = { error: `Request failed: ${response.status}` };
+            }
         } catch {
-            errorData = { error: errorText || `Request failed: ${response.status}` };
+            errorData = { error: `Request failed: ${response.status}` };
         }
 
-        throw new ApiError(
-            errorData.error || `Request failed: ${response.status}`,
-            response.status,
-            errorData
-        );
+        if (response.status === 401) {
+            const isAuthEndpoint = endpoint.startsWith('auth/') || endpoint.includes('/auth/');
+
+            if (isAuthEndpoint && typeof window !== 'undefined') {
+                localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+                window.dispatchEvent(new CustomEvent(AUTH_EVENTS.SESSION_INVALID));
+            }
+        }
+
+        const errorMessage =
+            errorData.error ||
+            (errorData.message as string) ||
+            `Request failed: ${response.status}`;
+        throw new ApiError(errorMessage, response.status, errorData);
     }
 
     const contentType = response.headers.get('content-type');

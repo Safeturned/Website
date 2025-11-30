@@ -3,6 +3,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 
 export default function TermsPage() {
     const { t } = useTranslation();
@@ -116,18 +117,20 @@ export default function TermsPage() {
                             </h2>
                             <ul className='list-disc list-inside space-y-2 ml-4'>
                                 <li>
-                                    <strong>{t('terms.dataHandling.noFileStorage.title')}</strong> -{' '}
-                                    {t('terms.dataHandling.noFileStorage.content')}
+                                    <strong>{t('terms.dataHandling.websiteUploads.title')}</strong> -{' '}
+                                    {t('terms.dataHandling.websiteUploads.content')}
+                                </li>
+                                <li>
+                                    <strong>{t('terms.dataHandling.apiUploads.title')}</strong> -{' '}
+                                    {t('terms.dataHandling.apiUploads.content')}
+                                </li>
+                                <li>
+                                    <strong>{t('terms.dataHandling.chunkedUploads.title')}</strong> -{' '}
+                                    {t('terms.dataHandling.chunkedUploads.content')}
                                 </li>
                                 <li>
                                     <strong>{t('terms.dataHandling.metadataOnly.title')}</strong> -{' '}
                                     {t('terms.dataHandling.metadataOnly.content')}
-                                </li>
-                                <li>
-                                    <strong>
-                                        {t('terms.dataHandling.noContentAnalysis.title')}
-                                    </strong>{' '}
-                                    - {t('terms.dataHandling.noContentAnalysis.content')}
                                 </li>
                                 <li>
                                     <strong>{t('terms.dataHandling.analyticsData.title')}</strong> -{' '}
@@ -238,6 +241,12 @@ export default function TermsPage() {
                                     </strong>{' '}
                                     - {t('terms.prohibitedUses.bypassingSecurity.content')}
                                 </li>
+                                <li>
+                                    <strong>
+                                        {t('terms.prohibitedUses.multipleAccounts.title')}
+                                    </strong>{' '}
+                                    - {t('terms.prohibitedUses.multipleAccounts.content')}
+                                </li>
                             </ul>
                         </section>
 
@@ -271,6 +280,7 @@ export default function TermsPage() {
                     </div>
                 </div>
             </div>
+            <BackToTop />
             <Footer />
         </div>
     );

@@ -19,7 +19,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         try {
             const hashFormats = [
                 hash,
-                hash.replace(/-/g, '+').replace(/_/g, '/'),
+                // Convert URL-safe to base64 with padding restoration
+                (() => {
+                    let base64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+                    const padding = (4 - (base64.length % 4)) % 4;
+                    return base64 + '='.repeat(padding);
+                })(),
+                // Keep URL-safe format without padding
                 hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, ''),
             ];
 

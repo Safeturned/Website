@@ -6,7 +6,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { getVersionString } from '@/lib/version';
 
 export default function Footer() {
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
 
     return (
         <footer className='px-6 py-8 md:py-12 border-t border-purple-800/30 mt-16 bg-slate-900/50'>
@@ -35,19 +35,19 @@ export default function Footer() {
                         <h3 className='text-white font-semibold mb-4'>{t('footer.quickLinks')}</h3>
                         <div className='flex flex-col space-y-2'>
                             <Link
-                                href={`/${locale}/docs`}
+                                href='/docs'
                                 className='text-purple-400 hover:text-purple-300 transition-colors duration-200 text-sm'
                             >
                                 {t('nav.apiDocumentation')}
                             </Link>
                             <Link
-                                href={`/${locale}/terms`}
+                                href='/terms'
                                 className='text-purple-400 hover:text-purple-300 transition-colors duration-200 text-sm'
                             >
                                 {t('consent.termsOfService')}
                             </Link>
                             <Link
-                                href={`/${locale}/privacy`}
+                                href='/privacy'
                                 className='text-purple-400 hover:text-purple-300 transition-colors duration-200 text-sm'
                             >
                                 {t('consent.privacyNotice')}

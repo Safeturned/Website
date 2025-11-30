@@ -9,9 +9,13 @@ interface UploadProgressProps {
 export function UploadProgress({ state, onCancel }: UploadProgressProps) {
     const formatBytes = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
+        if (bytes < 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        const i = Math.max(
+            0,
+            Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)))
+        );
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
@@ -69,7 +73,9 @@ export function UploadProgress({ state, onCancel }: UploadProgressProps) {
                     <div className='w-full bg-gray-700 rounded-full h-1'>
                         <div
                             className='bg-gradient-to-r from-green-400 to-green-500 h-1 rounded-full transition-all duration-300'
-                            style={{ width: `${(state.currentChunk / state.totalChunks) * 100}%` }}
+                            style={{
+                                width: `${state.totalChunks > 0 ? (state.currentChunk / state.totalChunks) * 100 : 0}%`,
+                            }}
                         />
                     </div>
                 </div>

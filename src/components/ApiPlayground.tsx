@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { api } from '@/lib/api-client';
+import { api, ApiError } from '@/lib/api-client';
 
 interface ApiResponse {
     status: number;
@@ -48,11 +48,36 @@ export default function ApiPlayground() {
             const data = await api.post('files', formData, { token: apiKey });
             setResponse({ status: 200, data });
         } catch (error: unknown) {
-            const apiError = error as { status?: number; message?: string };
+            let errorStatus = 500;
+            let errorMessage = 'Request failed';
+            let errorData: unknown = { error: 'Request failed' };
+
+            const err = error as Record<string, unknown>;
+
+            if (error instanceof ApiError) {
+                errorStatus = error.status;
+                errorMessage = error.message;
+                errorData = error.data || { error: error.message };
+            } else if ('status' in err || 'statusCode' in err) {
+                errorStatus = (err.status as number) || (err.statusCode as number) || 500;
+                errorMessage = (err.message as string) || String(error) || 'Request failed';
+
+                if ('data' in err && err.data) {
+                    errorData = err.data;
+                } else if ('body' in err && err.body) {
+                    errorData = err.body;
+                } else {
+                    errorData = { error: errorMessage };
+                }
+            } else {
+                errorMessage = String(error) || 'Request failed';
+                errorData = { error: errorMessage };
+            }
+
             setResponse({
-                status: apiError.status || 500,
-                data: null,
-                error: apiError.message || 'Request failed',
+                status: errorStatus,
+                data: errorData,
+                error: errorMessage,
             });
         } finally {
             setLoading(false);
@@ -73,11 +98,36 @@ export default function ApiPlayground() {
             const data = await api.get(`files/${hashQuery}`, { token: apiKey });
             setResponse({ status: 200, data });
         } catch (error: unknown) {
-            const apiError = error as { status?: number; message?: string };
+            let errorStatus = 500;
+            let errorMessage = 'Request failed';
+            let errorData: unknown = { error: 'Request failed' };
+
+            const err = error as Record<string, unknown>;
+
+            if (error instanceof ApiError) {
+                errorStatus = error.status;
+                errorMessage = error.message;
+                errorData = error.data || { error: error.message };
+            } else if ('status' in err || 'statusCode' in err) {
+                errorStatus = (err.status as number) || (err.statusCode as number) || 500;
+                errorMessage = (err.message as string) || String(error) || 'Request failed';
+
+                if ('data' in err && err.data) {
+                    errorData = err.data;
+                } else if ('body' in err && err.body) {
+                    errorData = err.body;
+                } else {
+                    errorData = { error: errorMessage };
+                }
+            } else {
+                errorMessage = String(error) || 'Request failed';
+                errorData = { error: errorMessage };
+            }
+
             setResponse({
-                status: apiError.status || 500,
-                data: null,
-                error: apiError.message || 'Request failed',
+                status: errorStatus,
+                data: errorData,
+                error: errorMessage,
             });
         } finally {
             setLoading(false);
@@ -100,11 +150,36 @@ export default function ApiPlayground() {
             });
             setResponse({ status: 200, data });
         } catch (error: unknown) {
-            const apiError = error as { status?: number; message?: string };
+            let errorStatus = 500;
+            let errorMessage = 'Request failed';
+            let errorData: unknown = { error: 'Request failed' };
+
+            const err = error as Record<string, unknown>;
+
+            if (error instanceof ApiError) {
+                errorStatus = error.status;
+                errorMessage = error.message;
+                errorData = error.data || { error: error.message };
+            } else if ('status' in err || 'statusCode' in err) {
+                errorStatus = (err.status as number) || (err.statusCode as number) || 500;
+                errorMessage = (err.message as string) || String(error) || 'Request failed';
+
+                if ('data' in err && err.data) {
+                    errorData = err.data;
+                } else if ('body' in err && err.body) {
+                    errorData = err.body;
+                } else {
+                    errorData = { error: errorMessage };
+                }
+            } else {
+                errorMessage = String(error) || 'Request failed';
+                errorData = { error: errorMessage };
+            }
+
             setResponse({
-                status: apiError.status || 500,
-                data: null,
-                error: apiError.message || 'Request failed',
+                status: errorStatus,
+                data: errorData,
+                error: errorMessage,
             });
         } finally {
             setLoading(false);
@@ -125,11 +200,36 @@ export default function ApiPlayground() {
             const data = await api.get('files/analytics', { token: apiKey });
             setResponse({ status: 200, data });
         } catch (error: unknown) {
-            const apiError = error as { status?: number; message?: string };
+            let errorStatus = 500;
+            let errorMessage = 'Request failed';
+            let errorData: unknown = { error: 'Request failed' };
+
+            const err = error as Record<string, unknown>;
+
+            if (error instanceof ApiError) {
+                errorStatus = error.status;
+                errorMessage = error.message;
+                errorData = error.data || { error: error.message };
+            } else if ('status' in err || 'statusCode' in err) {
+                errorStatus = (err.status as number) || (err.statusCode as number) || 500;
+                errorMessage = (err.message as string) || String(error) || 'Request failed';
+
+                if ('data' in err && err.data) {
+                    errorData = err.data;
+                } else if ('body' in err && err.body) {
+                    errorData = err.body;
+                } else {
+                    errorData = { error: errorMessage };
+                }
+            } else {
+                errorMessage = String(error) || 'Request failed';
+                errorData = { error: errorMessage };
+            }
+
             setResponse({
-                status: apiError.status || 500,
-                data: null,
-                error: apiError.message || 'Request failed',
+                status: errorStatus,
+                data: errorData,
+                error: errorMessage,
             });
         } finally {
             setLoading(false);
@@ -141,23 +241,23 @@ export default function ApiPlayground() {
             case 'upload':
                 if (!selectedFile) return '';
                 return `curl -X POST https://api.safeturned.com/v1.0/files \\
-  -H "Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}" \\
+  -H "X-API-Key: ${apiKey || 'YOUR_API_KEY'}" \\
   -F "file=@${selectedFile.name}" \\
   -F "forceAnalyze=false"`;
             case 'getByHash':
                 return `curl -X GET https://api.safeturned.com/v1.0/files/${hashQuery || '{hash}'} \\
-  -H "Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}"`;
+  -H "X-API-Key: ${apiKey || 'YOUR_API_KEY'}"`;
             case 'getByFilename':
                 return `curl -X GET https://api.safeturned.com/v1.0/files/filename/${encodeURIComponent(filenameQuery || '{filename}')} \\
-  -H "Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}"`;
+  -H "X-API-Key: ${apiKey || 'YOUR_API_KEY'}"`;
             case 'analytics':
                 return `curl -X GET https://api.safeturned.com/v1.0/files/analytics \\
-  -H "Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}"`;
+  -H "X-API-Key: ${apiKey || 'YOUR_API_KEY'}"`;
             case 'chunkedUpload':
                 return `# See documentation for complete chunked upload process
 # Step 1: Initiate
 curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
-  -H "Authorization: Bearer ${apiKey || 'YOUR_API_KEY'}" \\
+  -H "X-API-Key: ${apiKey || 'YOUR_API_KEY'}" \\
   -H "Content-Type: application/json" \\
   -d '{"fileName":"file.dll","fileSizeBytes":10485760,"fileHash":"...","totalChunks":2}'`;
             default:
@@ -225,7 +325,7 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                             value={apiKey}
                             onChange={e => setApiKey(e.target.value)}
                             placeholder='sk_live_...'
-                            className='flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
+                            className='flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                         />
                         <button
                             onClick={() => setShowKey(!showKey)}
@@ -339,7 +439,7 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                     value={hashQuery}
                                     onChange={e => setHashQuery(e.target.value)}
                                     placeholder='a3f5b2c1d4e6f7a8...'
-                                    className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
+                                    className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                                 />
                             </div>
 
@@ -380,7 +480,7 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                                     value={filenameQuery}
                                     onChange={e => setFilenameQuery(e.target.value)}
                                     placeholder='MyPlugin.dll'
-                                    className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500'
+                                    className='w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500'
                                 />
                             </div>
 

@@ -5,6 +5,26 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
+        if (!body.fileName || typeof body.fileName !== 'string') {
+            return NextResponse.json({ error: 'Invalid fileName' }, { status: 400 });
+        }
+
+        if (
+            !body.fileSizeBytes ||
+            typeof body.fileSizeBytes !== 'number' ||
+            body.fileSizeBytes <= 0
+        ) {
+            return NextResponse.json({ error: 'Invalid fileSizeBytes' }, { status: 400 });
+        }
+
+        if (!body.fileHash || typeof body.fileHash !== 'string') {
+            return NextResponse.json({ error: 'Invalid fileHash' }, { status: 400 });
+        }
+
+        if (!body.totalChunks || typeof body.totalChunks !== 'number' || body.totalChunks <= 0) {
+            return NextResponse.json({ error: 'Invalid totalChunks' }, { status: 400 });
+        }
+
         const { data: result } = await serverApiRequest(request, 'files/upload/initiate', {
             method: 'POST',
             body,

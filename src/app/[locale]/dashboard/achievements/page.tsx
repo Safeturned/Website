@@ -1,14 +1,13 @@
 'use client';
 
 import { useAchievements } from '@/lib/achievements-context';
-import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 
 export default function AchievementsPage() {
     const { achievements } = useAchievements();
-    const { locale } = useTranslation();
 
     const unlockedCount = achievements.filter(a => a.unlocked).length;
     const totalCount = achievements.length;
@@ -22,7 +21,7 @@ export default function AchievementsPage() {
                 <div className='mb-8'>
                     <div className='flex items-center gap-3 mb-2'>
                         <Link
-                            href={`/${locale}/dashboard`}
+                            href='/dashboard'
                             className='text-purple-400 hover:text-purple-300 transition-colors'
                         >
                             <svg
@@ -178,6 +177,7 @@ export default function AchievementsPage() {
                 )}
             </div>
 
+            <BackToTop />
             <Footer />
         </div>
     );

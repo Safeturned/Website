@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -8,6 +8,7 @@ import { getTierName } from '@/lib/tierConstants';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import { api } from '@/lib/api-client';
 
 interface SystemAnalytics {
@@ -30,28 +31,41 @@ interface SystemAnalytics {
 
 export default function AdminDashboard() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [analytics, setAnalytics] = useState<SystemAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || !user?.isAdmin)) {
-            router.push(`/${locale}`);
+            router.push('/');
             return;
         }
 
         if (user?.isAdmin) {
-            loadAnalytics();
-        }
-    }, [user, isAuthenticated, isLoading, router, locale]);
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
 
-    const loadAnalytics = async () => {
+            abortControllerRef.current = new AbortController();
+            loadAnalytics(abortControllerRef.current.signal);
+
+            return () => {
+                abortControllerRef.current?.abort();
+            };
+        }
+    }, [user, isAuthenticated, isLoading, router]);
+
+    const loadAnalytics = async (signal?: AbortSignal) => {
         try {
-            const data = await api.get<SystemAnalytics>('admin/analytics/system');
+            const data = await api.get<SystemAnalytics>('admin/analytics/system', { signal });
             setAnalytics(data);
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             setError(err instanceof Error ? err.message : t('admin.analytics.failedToLoad'));
         } finally {
             setLoading(false);
@@ -226,7 +240,7 @@ export default function AdminDashboard() {
 
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                         <Link
-                            href={`/${locale}/admin/users`}
+                            href='/admin/users'
                             className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6 hover:border-purple-400/50 transition-all duration-200 group'
                         >
                             <div className='flex items-center justify-between mb-4'>
@@ -253,7 +267,7 @@ export default function AdminDashboard() {
                         </Link>
 
                         <Link
-                            href={`/${locale}/admin/analytics`}
+                            href='/admin/analytics'
                             className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6 hover:border-purple-400/50 transition-all duration-200 group'
                         >
                             <div className='flex items-center justify-between mb-4'>
@@ -279,6 +293,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             </div>
+            <BackToTop />
             <Footer />
         </div>
     );

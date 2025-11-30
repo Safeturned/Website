@@ -20,7 +20,7 @@ interface StandardFileUploadProps {
     isPreparing?: boolean;
 }
 
-const DEFAULT_MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB (Cloudflare limit)
 const DEFAULT_ACCEPTED_TYPES = ['.dll'];
 
 export default function StandardFileUpload({
@@ -41,16 +41,18 @@ export default function StandardFileUpload({
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState(getRandomLoadingMessage());
     const { displayedText: typedMessage, isComplete } = useTypingEffect(loadingMessage, 30);
 
     useEffect(() => {
         if (isUploading) {
-            setLoadingMessage(getRandomLoadingMessage());
             const interval = setInterval(() => {
                 setLoadingMessage(getRandomLoadingMessage());
             }, 5000);
             return () => clearInterval(interval);
+        } else {
+            setLoadingMessage(getRandomLoadingMessage());
         }
     }, [isUploading]);
 
@@ -152,14 +154,17 @@ export default function StandardFileUpload({
     }, [disabled]);
 
     const handleUpload = useCallback(async () => {
-        if (!selectedFile || isUploading) return;
+        if (!selectedFile || isUploading || isProcessing) return;
 
+        setIsProcessing(true);
         try {
             await onUpload(selectedFile);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Upload failed');
+        } finally {
+            setIsProcessing(false);
         }
-    }, [selectedFile, isUploading, onUpload]);
+    }, [selectedFile, isUploading, isProcessing, onUpload]);
 
     const handleClearFile = useCallback(() => {
         setSelectedFile(null);
@@ -173,16 +178,16 @@ export default function StandardFileUpload({
         <div className={`w-full ${className}`}>
             <div
                 className={`
-                    relative border-2 border-dashed rounded-xl p-4 md:p-8 text-center transition-all duration-300
+                    group relative border-2 border-dashed rounded-xl p-4 md:p-8 text-center transition-all duration-300
                     ${
                         isDragOver
-                            ? 'border-purple-400 bg-purple-500/10'
+                            ? 'border-purple-400 bg-purple-500/10 scale-[1.02]'
                             : 'border-purple-500/50 hover:border-purple-400/70'
                     }
                     ${
                         disabled
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'cursor-pointer hover:bg-purple-500/5'
+                            : 'cursor-pointer hover:bg-purple-500/5 hover:shadow-lg hover:shadow-purple-500/20'
                     }
                     ${error ? 'border-red-400 bg-red-500/10' : ''}
                 `}
@@ -203,12 +208,13 @@ export default function StandardFileUpload({
 
                 {!selectedFile ? (
                     <div className='space-y-4'>
-                        <div className='mx-auto w-8 h-8 md:w-12 md:h-12 text-purple-400'>
+                        <div className='mx-auto w-12 h-12 md:w-16 md:h-16 text-purple-400 transition-transform duration-300 ease-in-out group-hover:scale-110'>
                             <svg
                                 className='w-full h-full'
                                 fill='none'
                                 stroke='currentColor'
                                 viewBox='0 0 24 24'
+                                aria-hidden='true'
                             >
                                 <path
                                     strokeLinecap='round'
@@ -229,12 +235,40 @@ export default function StandardFileUpload({
                         </div>
 
                         <div className='text-xs text-gray-500 space-y-1'>
-                            <p>
+                            <p className='flex items-center justify-center gap-2'>
+                                <svg
+                                    className='w-4 h-4 text-gray-400'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                    aria-hidden='true'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10'
+                                    />
+                                </svg>
                                 {t('upload.maxSize', 'Up to {{size}}', {
                                     size: formatFileSize(maxFileSize, t),
                                 })}
                             </p>
-                            <p>
+                            <p className='flex items-center justify-center gap-2'>
+                                <svg
+                                    className='w-4 h-4 text-gray-400'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                    aria-hidden='true'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                    />
+                                </svg>
                                 {t('upload.acceptedTypes', '{{types}} files only', {
                                     types: acceptedFileTypes.join(', '),
                                 })}

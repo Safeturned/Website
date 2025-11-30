@@ -4,19 +4,23 @@ import { useAuth } from '@/lib/auth-context';
 import {
     getTierName,
     getTierTextColorAlt,
-    getTierRateLimit,
+    getTierRateLimitNumber,
+    getTierWriteLimit,
+    getTierUploadLimit,
     getTierFileSizeLimit,
     hasPrioritySupport,
     TIER_FREE,
 } from '@/lib/tierConstants';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import BackToTop from '@/components/BackToTop';
 import RateLimitUsage from '@/components/RateLimitUsage';
 import { api } from '@/lib/api-client';
+import { encodeHashForUrl } from '@/lib/utils';
 
 interface ScanStats {
     totalScans: number;
@@ -37,51 +41,62 @@ interface RecentScan {
 
 export default function DashboardPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     const router = useRouter();
     const [scanStats, setScanStats] = useState<ScanStats | null>(null);
     const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
     const [loadingStats, setLoadingStats] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push(`/${locale}/login?returnUrl=/dashboard`);
+            router.push('/login?returnUrl=/dashboard');
         }
-    }, [isAuthenticated, isLoading, router, locale]);
+    }, [isAuthenticated, isLoading, router]);
+
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            setError(null);
+            const [statsResult, recentsResult] = await Promise.allSettled([
+                api.get<ScanStats>('users/me/scans/stats'),
+                api.get<RecentScan[]>('users/me/scans/recent?limit=3'),
+            ]);
+
+            if (statsResult.status === 'fulfilled') {
+                setScanStats(statsResult.value);
+            } else {
+                console.error('Failed to fetch stats:', statsResult.reason);
+            }
+
+            if (recentsResult.status === 'fulfilled') {
+                setRecentScans(recentsResult.value);
+            } else {
+                console.error('Failed to fetch recent scans:', recentsResult.reason);
+            }
+
+            if (statsResult.status === 'rejected' && recentsResult.status === 'rejected') {
+                setError('Failed to load dashboard data. Please try again.');
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error);
+            setError('Failed to load dashboard data. Please try again.');
+        } finally {
+            setLoadingStats(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated && user) {
             fetchDashboardData();
         }
-    }, [isAuthenticated, user]);
-
-    const fetchDashboardData = async () => {
-        try {
-            const [stats, recents] = await Promise.all([
-                api.get<ScanStats>('users/me/scans/stats').catch(() => null),
-                api.get<RecentScan[]>('users/me/scans/recent?limit=5').catch(() => []),
-            ]);
-
-            if (stats) {
-                setScanStats(stats);
-            }
-
-            if (recents) {
-                setRecentScans(recents);
-            }
-        } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
-        } finally {
-            setLoadingStats(false);
-        }
-    };
+    }, [isAuthenticated, user, fetchDashboardData]);
 
     if (isLoading || !isAuthenticated || !user) {
         return (
             <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
                 <div className='text-center'>
                     <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>Loading...</p>
+                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -99,7 +114,7 @@ export default function DashboardPage() {
                     <h1 className='text-4xl md:text-5xl font-bold mb-3'>{t('dashboard.title')}</h1>
                     <p className='text-slate-300 text-lg'>
                         {t('dashboard.welcomeBack', undefined, {
-                            username: user.username || user.email.split('@')[0],
+                            username: user.username || user.email?.split('@')[0] || 'User',
                         })}
                     </p>
                 </div>
@@ -115,7 +130,8 @@ export default function DashboardPage() {
                         ) : (
                             <div className='w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-semibold text-xl'>
                                 {user.username?.charAt(0).toUpperCase() ||
-                                    user.email.charAt(0).toUpperCase()}
+                                    user.email?.charAt(0).toUpperCase() ||
+                                    'U'}
                             </div>
                         )}
                         <div>
@@ -134,9 +150,42 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
+                {error && (
+                    <div className='bg-red-900/20 border border-red-500/30 rounded-xl p-6 mb-8'>
+                        <div className='flex items-start gap-4'>
+                            <svg
+                                className='w-6 h-6 text-red-400 flex-shrink-0 mt-0.5'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                />
+                            </svg>
+                            <div className='flex-1'>
+                                <h3 className='text-red-400 font-semibold mb-1'>{t('dashboard.errorLoadingData')}</h3>
+                                <p className='text-red-300 text-sm'>{error}</p>
+                                <button
+                                    onClick={() => {
+                                        setLoadingStats(true);
+                                        fetchDashboardData();
+                                    }}
+                                    className='mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300 text-sm transition-colors'
+                                >
+                                    {t('dashboard.tryAgain')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6 mb-10'>
                     <Link
-                        href={`/${locale}/dashboard/api-keys`}
+                        href='/dashboard/api-keys'
                         className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-5 hover:border-purple-400/50 transition-all duration-200 group'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -178,7 +227,7 @@ export default function DashboardPage() {
                     </Link>
 
                     <Link
-                        href={`/${locale}/dashboard/badges`}
+                        href='/dashboard/badges'
                         className='bg-slate-800/40 backdrop-blur-md border border-teal-500/20 rounded-xl p-5 hover:border-teal-400/50 transition-all duration-200 group'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -220,7 +269,7 @@ export default function DashboardPage() {
                     </Link>
 
                     <Link
-                        href={`/${locale}/dashboard/scans`}
+                        href='/dashboard/scans'
                         className='bg-slate-800/40 backdrop-blur-md border border-blue-500/20 rounded-xl p-5 hover:border-blue-400/50 transition-all duration-200 group'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -262,7 +311,7 @@ export default function DashboardPage() {
                     </Link>
 
                     <Link
-                        href={`/${locale}/dashboard/usage`}
+                        href='/dashboard/usage'
                         className='bg-slate-800/40 backdrop-blur-md border border-green-500/20 rounded-xl p-5 hover:border-green-400/50 transition-all duration-200 group'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -304,7 +353,7 @@ export default function DashboardPage() {
                     </Link>
 
                     <Link
-                        href={`/${locale}/dashboard/notifications`}
+                        href='/dashboard/notifications'
                         className='bg-slate-800/40 backdrop-blur-md border border-orange-500/20 rounded-xl p-5 hover:border-orange-400/50 transition-all duration-200 group relative'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -351,7 +400,7 @@ export default function DashboardPage() {
                     </Link>
 
                     <Link
-                        href={`/${locale}`}
+                        href='/'
                         className='bg-slate-800/40 backdrop-blur-md border border-pink-500/20 rounded-xl p-5 hover:border-pink-400/50 transition-all duration-200 group'
                     >
                         <div className='flex items-center justify-between mb-3'>
@@ -394,7 +443,7 @@ export default function DashboardPage() {
 
                     {user.isAdmin && (
                         <Link
-                            href={`/${locale}/admin`}
+                            href='/admin'
                             className='bg-slate-800/40 backdrop-blur-md border border-red-500/20 rounded-xl p-5 hover:border-red-400/50 transition-all duration-200 group relative overflow-hidden'
                         >
                             <div className='absolute top-0 right-0 w-16 h-16 bg-red-500/10 rounded-full blur-2xl'></div>
@@ -454,10 +503,10 @@ export default function DashboardPage() {
                             {[1, 2, 3, 4].map(i => (
                                 <div
                                     key={i}
-                                    className='bg-slate-900/50 rounded-lg p-4 animate-pulse'
+                                    className='bg-slate-900/50 rounded-lg p-4 overflow-hidden relative'
                                 >
-                                    <div className='h-4 bg-slate-700 rounded w-20 mb-3'></div>
-                                    <div className='h-8 bg-slate-700 rounded w-16'></div>
+                                    <div className='h-4 bg-slate-700 rounded w-20 mb-3 animate-shimmer'></div>
+                                    <div className='h-8 bg-slate-700 rounded w-16 animate-shimmer'></div>
                                 </div>
                             ))}
                         </div>
@@ -576,21 +625,21 @@ export default function DashboardPage() {
                 {loadingStats ? (
                     <div className='bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6 mb-8'>
                         <div className='flex items-center justify-between mb-6'>
-                            <div className='h-6 bg-slate-700 rounded w-32 animate-pulse'></div>
-                            <div className='h-4 bg-slate-700 rounded w-20 animate-pulse'></div>
+                            <div className='h-6 bg-slate-700 rounded w-32 animate-shimmer'></div>
+                            <div className='h-4 bg-slate-700 rounded w-20 animate-shimmer'></div>
                         </div>
                         <div className='space-y-3'>
                             {[1, 2, 3].map(i => (
                                 <div
                                     key={i}
-                                    className='bg-slate-900/50 rounded-lg p-4 border border-slate-700/50 animate-pulse'
+                                    className='bg-slate-900/50 rounded-lg p-4 border border-slate-700/50 overflow-hidden'
                                 >
                                     <div className='flex items-center justify-between'>
                                         <div className='flex-1'>
-                                            <div className='h-5 bg-slate-700 rounded w-48 mb-2'></div>
-                                            <div className='h-4 bg-slate-700 rounded w-32'></div>
+                                            <div className='h-5 bg-slate-700 rounded w-48 mb-2 animate-shimmer'></div>
+                                            <div className='h-4 bg-slate-700 rounded w-32 animate-shimmer'></div>
                                         </div>
-                                        <div className='w-12 h-12 bg-slate-700 rounded-full'></div>
+                                        <div className='w-12 h-12 bg-slate-700 rounded-full animate-shimmer'></div>
                                     </div>
                                 </div>
                             ))}
@@ -601,8 +650,8 @@ export default function DashboardPage() {
                         <div className='flex items-center justify-between mb-6'>
                             <h3 className='text-xl font-semibold'>{t('dashboard.recentScans')}</h3>
                             <Link
-                                href={`/${locale}/dashboard/scans`}
-                                className='text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors'
+                                href='/dashboard/scans'
+                                className='text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-md px-2 py-1'
                             >
                                 {t('dashboard.viewAll')}
                             </Link>
@@ -611,16 +660,28 @@ export default function DashboardPage() {
                             {recentScans.map(scan => (
                                 <div
                                     key={scan.id}
-                                    className='bg-slate-900/50 rounded-lg p-4 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-200 cursor-pointer'
+                                    className='bg-slate-900/50 rounded-lg p-4 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-purple-500'
                                     onClick={() => {
                                         if (scan.fileHash) {
-                                            const urlSafeHash = scan.fileHash
-                                                .replace(/\+/g, '-')
-                                                .replace(/\//g, '_')
-                                                .replace(/=+$/g, '');
-                                            router.push(`/${locale}/result/${urlSafeHash}`);
+                                            router.push(
+                                                `/result/${encodeHashForUrl(scan.fileHash)}`
+                                            );
                                         } else {
-                                            router.push(`/${locale}/result/${scan.id}`);
+                                            router.push(`/result/${scan.id}`);
+                                        }
+                                    }}
+                                    tabIndex={0}
+                                    role='button'
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            if (scan.fileHash) {
+                                                router.push(
+                                                    `/result/${encodeHashForUrl(scan.fileHash)}`
+                                                );
+                                            } else {
+                                                router.push(`/result/${scan.id}`);
+                                            }
                                         }
                                     }}
                                 >
@@ -669,6 +730,53 @@ export default function DashboardPage() {
                             ))}
                         </div>
                     </div>
+                ) : !loadingStats && scanStats && scanStats.totalScans === 0 ? (
+                    <div className='bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-lg p-12 mb-8 text-center'>
+                        <div className='max-w-md mx-auto'>
+                            <div className='w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-6'>
+                                <svg
+                                    className='w-10 h-10 text-purple-400'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                    aria-hidden='true'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className='text-2xl font-bold text-white mb-3'>
+                                {t('dashboard.noScansYet')}
+                            </h3>
+                            <p className='text-gray-400 mb-6'>
+                                {t('dashboard.uploadFirstFile')}
+                            </p>
+                            <Link
+                                href='/'
+                                className='inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900'
+                            >
+                                <svg
+                                    className='w-5 h-5'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                    aria-hidden='true'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                                    />
+                                </svg>
+                                <span>{t('dashboard.uploadFile')}</span>
+                            </Link>
+                        </div>
+                    </div>
                 ) : null}
 
                 <div className='bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-lg p-6'>
@@ -680,9 +788,25 @@ export default function DashboardPage() {
                             <p className='text-slate-400 text-sm mb-2'>
                                 {t('dashboard.apiRequests')}
                             </p>
-                            <p className='text-2xl font-bold text-white'>
-                                {getTierRateLimit(user.tier)}{' '}
-                                <span className='text-sm text-slate-400 font-normal'>/ hour</span>
+                            <p className='text-lg font-bold text-white leading-tight'>
+                                <span className='text-green-400'>
+                                    {getTierRateLimitNumber(user.tier).toLocaleString()}
+                                </span>{' '}
+                                {t('dashboard.reads')}
+                                <br />
+                                <span className='text-blue-400'>
+                                    {getTierWriteLimit(user.tier)}
+                                </span>{' '}
+                                {t('dashboard.writes')}
+                                <br />
+                                <span className='text-purple-400'>
+                                    {getTierUploadLimit(user.tier)}
+                                </span>{' '}
+                                {t('dashboard.uploads')}
+                                <br />
+                                <span className='text-xs text-slate-400 font-normal'>
+                                    {t('dashboard.perHour')}
+                                </span>
                             </p>
                         </div>
                         <div className='bg-slate-900/50 rounded-lg p-4'>
@@ -706,14 +830,14 @@ export default function DashboardPage() {
                     {user.tier === TIER_FREE && (
                         <div className='p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg'>
                             <p className='text-purple-300 text-sm'>
-                                Upgrade to Premium for higher rate limits, larger file uploads, and
-                                priority support!
+                                {t('dashboard.upgradePremium')}
                             </p>
                         </div>
                     )}
                 </div>
             </div>
 
+            <BackToTop />
             <Footer />
         </div>
     );
