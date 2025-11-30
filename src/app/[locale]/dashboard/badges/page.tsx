@@ -1089,7 +1089,16 @@ export default function BadgesPage() {
             </div>
 
             {showTokenModal && newBadgeToken && (
-                <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
+                <div
+                    className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowTokenModal(false);
+                            setNewBadgeToken(null);
+                            setCopiedToken(false);
+                        }
+                    }}
+                >
                     <div className='bg-slate-800 border border-amber-500/50 rounded-xl p-8 max-w-2xl w-full mx-4 shadow-2xl'>
                         <div className='flex items-start gap-4 mb-6'>
                             <div className='w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0'>
@@ -1155,7 +1164,17 @@ export default function BadgesPage() {
             )}
 
             {showCreateModal && selectedFile && (
-                <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
+                <div
+                    className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowCreateModal(false);
+                            setSelectedFile(null);
+                            setBadgeName('');
+                            setBadgeDescription('');
+                        }
+                    }}
+                >
                     <div className='bg-slate-800 border border-purple-500/50 rounded-xl p-8 max-w-xl w-full mx-4 shadow-2xl'>
                         <h3 className='text-2xl font-bold mb-3 text-white'>
                             {t('badges.createBadge')}
@@ -1253,7 +1272,14 @@ export default function BadgesPage() {
             )}
 
             {confirmDialog && (
-                <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4'>
+                <div
+                    className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4'
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setConfirmDialog(null);
+                        }
+                    }}
+                >
                     <div className='bg-slate-800 border border-purple-500/30 rounded-xl p-6 max-w-md w-full shadow-2xl'>
                         <h3
                             className={`text-xl font-bold mb-3 ${confirmDialog.type === 'danger' ? 'text-red-400' : 'text-yellow-400'}`}

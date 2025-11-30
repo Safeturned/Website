@@ -625,7 +625,14 @@ export default function AdminUsersPage() {
                             </div>
 
                             {confirmDialog && (
-                                <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4'>
+                                <div
+                                    className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4'
+                                    onClick={(e) => {
+                                        if (e.target === e.currentTarget) {
+                                            setConfirmDialog(null);
+                                        }
+                                    }}
+                                >
                                     <div className='bg-slate-800 border border-purple-500/30 rounded-xl p-6 max-w-md w-full shadow-2xl'>
                                         <h3
                                             className={`text-xl font-bold mb-3 ${confirmDialog.type === 'danger' ? 'text-red-400' : 'text-yellow-400'}`}
@@ -658,7 +665,19 @@ export default function AdminUsersPage() {
                             )}
 
                             {showBotKeyModal.show && (
-                                <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-y-auto'>
+                                <div
+                                    className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 overflow-y-auto'
+                                    onClick={(e) => {
+                                        if (e.target === e.currentTarget) {
+                                            setShowBotKeyModal({
+                                                show: false,
+                                                userId: '',
+                                                userName: '',
+                                            });
+                                            setCreatedBotKey(null);
+                                        }
+                                    }}
+                                >
                                     <div className='bg-slate-800 border border-green-500/30 rounded-xl p-6 max-w-2xl w-full shadow-2xl my-8'>
                                         <div className='flex items-center justify-between mb-4'>
                                             <h3 className='text-2xl font-bold text-green-400'>

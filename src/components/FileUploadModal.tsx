@@ -63,7 +63,14 @@ export default function FileUploadModal({
     if (!isOpen) return null;
 
     return (
-        <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center'>
+        <div
+            className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center'
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
             <div
                 className='bg-white rounded-lg p-8 max-w-md w-full mx-4 relative'
                 onDrop={handleDrop}

@@ -351,7 +351,14 @@ export default function ApiKeysPage() {
                 )}
 
                 {newKeyResult && (
-                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                    <div
+                        className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setNewKeyResult(null);
+                            }
+                        }}
+                    >
                         <div className='bg-slate-800 rounded-xl p-8 max-w-2xl w-full border border-slate-700'>
                             <h3 className='text-2xl font-bold mb-4 text-green-400'>
                                 {t('apiKeys.keyCreated.title')}
@@ -381,7 +388,14 @@ export default function ApiKeysPage() {
                 )}
 
                 {deleteConfirm.show && (
-                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                    <div
+                        className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setDeleteConfirm({ show: false, keyId: '', keyName: '' });
+                            }
+                        }}
+                    >
                         <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-red-500/50'>
                             <div className='text-center mb-6'>
                                 <div className='w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -434,7 +448,18 @@ export default function ApiKeysPage() {
                 )}
 
                 {regenerateConfirm.show && (
-                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                    <div
+                        className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setRegenerateConfirm({
+                                    show: false,
+                                    keyId: '',
+                                    keyName: '',
+                                });
+                            }
+                        }}
+                    >
                         <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-yellow-500/50'>
                             <div className='text-center mb-6'>
                                 <div className='w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -491,7 +516,16 @@ export default function ApiKeysPage() {
                 )}
 
                 {showCreateModal && (
-                    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+                    <div
+                        className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setShowCreateModal(false);
+                                setNewKeyName('');
+                                setError(null);
+                            }
+                        }}
+                    >
                         <div className='bg-slate-800 rounded-xl p-8 max-w-md w-full border border-slate-700'>
                             <h3 className='text-2xl font-bold mb-4'>
                                 {t('apiKeys.createModal.title')}
