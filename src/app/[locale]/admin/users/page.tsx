@@ -603,7 +603,9 @@ export default function AdminUsersPage() {
                                                                     toggleAdmin(
                                                                         u.id,
                                                                         u.isAdmin,
-                                                                        u.username ?? u.email ?? 'Unknown'
+                                                                        u.username ??
+                                                                            u.email ??
+                                                                            'Unknown'
                                                                     )
                                                                 }
                                                                 disabled={
@@ -627,7 +629,9 @@ export default function AdminUsersPage() {
                                                                     toggleActive(
                                                                         u.id,
                                                                         u.isActive,
-                                                                        u.username ?? u.email ?? 'Unknown'
+                                                                        u.username ??
+                                                                            u.email ??
+                                                                            'Unknown'
                                                                     )
                                                                 }
                                                                 disabled={
@@ -651,7 +655,10 @@ export default function AdminUsersPage() {
                                                                     setShowBotKeyModal({
                                                                         show: true,
                                                                         userId: u.id,
-                                                                        userName: u.username ?? u.email ?? 'Unknown',
+                                                                        userName:
+                                                                            u.username ??
+                                                                            u.email ??
+                                                                            'Unknown',
                                                                     })
                                                                 }
                                                                 className='bg-green-600/20 border border-green-600/50 text-green-300 px-3 py-1 rounded-lg text-sm hover:bg-green-600/30 transition-colors'

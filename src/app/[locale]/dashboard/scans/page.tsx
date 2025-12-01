@@ -356,15 +356,11 @@ export default function ScansPage() {
                         {pagination && pagination.totalPages > 1 && (
                             <div className='mt-6 flex items-center justify-between'>
                                 <div className='text-slate-400 text-sm'>
-                                    {t(
-                                        'scans.pagination',
-                                        undefined,
-                                        {
-                                            page: pagination.page,
-                                            totalPages: pagination.totalPages,
-                                            totalCount: pagination.totalCount,
-                                        }
-                                    )}
+                                    {t('scans.pagination', undefined, {
+                                        page: pagination.page,
+                                        totalPages: pagination.totalPages,
+                                        totalCount: pagination.totalCount,
+                                    })}
                                 </div>
                                 <div className='flex gap-2'>
                                     <button
