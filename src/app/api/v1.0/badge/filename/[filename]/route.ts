@@ -36,13 +36,20 @@ export async function GET(
         const { filename: filenameParam } = await params;
         const filename = decodeURIComponent(filenameParam);
 
+        const apiKey = process.env.SAFETURNED_API_KEY;
+        const headers: Record<string, string> = {
+            Accept: 'application/json',
+        };
+
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
+
         const response = await fetch(
             `${apiUrl}/${API_VERSION}/files/filename/${encodeURIComponent(filename)}`,
             {
                 method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                },
+                headers,
             }
         );
 

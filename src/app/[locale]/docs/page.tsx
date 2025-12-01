@@ -184,7 +184,7 @@ export default function DocsPage() {
                                             <span
                                                 className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_FREE)} text-white rounded-full`}
                                             >
-                                                Your
+                                                {t('docs.rateLimits.your')}
                                             </span>
                                         )}
                                     </div>
@@ -229,7 +229,7 @@ export default function DocsPage() {
                                             <span
                                                 className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_VERIFIED)} text-white rounded-full`}
                                             >
-                                                Your
+                                                {t('docs.rateLimits.your')}
                                             </span>
                                         )}
                                     </div>
@@ -274,7 +274,7 @@ export default function DocsPage() {
                                             <span
                                                 className={`text-xs px-2 py-1 ${getTierBadgeColor(TIER_PREMIUM)} text-white rounded-full`}
                                             >
-                                                Your
+                                                {t('docs.rateLimits.your')}
                                             </span>
                                         )}
                                     </div>

@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingPage from '@/components/LoadingPage';
 import { api } from '@/lib/api-client';
 import { encodeHashForUrl } from '@/lib/utils';
 import { STORAGE_KEYS } from '@/lib/storage-constants';
@@ -411,14 +412,7 @@ export default function BadgesPage() {
     };
 
     if (isLoading || !isAuthenticated || !user) {
-        return (
-            <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
-                <div className='text-center'>
-                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
-                </div>
-            </div>
-        );
+        return <LoadingPage text={t('common.loading')} />;
     }
 
     return (
@@ -756,7 +750,7 @@ export default function BadgesPage() {
                                                                     'verification'
                                                                 )
                                                             }
-                                                            className='bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-cyan-500/30 min-w-[110px]'
+                                                            className='bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-cyan-500/30 sm:min-w-[110px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'verification'
@@ -767,7 +761,7 @@ export default function BadgesPage() {
                                                             onClick={() =>
                                                                 handleCopyBadge(badge, 'markdown')
                                                             }
-                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 sm:min-w-[80px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'markdown'
@@ -778,7 +772,7 @@ export default function BadgesPage() {
                                                             onClick={() =>
                                                                 handleCopyBadge(badge, 'html')
                                                             }
-                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 sm:min-w-[80px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'html'
@@ -789,7 +783,7 @@ export default function BadgesPage() {
                                                             onClick={() =>
                                                                 handleCopyBadge(badge, 'rst')
                                                             }
-                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 sm:min-w-[80px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'rst'
@@ -800,7 +794,7 @@ export default function BadgesPage() {
                                                             onClick={() =>
                                                                 handleCopyBadge(badge, 'asciidoc')
                                                             }
-                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 sm:min-w-[80px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'asciidoc'
@@ -811,7 +805,7 @@ export default function BadgesPage() {
                                                             onClick={() =>
                                                                 handleCopyBadge(badge, 'url')
                                                             }
-                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 min-w-[80px]'
+                                                            className='bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-purple-500/20 sm:min-w-[80px]'
                                                         >
                                                             {copiedId === badge.id &&
                                                             copiedType === 'url'
@@ -828,7 +822,7 @@ export default function BadgesPage() {
                                                             disabled={
                                                                 togglingAutoUpdate === badge.id
                                                             }
-                                                            className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-blue-500/30 disabled:opacity-50 min-w-[120px]'
+                                                            className='bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-blue-500/30 disabled:opacity-50 sm:min-w-[120px]'
                                                         >
                                                             {togglingAutoUpdate === badge.id
                                                                 ? t('common.loading')
@@ -847,7 +841,7 @@ export default function BadgesPage() {
                                                                 disabled={
                                                                     regeneratingToken === badge.id
                                                                 }
-                                                                className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-amber-500/30 disabled:opacity-50 min-w-[120px]'
+                                                                className='bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-amber-500/30 disabled:opacity-50 sm:min-w-[120px]'
                                                             >
                                                                 {t('badges.regenerateTokenBtn')}
                                                             </button>
@@ -859,7 +853,7 @@ export default function BadgesPage() {
                                                                     badge.name
                                                                 )
                                                             }
-                                                            className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-500/30 min-w-[70px]'
+                                                            className='bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-red-500/30 sm:min-w-[70px]'
                                                         >
                                                             {t('badges.delete')}
                                                         </button>

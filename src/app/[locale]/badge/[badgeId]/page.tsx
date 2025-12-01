@@ -7,7 +7,7 @@ import { encodeHashForUrl } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatDateTime } from '@/lib/dateUtils';
 import { api } from '@/lib/api-client';
-import TypewriterEffect from '@/components/TypewriterEffect';
+import LoadingPage from '@/components/LoadingPage';
 
 interface Badge {
     id: string;
@@ -73,17 +73,7 @@ export default function BadgeInfoPage() {
     }, [badgeId]);
 
     if (loading) {
-        const { t } = useTranslation();
-        return (
-            <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center'>
-                <div className='text-center'>
-                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>
-                        <TypewriterEffect text={t('common.loading')} speed={50} />
-                    </p>
-                </div>
-            </div>
-        );
+        return <LoadingPage text={t('common.loading')} />;
     }
 
     if (!badge || !badge.linkedFile) {

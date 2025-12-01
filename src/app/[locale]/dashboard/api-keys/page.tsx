@@ -128,7 +128,7 @@ export default function ApiKeysPage() {
 
     const createApiKey = async () => {
         if (!newKeyName.trim()) {
-            setError('Please enter a name for the API key');
+            setError(t('apiKeys.errors.nameRequired'));
             return;
         }
 
@@ -154,18 +154,18 @@ export default function ApiKeysPage() {
                     err.message.includes('Failed to fetch') ||
                     err.message.includes('NetworkError')
                 ) {
-                    setError('Network error. Please check your connection and try again.');
+                    setError(t('apiKeys.errors.networkError'));
                 } else {
                     setError(
                         err.message ||
                             (err as { data?: { message?: string; error?: string } })?.data
                                 ?.message ||
                             (err as { data?: { message?: string; error?: string } })?.data?.error ||
-                            'Failed to create API key'
+                            t('apiKeys.errors.createFailed')
                     );
                 }
             } else {
-                setError('An unexpected error occurred. Please try again.');
+                setError(t('apiKeys.errors.unexpectedError'));
             }
         } finally {
             setCreating(false);
@@ -185,7 +185,7 @@ export default function ApiKeysPage() {
             await fetchApiKeys();
             await fetchKeyLimits();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to revoke API key');
+            setError(err instanceof Error ? err.message : t('apiKeys.errors.revokeFailed'));
         }
     };
 
@@ -204,7 +204,7 @@ export default function ApiKeysPage() {
             setNewKeyResult({ key: data.key, id: data.id });
             await fetchApiKeys();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to regenerate API key');
+            setError(err instanceof Error ? err.message : t('apiKeys.errors.regenerateFailed'));
         }
     };
 
@@ -796,17 +796,20 @@ export default function ApiKeysPage() {
                     <div className='flex items-start justify-between gap-4'>
                         <div>
                             <h3 className='text-lg font-semibold mb-2 flex items-center gap-2'>
-                                📚 {t('nav.apiDocumentation')}
+                                {t('nav.apiDocumentation', 'API Documentation')}
                             </h3>
                             <p className='text-slate-300 text-sm'>
-                                {t('apiKeys.learnMore')} {t('apiKeys.visitDocs')}
+                                {t(
+                                    'apiKeys.docsIntro',
+                                    'Read our API documentation to learn how to integrate Safeturned into your application and manage API keys programmatically.'
+                                )}
                             </p>
                         </div>
                         <Link
                             href='/docs'
                             className='px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap'
                         >
-                            {t('apiKeys.viewDocs')}
+                            {t('apiKeys.viewDocs', 'View Docs')}
                         </Link>
                     </div>
                 </div>

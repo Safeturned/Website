@@ -30,14 +30,9 @@ function buildServerHeaders(
     } else if (options.token) {
         headers['Authorization'] = `Bearer ${options.token}`;
     } else {
-        const clientCookies = request.headers.get('cookie');
-        if (clientCookies) {
-            headers['Cookie'] = clientCookies;
-        } else {
-            const apiKey = process.env.SAFETURNED_API_KEY;
-            if (apiKey) {
-                headers['X-API-Key'] = apiKey;
-            }
+        const apiKey = process.env.SAFETURNED_API_KEY;
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
         }
     }
 

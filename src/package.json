@@ -4,7 +4,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "cross-env NEXT_PUBLIC_API_URL=http://localhost:5000 SAFETURNED_API_KEY=dev-api-key-12345 next dev",
+        "dev": "next dev",
         "build": "cross-env NEXT_PUBLIC_API_URL=https://api.safeturned.com next build",
         "start": "next start",
         "lint": "eslint . --ext .ts,.tsx,.js,.jsx",

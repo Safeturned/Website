@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const loadAndValidateAuth = async () => {
-            // Check if we have stored auth data (don't set user yet!)
+            // Check if we have stored auth data
             const storedUserStr = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
 
             if (!storedUserStr) {
@@ -84,14 +84,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            // Validate the stored session with the server
+            // Restore user from localStorage immediately (optimistic load)
+            try {
+                const storedUser = JSON.parse(storedUserStr) as User;
+                setUser(storedUser);
+            } catch {
+                setIsLoading(false);
+                return;
+            }
+
+            // Validate the stored session with the server in background
             try {
                 const currentUser = await api.get<User>('auth/me');
-                setUser(currentUser); // Only set user after server validates the session
+                setUser(currentUser); // Update with fresh server data
             } catch (error) {
-                console.warn('Stored user session is invalid, clearing:', error);
-                setUser(null);
-                localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+                console.warn('Session validation failed, using cached user:', error);
+                // Keep the user logged in with cached data
+                // They will be logged out when they try to make an authenticated request
             } finally {
                 setIsLoading(false);
             }

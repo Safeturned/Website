@@ -46,11 +46,18 @@ export async function GET(
         const apiUrl = getApiBaseUrl();
         const { badgeId } = await params;
 
+        const apiKey = process.env.SAFETURNED_API_KEY;
+        const headers: Record<string, string> = {
+            Accept: 'application/json',
+        };
+
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
+
         const badgeResponse = await fetch(`${apiUrl}/${API_VERSION}/badges/${badgeId}`, {
             method: 'GET',
-            headers: {
-                Accept: 'application/json',
-            },
+            headers,
         });
 
         if (!badgeResponse.ok) {

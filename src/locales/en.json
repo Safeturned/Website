@@ -284,16 +284,28 @@
         "noScans": "No Scans Yet",
         "noScansDesc": "Upload a file to see your scan results here",
         "avgTime": "Avg Time",
-        "resultUnavailable": "Scan result is not available. File hash not found."
+        "resultUnavailable": "Scan result is not available. File hash not found.",
+        "pagination": "Page {{page}} of {{totalPages}} ({{totalCount}} total scans)",
+        "previous": "Previous",
+        "next": "Next"
     },
     "apiKeys": {
         "title": "API Keys",
         "description": "Manage your API keys for programmatic access",
         "noKeys": "No API Keys Yet",
         "createFirst": "Create your first API key to start using the Safeturned API",
-        "learnMore": "Learn how to use your API keys to integrate Safeturned into your applications.",
-        "visitDocs": "Visit our API documentation for code examples and usage guides.",
-        "viewDocs": "View Docs"
+        "docsIntro": "Learn how to use your API keys to integrate Safeturned into your applications. Visit our API documentation for code examples and usage guides.",
+        "viewDocs": "View Docs",
+        "errors": {
+            "nameRequired": "Please enter a name for the API key",
+            "loadFailed": "Failed to load API keys",
+            "networkError": "Network error. Please check your connection and try again.",
+            "createFailed": "Failed to create API key",
+            "unexpectedError": "An unexpected error occurred. Please try again.",
+            "revokeFailed": "Failed to revoke API key",
+            "regenerateFailed": "Failed to regenerate API key"
+        },
+        "limits": "You can create up to {{max}} API key{{plural}}"
     },
     "usage": {
         "title": "API Usage & Analytics",
@@ -305,7 +317,7 @@
         "description4": "Uploading files through the website doesn't count as API usage.",
         "note": "Note: Website uploads show up in your",
         "scanHistory": "Scan History",
-        "notHere": "instead.",
+        "notHere": " instead.",
         "createKey": "Create API Key",
         "viewHistory": "View Scan History",
         "loadingAnalytics": "Loading analytics...",
@@ -346,7 +358,13 @@
         "clean": "Clean",
         "about": "About Notifications",
         "aboutDesc1": "This page shows notifications for all your scan results. Threat notifications mean files might be dangerous and need your attention.",
-        "aboutDesc2": "Clean notifications mean files passed our security checks."
+        "aboutDesc2": "Clean notifications mean files passed our security checks.",
+        "threatDetected": "Threat Detected",
+        "fileScannedSuccess": "File Scanned Successfully",
+        "noThreatsDetected": "No threats detected",
+        "actionRequired": "ACTION REQUIRED",
+        "viewDetails": "View Details",
+        "uploadFirst": "Upload Your First File"
     },
     "terms": {
         "title": "Terms of Service",
@@ -866,7 +884,8 @@
             "premium": "Premium",
             "premiumDesc": "For premium users",
             "bot": "Bot",
-            "botDesc": "For Discord bots (admin-created)"
+            "botDesc": "For Discord bots (admin-created)",
+            "your": "Your"
         },
         "endpoints": {
             "title": "API Endpoints",

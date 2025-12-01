@@ -9,15 +9,15 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { api } from '@/lib/api-client';
 
 interface User {
     id: string;
-    email: string;
-    discordUsername: string | null;
-    discordAvatarUrl: string | null;
-    steamUsername: string | null;
-    steamAvatarUrl: string | null;
+    email: string | null;
+    username: string | null;
+    avatarUrl: string | null;
+    authProvider: number;
     tier: number;
     isAdmin: boolean;
     isActive: boolean;
@@ -26,6 +26,35 @@ interface User {
     apiKeysCount: number;
     scannedFilesCount: number;
 }
+
+// AuthProvider enum: 0 = Unknown, 1 = Discord, 2 = Steam
+const AuthProviderEnum = {
+    Unknown: 0,
+    Discord: 1,
+    Steam: 2,
+} as const;
+
+const getAuthProviderName = (provider: number): string => {
+    switch (provider) {
+        case AuthProviderEnum.Discord:
+            return 'Discord';
+        case AuthProviderEnum.Steam:
+            return 'Steam';
+        default:
+            return 'Unknown';
+    }
+};
+
+const getAuthProviderColor = (provider: number): string => {
+    switch (provider) {
+        case AuthProviderEnum.Discord:
+            return 'bg-blue-600';
+        case AuthProviderEnum.Steam:
+            return 'bg-blue-900';
+        default:
+            return 'bg-gray-600';
+    }
+};
 
 interface UsersResponse {
     page: number;
@@ -292,7 +321,7 @@ export default function AdminUsersPage() {
             <div className='min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-slate-900 to-slate-800'>
                 <Navigation />
                 <div className='flex-1 flex items-center justify-center'>
-                    <div className='text-white'>{t('common.loading')}</div>
+                    <LoadingSpinner text={t('common.loading')} />
                 </div>
                 <Footer />
             </div>
@@ -440,6 +469,9 @@ export default function AdminUsersPage() {
                                                     {t('admin.userManagement.status')}
                                                 </th>
                                                 <th className='text-left p-4 text-gray-400 font-medium'>
+                                                    Auth Provider
+                                                </th>
+                                                <th className='text-left p-4 text-gray-400 font-medium'>
                                                     {t('admin.userManagement.activity')}
                                                 </th>
                                                 <th className='text-left p-4 text-gray-400 font-medium'>
@@ -455,27 +487,36 @@ export default function AdminUsersPage() {
                                                 >
                                                     <td className='p-4 pr-6'>
                                                         <div className='flex items-center gap-3'>
-                                                            {(u.discordAvatarUrl ||
-                                                                u.steamAvatarUrl) && (
-                                                                <img
-                                                                    src={
-                                                                        u.discordAvatarUrl ||
-                                                                        u.steamAvatarUrl ||
-                                                                        ''
-                                                                    }
-                                                                    alt=''
-                                                                    className='w-10 h-10 rounded-full'
-                                                                />
-                                                            )}
-                                                            <div className='flex flex-col gap-0.5'>
-                                                                <p className='text-white font-medium'>
-                                                                    {u.discordUsername ||
-                                                                        u.steamUsername ||
-                                                                        u.email}
+                                                            <div className='flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden'>
+                                                                {u.avatarUrl ? (
+                                                                    <img
+                                                                        src={u.avatarUrl}
+                                                                        alt={
+                                                                            u.username ||
+                                                                            u.email ||
+                                                                            ''
+                                                                        }
+                                                                        className='w-full h-full object-cover'
+                                                                    />
+                                                                ) : (
+                                                                    <span className='text-slate-400 font-semibold'>
+                                                                        {(u.username ||
+                                                                            u.email ||
+                                                                            '?')[0].toUpperCase()}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className='flex flex-col gap-0.5 min-w-0'>
+                                                                <p className='text-white font-medium truncate'>
+                                                                    {u.username ||
+                                                                        u.email ||
+                                                                        'Unknown'}
                                                                 </p>
-                                                                <p className='text-gray-400 text-sm'>
-                                                                    {u.email}
-                                                                </p>
+                                                                {u.email && (
+                                                                    <p className='text-gray-400 text-sm truncate'>
+                                                                        {u.email}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -529,6 +570,17 @@ export default function AdminUsersPage() {
                                                         </div>
                                                     </td>
                                                     <td className='p-4'>
+                                                        {u.authProvider > 0 && (
+                                                            <span
+                                                                className={`text-white text-xs px-2 py-1 rounded w-fit inline-block ${getAuthProviderColor(u.authProvider)}`}
+                                                            >
+                                                                {getAuthProviderName(
+                                                                    u.authProvider
+                                                                )}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className='p-4'>
                                                         <div className='text-sm'>
                                                             <p className='text-gray-400'>
                                                                 {t('admin.userManagement.scans')}:{' '}
@@ -551,9 +603,7 @@ export default function AdminUsersPage() {
                                                                     toggleAdmin(
                                                                         u.id,
                                                                         u.isAdmin,
-                                                                        u.discordUsername ||
-                                                                            u.steamUsername ||
-                                                                            u.email
+                                                                        u.username ?? u.email ?? 'Unknown'
                                                                     )
                                                                 }
                                                                 disabled={
@@ -577,9 +627,7 @@ export default function AdminUsersPage() {
                                                                     toggleActive(
                                                                         u.id,
                                                                         u.isActive,
-                                                                        u.discordUsername ||
-                                                                            u.steamUsername ||
-                                                                            u.email
+                                                                        u.username ?? u.email ?? 'Unknown'
                                                                     )
                                                                 }
                                                                 disabled={
@@ -603,10 +651,7 @@ export default function AdminUsersPage() {
                                                                     setShowBotKeyModal({
                                                                         show: true,
                                                                         userId: u.id,
-                                                                        userName:
-                                                                            u.discordUsername ||
-                                                                            u.steamUsername ||
-                                                                            u.email,
+                                                                        userName: u.username ?? u.email ?? 'Unknown',
                                                                     })
                                                                 }
                                                                 className='bg-green-600/20 border border-green-600/50 text-green-300 px-3 py-1 rounded-lg text-sm hover:bg-green-600/30 transition-colors'

@@ -9,6 +9,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { api } from '@/lib/api-client';
 
 interface SystemAnalytics {
@@ -77,7 +78,7 @@ export default function AdminDashboard() {
             <div className='min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-slate-900 to-slate-800'>
                 <Navigation />
                 <div className='flex-1 flex items-center justify-center'>
-                    <div className='text-white'>{t('common.loading')}</div>
+                    <LoadingSpinner text={t('common.loading')} />
                 </div>
                 <Footer />
             </div>

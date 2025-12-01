@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingPage from '@/components/LoadingPage';
 import { api } from '@/lib/api-client';
 import { STORAGE_KEYS } from '@/lib/storage-constants';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -82,7 +83,7 @@ export default function NotificationsPage() {
                     return {
                         id: scan.id,
                         type: 'threat' as const,
-                        title: 'Threat Detected',
+                        title: t('notifications.threatDetected'),
                         message: `${scan.fileName} - Risk Score: ${scan.score}/100`,
                         timestamp: scan.scanDate,
                         link: `/scan/${scan.id}`,
@@ -92,8 +93,8 @@ export default function NotificationsPage() {
                     return {
                         id: scan.id,
                         type: 'clean' as const,
-                        title: 'File Scanned Successfully',
-                        message: `${scan.fileName} - No threats detected (Score: ${scan.score}/100)`,
+                        title: t('notifications.fileScannedSuccess'),
+                        message: `${scan.fileName} - ${t('notifications.noThreatsDetected')} (Score: ${scan.score}/100)`,
                         timestamp: scan.scanDate,
                         link: `/scan/${scan.id}`,
                         icon: '✅',
@@ -135,14 +136,7 @@ export default function NotificationsPage() {
     };
 
     if (isLoading || !isAuthenticated || !user) {
-        return (
-            <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
-                <div className='text-center'>
-                    <div className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'></div>
-                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
-                </div>
-            </div>
-        );
+        return <LoadingPage text={t('common.loading')} />;
     }
 
     return (
@@ -218,17 +212,19 @@ export default function NotificationsPage() {
                                 />
                             </svg>
                         </div>
-                        <h2 className='text-2xl font-bold text-white mb-4'>No Notifications</h2>
+                        <h2 className='text-2xl font-bold text-white mb-4'>
+                            {t('notifications.noNotifications')}
+                        </h2>
                         <p className='text-slate-400 mb-6'>
                             {filter === 'all'
-                                ? "You don't have any notifications yet. Upload files to start scanning!"
-                                : `No ${filter} notifications found.`}
+                                ? t('notifications.noNotificationsDesc')
+                                : t('notifications.noFilterNotifications', undefined, { filter })}
                         </p>
                         <Link
                             href='/'
                             className='inline-block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium transition-all duration-300'
                         >
-                            Upload Your First File
+                            {t('notifications.uploadFirst')}
                         </Link>
                     </div>
                 ) : (
@@ -255,7 +251,7 @@ export default function NotificationsPage() {
                                             </div>
                                             {notification.type === 'threat' && (
                                                 <span className='flex-shrink-0 ml-3 bg-red-500/20 text-red-400 text-xs px-3 py-1 rounded-full border border-red-500/30 font-medium'>
-                                                    ACTION REQUIRED
+                                                    {t('notifications.actionRequired')}
                                                 </span>
                                             )}
                                         </div>
@@ -278,7 +274,7 @@ export default function NotificationsPage() {
                                             </span>
                                             {notification.link && (
                                                 <span className='flex items-center gap-1 text-purple-400 hover:text-purple-300'>
-                                                    View Details
+                                                    {t('notifications.viewDetails')}
                                                     <svg
                                                         className='w-4 h-4'
                                                         fill='none'

@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingPage from '@/components/LoadingPage';
 import { api } from '@/lib/api-client';
 import { encodeHashForUrl } from '@/lib/utils';
 
@@ -162,17 +163,7 @@ export default function ScansPage() {
     };
 
     if (isLoading || !isAuthenticated || !user) {
-        return (
-            <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
-                <div className='text-center' role='status' aria-live='polite'>
-                    <div
-                        className='inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4'
-                        aria-hidden='true'
-                    ></div>
-                    <p className='text-slate-300 text-lg'>{t('common.loading')}</p>
-                </div>
-            </div>
-        );
+        return <LoadingPage text={t('common.loading')} />;
     }
 
     return (
@@ -365,8 +356,15 @@ export default function ScansPage() {
                         {pagination && pagination.totalPages > 1 && (
                             <div className='mt-6 flex items-center justify-between'>
                                 <div className='text-slate-400 text-sm'>
-                                    Page {pagination.page} of {pagination.totalPages} (
-                                    {pagination.totalCount} total scans)
+                                    {t(
+                                        'scans.pagination',
+                                        undefined,
+                                        {
+                                            page: pagination.page,
+                                            totalPages: pagination.totalPages,
+                                            totalCount: pagination.totalCount,
+                                        }
+                                    )}
                                 </div>
                                 <div className='flex gap-2'>
                                     <button
@@ -374,14 +372,14 @@ export default function ScansPage() {
                                         disabled={!pagination.hasPreviousPage}
                                         className='px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors'
                                     >
-                                        Previous
+                                        {t('scans.previous')}
                                     </button>
                                     <button
                                         onClick={() => setCurrentPage(p => p + 1)}
                                         disabled={!pagination.hasNextPage}
                                         className='px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors'
                                     >
-                                        Next
+                                        {t('scans.next')}
                                     </button>
                                 </div>
                             </div>

@@ -9,12 +9,13 @@ import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { api } from '@/lib/api-client';
 
 interface RecentUser {
     id: string;
-    email: string;
-    discordUsername: string | null;
+    email: string | null;
+    username: string | null;
     tier: number;
     createdAt: string;
 }
@@ -86,7 +87,7 @@ export default function AdminAnalyticsPage() {
             <div className='min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-slate-900 to-slate-800'>
                 <Navigation />
                 <div className='flex-1 flex items-center justify-center'>
-                    <div className='text-white'>{t('common.loading')}</div>
+                    <LoadingSpinner text={t('common.loading')} />
                 </div>
                 <Footer />
             </div>
@@ -319,11 +320,13 @@ export default function AdminAnalyticsPage() {
                                                 <div className='flex justify-between items-start'>
                                                     <div>
                                                         <p className='text-white font-medium'>
-                                                            {u.discordUsername || u.email}
+                                                            {u.username || u.email || 'Unknown'}
                                                         </p>
-                                                        <p className='text-gray-400 text-sm'>
-                                                            {u.email}
-                                                        </p>
+                                                        {u.email && (
+                                                            <p className='text-gray-400 text-sm'>
+                                                                {u.email}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     <span
                                                         className={`${TIER_BADGE_COLORS[u.tier]} text-white text-xs px-2 py-1 rounded`}
@@ -346,7 +349,7 @@ export default function AdminAnalyticsPage() {
                                     <div className='space-y-3'>
                                         {analytics.recent.scans.map(scan => (
                                             <div
-                                                key={scan.id}
+                                                key={scan.sha256Hash}
                                                 className='bg-slate-700/30 rounded-lg p-3'
                                             >
                                                 <div className='flex justify-between items-start'>
