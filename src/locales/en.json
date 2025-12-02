@@ -290,22 +290,78 @@
         "next": "Next"
     },
     "apiKeys": {
-        "title": "API Keys",
-        "description": "Manage your API keys for programmatic access",
-        "noKeys": "No API Keys Yet",
-        "createFirst": "Create your first API key to start using the Safeturned API",
-        "docsIntro": "Learn how to use your API keys to integrate Safeturned into your applications. Visit our API documentation for code examples and usage guides.",
-        "viewDocs": "View Docs",
-        "errors": {
-            "nameRequired": "Please enter a name for the API key",
-            "loadFailed": "Failed to load API keys",
-            "networkError": "Network error. Please check your connection and try again.",
-            "createFailed": "Failed to create API key",
-            "unexpectedError": "An unexpected error occurred. Please try again.",
-            "revokeFailed": "Failed to revoke API key",
-            "regenerateFailed": "Failed to regenerate API key"
+        "createModal": {
+            "title": "Create New API Key",
+            "keyNameLabel": "Key Name",
+            "keyNameHelp": "Give your key a descriptive name to identify where it will be used",
+            "placeholder": "e.g., My Server, Development, Personal Project",
+            "scopesLabel": "Permissions",
+            "scopesHelp": "Select which operations this API key can perform",
+            "scopeRead": "Read",
+            "scopeReadDesc": "View file scan results and analytics",
+            "scopeAnalyze": "Analyze",
+            "scopeAnalyzeDesc": "Upload and scan files for threats",
+            "cancel": "Cancel",
+            "create": "Create Key",
+            "creating": "Creating..."
         },
-        "limits": "You can create up to {{max}} API key{{plural}}"
+        "keyCreated": {
+            "title": "API Key Created!",
+            "message": "Save this key securely - you won't be able to see it again!",
+            "savedBtn": "I've Saved My Key"
+        },
+        "deleteConfirm": {
+            "title": "Revoke API Key?",
+            "message": "Are you sure you want to revoke",
+            "warning": "This can't be undone - any apps using this key will stop working immediately.",
+            "cancel": "Cancel",
+            "revoke": "Revoke Key"
+        },
+        "regenerateConfirm": {
+            "title": "Regenerate API Key?",
+            "message": "Regenerate",
+            "warning": "Your old key will stop working right away, and you'll get a new one.",
+            "cancel": "Cancel",
+            "regenerate": "Regenerate"
+        },
+        "page": {
+            "backToDashboard": "← Back to Dashboard",
+            "title": "API Keys",
+            "subtitle": "Manage your API keys for programmatic access",
+            "keysLabel": "API Keys:",
+            "limitReached": "Limit reached",
+            "limitReachedTooltip": "API key limit reached for your tier",
+            "createButton": "Create API Key"
+        },
+        "limitWarning": {
+            "title": "API Key Limit Reached",
+            "message": "You've reached the maximum of {{max}} active API key{{plural}} for your current tier. Revoke an existing key to create a new one, or upgrade your plan for more keys."
+        },
+        "error": {
+            "title": "Error"
+        },
+        "emptyState": {
+            "title": "No API Keys Yet",
+            "subtitle": "Create your first API key to get started",
+            "createButton": "Create API Key"
+        },
+        "keyCard": {
+            "revoked": "Revoked",
+            "created": "Created",
+            "lastUsed": "Last Used",
+            "never": "Never",
+            "rateLimit": "Rate Limit",
+            "scopes": "Scopes",
+            "regenerateTooltip": "Regenerate",
+            "revokeTooltip": "Revoke",
+            "managedBadge": "Managed",
+            "managedTooltip": "Managed key cannot be changed"
+        },
+        "errors": {
+            "nameRequired": "Please provide a key name.",
+            "reservedName": "This key name is reserved and managed by Safeturned.",
+            "protectedKey": "This managed key cannot be regenerated or revoked."
+        }
     },
     "usage": {
         "title": "API Usage & Analytics",
@@ -322,12 +378,11 @@
         "viewHistory": "View Scan History",
         "loadingAnalytics": "Loading analytics...",
         "totalRequests": "Total Requests",
-        "last30Days": "Last 30 Days",
+        "last30Days": "Last 30 days",
         "avgResponseTime": "Avg Response Time",
         "successRate": "Success Rate",
         "dailyRequests": "Daily Requests",
         "last7Days": "Last 7 days",
-        "last30Days": "Last 30 days",
         "last90Days": "Last 90 days",
         "noRequestsInDays": "No API requests in the last {{days}} days",
         "startUsingKeys": "Start using your API keys to see activity here",
@@ -678,50 +733,6 @@
         "passedChecks": "Passed security checks",
         "downloadTrusted": "Download from trusted sources"
     },
-    "apiKeys": {
-        "title": "API Keys",
-        "description": "Manage your API keys for programmatic access",
-        "createNew": "Create New Key",
-        "error": "Error",
-        "keyCreated": "API Key Created!",
-        "saveSecurely": "Save this key now - you won't be able to see it again!",
-        "copy": "Copy",
-        "saved": "I've Saved My Key",
-        "revokeTitle": "Revoke API Key?",
-        "revokeConfirm": "Are you sure you want to revoke",
-        "revokeWarning": "This can't be undone and will immediately stop all requests using this key.",
-        "cancel": "Cancel",
-        "revokeKey": "Revoke Key",
-        "regenerateTitle": "Regenerate API Key?",
-        "regenerateConfirm": "Regenerate",
-        "regenerateWarning": "The old key gets revoked right away and a new one is generated.",
-        "createTitle": "Create New API Key",
-        "keyName": "Key Name",
-        "keyNameDescription": "Give your key a name so you remember what it's for",
-        "keyNamePlaceholder": "e.g., My Server, Development, Personal Project",
-        "creating": "Creating...",
-        "create": "Create",
-        "noKeys": "No API Keys Yet",
-        "noKeysDesc": "Create your first API key to get started",
-        "createKey": "Create API Key",
-        "revoked": "Revoked",
-        "created": "Created",
-        "lastUsed": "Last Used",
-        "never": "Never",
-        "rateLimit": "Rate Limit",
-        "perHour": "/hour",
-        "scopes": "Scopes",
-        "documentation": "API Documentation",
-        "documentationDescription": "Want to use your API keys? Check out our API docs for code examples and guides.",
-        "fetchFailed": "Failed to fetch API keys",
-        "loadFailed": "Failed to load API keys",
-        "enterName": "Please enter a name for the API key",
-        "createFailed": "Failed to create API key",
-        "networkError": "Network error. Please check your connection and try again.",
-        "unexpectedError": "An unexpected error occurred. Please try again.",
-        "revokeFailed": "Failed to revoke API key",
-        "regenerateFailed": "Failed to regenerate API key"
-    },
     "login": {
         "title": "Login to manage your API keys and scans",
         "loginWithDiscord": "Login with Discord",
@@ -1030,73 +1041,6 @@
             "securityTip4": "One token can update multiple badges (if you have several for the same file)",
             "cicdTitle": "💡 Perfect for CI/CD",
             "cicdDescription": "Add the badge token to your GitHub Actions, GitLab CI, or other automation tools to automatically update your badges when you release new versions. Your README badges will always show the latest security status!"
-        }
-    },
-    "apiKeys": {
-        "createModal": {
-            "title": "Create New API Key",
-            "keyNameLabel": "Key Name",
-            "keyNameHelp": "Give your key a descriptive name to identify where it will be used",
-            "placeholder": "e.g., My Server, Development, Personal Project",
-            "scopesLabel": "Permissions",
-            "scopesHelp": "Select which operations this API key can perform",
-            "scopeRead": "Read",
-            "scopeReadDesc": "View file scan results and analytics",
-            "scopeAnalyze": "Analyze",
-            "scopeAnalyzeDesc": "Upload and scan files for threats",
-            "cancel": "Cancel",
-            "create": "Create Key",
-            "creating": "Creating..."
-        },
-        "keyCreated": {
-            "title": "API Key Created!",
-            "message": "Save this key securely - you won't be able to see it again!",
-            "savedBtn": "I've Saved My Key"
-        },
-        "deleteConfirm": {
-            "title": "Revoke API Key?",
-            "message": "Are you sure you want to revoke",
-            "warning": "This can't be undone - any apps using this key will stop working immediately.",
-            "cancel": "Cancel",
-            "revoke": "Revoke Key"
-        },
-        "regenerateConfirm": {
-            "title": "Regenerate API Key?",
-            "message": "Regenerate",
-            "warning": "Your old key will stop working right away, and you'll get a new one.",
-            "cancel": "Cancel",
-            "regenerate": "Regenerate"
-        },
-        "page": {
-            "backToDashboard": "← Back to Dashboard",
-            "title": "API Keys",
-            "subtitle": "Manage your API keys for programmatic access",
-            "keysLabel": "API Keys:",
-            "limitReached": "Limit reached",
-            "limitReachedTooltip": "API key limit reached for your tier",
-            "createButton": "Create API Key"
-        },
-        "limitWarning": {
-            "title": "API Key Limit Reached",
-            "message": "You've reached the maximum of {{max}} active API key{{plural}} for your current tier. Revoke an existing key to create a new one, or upgrade your plan for more keys."
-        },
-        "error": {
-            "title": "Error"
-        },
-        "emptyState": {
-            "title": "No API Keys Yet",
-            "subtitle": "Create your first API key to get started",
-            "createButton": "Create API Key"
-        },
-        "keyCard": {
-            "revoked": "Revoked",
-            "created": "Created",
-            "lastUsed": "Last Used",
-            "never": "Never",
-            "rateLimit": "Rate Limit",
-            "scopes": "Scopes",
-            "regenerateTooltip": "Regenerate",
-            "revokeTooltip": "Revoke"
         }
     },
     "badgeInfo": {

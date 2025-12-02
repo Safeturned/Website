@@ -353,7 +353,14 @@
             "rateLimit": "Лимит запросов",
             "scopes": "Области",
             "regenerateTooltip": "Перегенерировать",
-            "revokeTooltip": "Отозвать"
+            "revokeTooltip": "Отозвать",
+            "managedBadge": "Системный",
+            "managedTooltip": "Системный ключ нельзя менять"
+        },
+        "errors": {
+            "nameRequired": "Укажите название ключа.",
+            "reservedName": "Это имя зарезервировано и управляется Safeturned.",
+            "protectedKey": "Этот системный ключ нельзя регенерировать или удалить."
         }
     },
     "usage": {

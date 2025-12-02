@@ -27,11 +27,9 @@ interface User {
     scannedFilesCount: number;
 }
 
-// AuthProvider enum: 0 = Unknown, 1 = Discord, 2 = Steam
 const AuthProviderEnum = {
-    Unknown: 0,
-    Discord: 1,
-    Steam: 2,
+    Discord: 0,
+    Steam: 1,
 } as const;
 
 const getAuthProviderName = (provider: number): string => {

@@ -16,6 +16,8 @@ const API_KEY_SCOPES = {
     RUNTIME_SCAN: 'runtime-scan',
 } as const;
 
+const WEBSITE_SERVICE_NAME = 'Website Service';
+
 type ApiKeyScope = (typeof API_KEY_SCOPES)[keyof typeof API_KEY_SCOPES];
 
 interface ApiKey {
@@ -132,6 +134,16 @@ export default function ApiKeysPage() {
             return;
         }
 
+        if (newKeyName.trim().toLowerCase() === WEBSITE_SERVICE_NAME.toLowerCase()) {
+            setError(
+                t(
+                    'apiKeys.errors.reservedName',
+                    `'${WEBSITE_SERVICE_NAME}' is reserved and managed by Safeturned`
+                )
+            );
+            return;
+        }
+
         try {
             setCreating(true);
             setError(null);
@@ -173,6 +185,15 @@ export default function ApiKeysPage() {
     };
 
     const confirmDelete = (keyId: string, keyName: string) => {
+        if (keyName === WEBSITE_SERVICE_NAME) {
+            setError(
+                t(
+                    'apiKeys.errors.protectedKey',
+                    'This managed key cannot be regenerated or revoked.'
+                )
+            );
+            return;
+        }
         setDeleteConfirm({ show: true, keyId, keyName });
     };
 
@@ -190,6 +211,15 @@ export default function ApiKeysPage() {
     };
 
     const confirmRegenerate = (keyId: string, keyName: string) => {
+        if (keyName === WEBSITE_SERVICE_NAME) {
+            setError(
+                t(
+                    'apiKeys.errors.protectedKey',
+                    'This managed key cannot be regenerated or revoked.'
+                )
+            );
+            return;
+        }
         setRegenerateConfirm({ show: true, keyId, keyName });
     };
 
@@ -695,100 +725,133 @@ export default function ApiKeysPage() {
                     </div>
                 ) : (
                     <div className='space-y-4'>
-                        {apiKeys.map(key => (
-                            <div
-                                key={key.id}
-                                className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'
-                            >
-                                <div className='flex items-start justify-between'>
-                                    <div className='flex-1'>
-                                        <div className='flex items-center gap-3 mb-2'>
-                                            <h3 className='text-xl font-semibold'>{key.name}</h3>
-                                            {!key.isActive && (
-                                                <span className='text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded'>
-                                                    {t('apiKeys.keyCard.revoked')}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className='font-mono text-sm text-slate-400 mb-4'>
-                                            {key.maskedKey}
-                                        </div>
-                                        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
-                                            <div>
-                                                <p className='text-slate-500'>
-                                                    {t('apiKeys.keyCard.created')}
-                                                </p>
-                                                <p className='text-slate-300'>
-                                                    {new Date(key.createdAt).toLocaleDateString()}
-                                                </p>
+                        {apiKeys.map(key => {
+                            const isManagedKey = key.name === WEBSITE_SERVICE_NAME;
+                            return (
+                                <div
+                                    key={key.id}
+                                    className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6'
+                                >
+                                    <div className='flex items-start justify-between'>
+                                        <div className='flex-1'>
+                                            <div className='flex items-center gap-3 mb-2'>
+                                                <h3 className='text-xl font-semibold'>
+                                                    {key.name}
+                                                </h3>
+                                                {isManagedKey && (
+                                                    <span className='text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded'>
+                                                        {t(
+                                                            'apiKeys.keyCard.managedBadge',
+                                                            'Managed'
+                                                        )}
+                                                    </span>
+                                                )}
+                                                {!key.isActive && (
+                                                    <span className='text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded'>
+                                                        {t('apiKeys.keyCard.revoked')}
+                                                    </span>
+                                                )}
                                             </div>
-                                            <div>
-                                                <p className='text-slate-500'>
-                                                    {t('apiKeys.keyCard.lastUsed')}
-                                                </p>
-                                                <p className='text-slate-300'>
-                                                    {key.lastUsedAt
-                                                        ? new Date(
-                                                              key.lastUsedAt
-                                                          ).toLocaleDateString()
-                                                        : t('apiKeys.keyCard.never')}
-                                                </p>
+                                            <div className='font-mono text-sm text-slate-400 mb-4'>
+                                                {key.maskedKey}
                                             </div>
-                                            <div>
-                                                <p className='text-slate-500'>
-                                                    {t('apiKeys.keyCard.scopes')}
-                                                </p>
-                                                <p className='text-slate-300'>
-                                                    {key.scopes.join(', ')}
-                                                </p>
+                                            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
+                                                <div>
+                                                    <p className='text-slate-500'>
+                                                        {t('apiKeys.keyCard.created')}
+                                                    </p>
+                                                    <p className='text-slate-300'>
+                                                        {new Date(
+                                                            key.createdAt
+                                                        ).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className='text-slate-500'>
+                                                        {t('apiKeys.keyCard.lastUsed')}
+                                                    </p>
+                                                    <p className='text-slate-300'>
+                                                        {key.lastUsedAt
+                                                            ? new Date(
+                                                                  key.lastUsedAt
+                                                              ).toLocaleDateString()
+                                                            : t('apiKeys.keyCard.never')}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className='text-slate-500'>
+                                                        {t('apiKeys.keyCard.scopes')}
+                                                    </p>
+                                                    <p className='text-slate-300'>
+                                                        {key.scopes.join(', ')}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
+                                        {key.isActive && (
+                                            <div className='flex gap-2 ml-4'>
+                                                <button
+                                                    onClick={() =>
+                                                        confirmRegenerate(key.id, key.name)
+                                                    }
+                                                    className='text-blue-400 hover:text-blue-300 p-2 disabled:opacity-40 disabled:cursor-not-allowed'
+                                                    title={
+                                                        isManagedKey
+                                                            ? t(
+                                                                  'apiKeys.keyCard.managedTooltip',
+                                                                  'Managed key cannot be regenerated'
+                                                              )
+                                                            : t('apiKeys.keyCard.regenerateTooltip')
+                                                    }
+                                                    disabled={isManagedKey}
+                                                >
+                                                    <svg
+                                                        className='w-5 h-5'
+                                                        fill='none'
+                                                        stroke='currentColor'
+                                                        viewBox='0 0 24 24'
+                                                    >
+                                                        <path
+                                                            strokeLinecap='round'
+                                                            strokeLinejoin='round'
+                                                            strokeWidth={2}
+                                                            d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                                                        />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => confirmDelete(key.id, key.name)}
+                                                    className='text-red-400 hover:text-red-300 p-2 disabled:opacity-40 disabled:cursor-not-allowed'
+                                                    title={
+                                                        isManagedKey
+                                                            ? t(
+                                                                  'apiKeys.keyCard.managedTooltip',
+                                                                  'Managed key cannot be revoked'
+                                                              )
+                                                            : t('apiKeys.keyCard.revokeTooltip')
+                                                    }
+                                                    disabled={isManagedKey}
+                                                >
+                                                    <svg
+                                                        className='w-5 h-5'
+                                                        fill='none'
+                                                        stroke='currentColor'
+                                                        viewBox='0 0 24 24'
+                                                    >
+                                                        <path
+                                                            strokeLinecap='round'
+                                                            strokeLinejoin='round'
+                                                            strokeWidth={2}
+                                                            d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    {key.isActive && (
-                                        <div className='flex gap-2 ml-4'>
-                                            <button
-                                                onClick={() => confirmRegenerate(key.id, key.name)}
-                                                className='text-blue-400 hover:text-blue-300 p-2'
-                                                title={t('apiKeys.keyCard.regenerateTooltip')}
-                                            >
-                                                <svg
-                                                    className='w-5 h-5'
-                                                    fill='none'
-                                                    stroke='currentColor'
-                                                    viewBox='0 0 24 24'
-                                                >
-                                                    <path
-                                                        strokeLinecap='round'
-                                                        strokeLinejoin='round'
-                                                        strokeWidth={2}
-                                                        d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
-                                                    />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => confirmDelete(key.id, key.name)}
-                                                className='text-red-400 hover:text-red-300 p-2'
-                                                title={t('apiKeys.keyCard.revokeTooltip')}
-                                            >
-                                                <svg
-                                                    className='w-5 h-5'
-                                                    fill='none'
-                                                    stroke='currentColor'
-                                                    viewBox='0 0 24 24'
-                                                >
-                                                    <path
-                                                        strokeLinecap='round'
-                                                        strokeLinejoin='round'
-                                                        strokeWidth={2}
-                                                        d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
