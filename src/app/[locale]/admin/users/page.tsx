@@ -568,7 +568,7 @@ export default function AdminUsersPage() {
                                                         </div>
                                                     </td>
                                                     <td className='p-4'>
-                                                        {u.authProvider > 0 && (
+                                                        {u.authProvider != null && (
                                                             <span
                                                                 className={`text-white text-xs px-2 py-1 rounded w-fit inline-block ${getAuthProviderColor(u.authProvider)}`}
                                                             >
