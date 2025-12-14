@@ -164,9 +164,11 @@
         "fileChecker": "File Checker",
         "apiServer": "API Server",
         "website": "Website",
+        "plugins": "Plugins",
         "apiRepository": "API Repository",
         "websiteRepository": "Website Repository",
-        "fileCheckerRepository": "File Checker (Analyzer)"
+        "fileCheckerRepository": "File Checker (Analyzer)",
+        "pluginsRepository": "Plugins (Loader)"
     },
     "github": {
         "tooltip": "View on GitHub - Open Source"
@@ -789,6 +791,9 @@
         "version": "Version",
         "versionHelp": "Select loader version. Latest is recommended, older versions available if needed",
         "latest": "latest",
+        "verified": "Verified",
+        "verifiedTitle": "Verified by Safeturned",
+        "verifiedDescription": "All official Safeturned components (ModuleLoader, PluginInstaller, and ModulePlugin) have been analyzed by our security system and verified as safe.",
         "noVersions": "No versions available",
         "downloadButton": "Download Safeturned.Loader.zip",
         "downloading": "Downloading...",
@@ -1002,6 +1007,9 @@
         "playground": {
             "title": "🚀 Try It Out - Interactive API Playground",
             "intro": "Test the API right here with your own API key. Great for trying things out before you start coding.",
+            "noApiKey": "Don't have an API key yet?",
+            "createApiKey": "Create API Key",
+            "manageApiKeys": "Manage API Keys",
             "securityWarning": "Keep your key safe:",
             "securityWarningDesc": "Don't share your API key or commit it to version control. It's like your password - anyone with it can access your account. We only store it in your browser while you're on this page.",
             "yourApiKey": "Your API Key",

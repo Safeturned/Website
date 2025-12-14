@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import { api, ApiError } from '@/lib/api-client';
 
@@ -334,6 +335,28 @@ curl -X POST https://api.safeturned.com/v1.0/files/upload/initiate \\
                         >
                             {showKey ? '🙈' : '👁️'}
                         </button>
+                    </div>
+                    <div className='mt-3 flex items-center justify-between gap-4 text-sm'>
+                        <span className='text-gray-400'>{t('docs.playground.noApiKey')}</span>
+                        <Link
+                            href='/dashboard/api-keys'
+                            className='inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300'
+                        >
+                            <svg
+                                className='w-4 h-4'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'
+                                />
+                            </svg>
+                            {t('docs.playground.createApiKey')}
+                        </Link>
                     </div>
                 </div>
 

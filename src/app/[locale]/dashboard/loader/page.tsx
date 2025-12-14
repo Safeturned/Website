@@ -1,5 +1,12 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
+export const preferredRegion = 'auto';
+
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
@@ -24,6 +31,16 @@ interface ApiKey {
     isActive: boolean;
 }
 
+interface OfficialBadgesStatus {
+    allVerified: boolean;
+    badges: Array<{
+        id: string;
+        name: string;
+        isVerified: boolean;
+        updatedAt: string;
+    }>;
+}
+
 const FRAMEWORKS = [{ id: 'module', name: 'Module' }];
 
 export default function LoaderPage() {
@@ -41,6 +58,10 @@ export default function LoaderPage() {
     const [downloadSuccess, setDownloadSuccess] = useState(false);
     const [copiedHash, setCopiedHash] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showFrameworkTooltip, setShowFrameworkTooltip] = useState(false);
+    const [showVersionTooltip, setShowVersionTooltip] = useState(false);
+    const [showVerifiedTooltip, setShowVerifiedTooltip] = useState(false);
+    const [officialBadgesVerified, setOfficialBadgesVerified] = useState(false);
 
     const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,6 +76,7 @@ export default function LoaderPage() {
         if (isAuthenticated) {
             fetchVersions();
             fetchApiKeys();
+            fetchOfficialBadgesStatus();
         }
     }, [isAuthenticated, selectedFramework]);
 
@@ -96,6 +118,15 @@ export default function LoaderPage() {
             setApiKeys([]);
         } finally {
             setLoadingKeys(false);
+        }
+    };
+
+    const fetchOfficialBadgesStatus = async () => {
+        try {
+            const data = await api.get<OfficialBadgesStatus>('badges/official/status');
+            setOfficialBadgesVerified(data.allVerified);
+        } catch {
+            setOfficialBadgesVerified(false);
         }
     };
 
@@ -345,7 +376,10 @@ export default function LoaderPage() {
                                 {t('loader.framework')}
                                 <div className='relative group'>
                                     <svg
-                                        className='w-4 h-4 text-slate-500 cursor-help'
+                                        onClick={() =>
+                                            setShowFrameworkTooltip(!showFrameworkTooltip)
+                                        }
+                                        className='w-4 h-4 text-slate-500 cursor-pointer'
                                         fill='none'
                                         stroke='currentColor'
                                         viewBox='0 0 24 24'
@@ -357,7 +391,9 @@ export default function LoaderPage() {
                                             d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                                         />
                                     </svg>
-                                    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-cyan-500/30 z-10'>
+                                    <div
+                                        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-cyan-500/30 z-10 ${showFrameworkTooltip ? 'block' : 'hidden md:group-hover:block'}`}
+                                    >
                                         {t('loader.frameworkHelp')}
                                     </div>
                                 </div>
@@ -378,9 +414,50 @@ export default function LoaderPage() {
                         <div>
                             <label className='flex items-center gap-2 text-sm font-medium text-slate-300 mb-2'>
                                 {t('loader.version')}
+                                {officialBadgesVerified && (
+                                    <div className='relative group inline-flex items-center'>
+                                        <span className='inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded-full text-xs text-green-400'>
+                                            <svg
+                                                className='w-3 h-3'
+                                                fill='none'
+                                                stroke='currentColor'
+                                                viewBox='0 0 24 24'
+                                            >
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                                                />
+                                            </svg>
+                                            {t('loader.verified')}
+                                        </span>
+                                        <svg
+                                            onClick={() => setShowVerifiedTooltip(!showVerifiedTooltip)}
+                                            className='w-4 h-4 text-slate-500 cursor-pointer ml-1'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                        >
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth={2}
+                                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                            />
+                                        </svg>
+                                        <div
+                                            className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-green-500/30 z-10 ${showVerifiedTooltip ? 'block' : 'hidden md:group-hover:block'}`}
+                                        >
+                                            <p className='font-semibold text-green-400 mb-2'>{t('loader.verifiedTitle')}</p>
+                                            <p>{t('loader.verifiedDescription')}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className='relative group'>
                                     <svg
-                                        className='w-4 h-4 text-slate-500 cursor-help'
+                                        onClick={() => setShowVersionTooltip(!showVersionTooltip)}
+                                        className='w-4 h-4 text-slate-500 cursor-pointer'
                                         fill='none'
                                         stroke='currentColor'
                                         viewBox='0 0 24 24'
@@ -392,7 +469,9 @@ export default function LoaderPage() {
                                             d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                                         />
                                     </svg>
-                                    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-cyan-500/30 z-10'>
+                                    <div
+                                        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-cyan-500/30 z-10 ${showVersionTooltip ? 'block' : 'hidden md:group-hover:block'}`}
+                                    >
                                         {t('loader.versionHelp')}
                                     </div>
                                 </div>

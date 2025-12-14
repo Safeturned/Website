@@ -102,6 +102,7 @@ export default function ResultPage() {
     const [badgeEmbedExpanded, setBadgeEmbedExpanded] = useState(false);
     const [assemblyMetadataExpanded, setAssemblyMetadataExpanded] = useState(false);
     const [isFileStored, setIsFileStored] = useState<boolean | null>(null);
+    const [showReanalyzeTooltip, setShowReanalyzeTooltip] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const MAX_FILE_SIZE = 500 * 1024 * 1024;
@@ -1153,7 +1154,10 @@ export default function ResultPage() {
                                 </p>
                                 <div className='group relative'>
                                     <svg
-                                        className='w-4 h-4 text-gray-500 hover:text-gray-300 transition-colors cursor-help'
+                                        onClick={() =>
+                                            setShowReanalyzeTooltip(!showReanalyzeTooltip)
+                                        }
+                                        className='w-4 h-4 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer'
                                         fill='none'
                                         stroke='currentColor'
                                         viewBox='0 0 24 24'
@@ -1165,7 +1169,9 @@ export default function ResultPage() {
                                             d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                                         />
                                     </svg>
-                                    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-80 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-purple-500/30 z-10'>
+                                    <div
+                                        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-purple-500/30 z-10 ${showReanalyzeTooltip ? 'block' : 'hidden md:group-hover:block'}`}
+                                    >
                                         {isFileStored === false ? (
                                             <>
                                                 <p className='font-semibold text-red-400 mb-2'>

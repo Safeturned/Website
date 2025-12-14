@@ -12,7 +12,3 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
     return <div data-locale={locale}>{children}</div>;
 }
-
-export async function generateStaticParams() {
-    return [{ locale: 'ru' }, { locale: 'en' }];
-}

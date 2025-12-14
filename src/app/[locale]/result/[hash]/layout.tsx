@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import { ReactNode } from 'react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = false;
+
 interface FileData {
     hash: string;
     score: number;

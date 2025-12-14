@@ -1,15 +1,8 @@
 import type { Metadata } from 'next';
-import { use } from 'react';
-import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { LanguageProvider } from '@/lib/language-context';
-import {
-    DEFAULT_LOCALE,
-    Locale,
-    normalizeLocale,
-    pickLocaleFromAcceptLanguage,
-} from '@/lib/i18n-config';
+import { DEFAULT_LOCALE } from '@/lib/i18n-config';
 
 export const metadata: Metadata = {
     title: 'Safeturned',
@@ -21,16 +14,10 @@ export const metadata: Metadata = {
     },
 };
 
-const resolveInitialLocale = (): Locale => {
-    const cookieLocale = normalizeLocale(use(cookies()).get('NEXT_LOCALE')?.value);
-    if (cookieLocale) return cookieLocale;
-
-    const headerLocale = pickLocaleFromAcceptLanguage(use(headers()).get('accept-language'));
-    return headerLocale ?? DEFAULT_LOCALE;
-};
+export const dynamic = 'force-dynamic';
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-    const initialLocale = resolveInitialLocale();
+    const initialLocale = DEFAULT_LOCALE;
 
     return (
         <html lang={initialLocale} suppressHydrationWarning>

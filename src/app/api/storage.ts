@@ -90,12 +90,15 @@ function cleanupOldestFilesIfNeeded() {
     }
 }
 
-if (!global.__cleanupInterval) {
-    global.__cleanupInterval = setInterval(cleanupExpiredFiles, 60 * 60 * 1000);
-    console.log('[Storage Cleanup] Started periodic cleanup (every 1 hour)');
+function initializeCleanup() {
+    if (typeof window === 'undefined' && !global.__cleanupInterval) {
+        global.__cleanupInterval = setInterval(cleanupExpiredFiles, 60 * 60 * 1000);
+        console.log('[Storage Cleanup] Started periodic cleanup (every 1 hour)');
+    }
 }
 
 export function storeAnalysisResult(id: string, data: Record<string, unknown>) {
+    initializeCleanup();
     analysisResults.set(id, {
         ...data,
         id,
@@ -104,6 +107,7 @@ export function storeAnalysisResult(id: string, data: Record<string, unknown>) {
 }
 
 export function storeFile(id: string, fileData: ArrayBuffer, fileName: string, mimeType: string) {
+    initializeCleanup();
     cleanupOldestFilesIfNeeded();
     fileStorage.set(id, {
         fileData,
