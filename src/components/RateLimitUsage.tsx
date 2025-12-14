@@ -142,6 +142,17 @@ export default function RateLimitUsage() {
                         />
                     </svg>
                 );
+            case 'FilesUpload':
+                return (
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                        />
+                    </svg>
+                );
             default:
                 return null;
         }
@@ -232,70 +243,73 @@ export default function RateLimitUsage() {
                 </div>
             ) : (
                 <div className='space-y-3'>
-                    {rateLimitData.operations.map((op, index) => {
-                        const colors = getOperationColor(op);
-                        return (
-                            <div
-                                key={index}
-                                className={`border ${colors.border} ${colors.bg} rounded-lg p-3`}
-                            >
-                                <div className='flex items-center justify-between mb-2'>
-                                    <div className='flex items-center gap-2'>
-                                        <div className='text-slate-400'>
-                                            {getOperationIcon(op.operation)}
+                    {rateLimitData.operations
+                        .filter(op => op.operation !== 'Exceptions' && op.operation !== 'Expensive')
+                        .map((op, index) => {
+                            const colors = getOperationColor(op);
+                            return (
+                                <div
+                                    key={index}
+                                    className={`border ${colors.border} ${colors.bg} rounded-lg p-3`}
+                                >
+                                    <div className='flex items-center justify-between mb-2'>
+                                        <div className='flex items-center gap-2'>
+                                            <div className='text-slate-400'>
+                                                {getOperationIcon(op.operation)}
+                                            </div>
+                                            <div>
+                                                <div className='text-sm font-medium text-white'>
+                                                    {op.operation === 'FilesUpload'
+                                                        ? 'File Uploads'
+                                                        : `${op.operation} Operations`}
+                                                </div>
+                                                <div className='text-xs text-slate-500'>
+                                                    {op.operation === 'Read' && 'GET requests'}
+                                                    {op.operation === 'Write' &&
+                                                        'POST, PUT, DELETE, PATCH'}
+                                                    {op.operation === 'FilesUpload' &&
+                                                        'File operations'}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className='text-sm font-medium text-white'>
-                                                {op.operation === 'Expensive'
-                                                    ? 'File Uploads'
-                                                    : `${op.operation} Operations`}
+                                        <div className='text-right'>
+                                            <div className={`text-lg font-bold ${colors.text}`}>
+                                                {op.current}/{op.limit}
                                             </div>
                                             <div className='text-xs text-slate-500'>
-                                                {op.operation === 'Read' && 'GET requests'}
-                                                {op.operation === 'Write' &&
-                                                    'POST, PUT, DELETE, PATCH'}
-                                                {op.operation === 'Expensive' && 'File operations'}
+                                                {op.remaining} {t('dashboard.rateLimits.left')}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className='text-right'>
-                                        <div className={`text-lg font-bold ${colors.text}`}>
-                                            {op.current}/{op.limit}
+
+                                    <div className='w-full bg-slate-700/50 rounded-full h-2 overflow-hidden'>
+                                        <div
+                                            className={`h-full ${colors.progress} transition-all duration-500 ease-out`}
+                                            style={{ width: `${Math.min(op.usagePercent, 100)}%` }}
+                                        />
+                                    </div>
+
+                                    <div className='mt-2 flex items-center justify-between'>
+                                        <div className='flex items-center gap-2'>
+                                            {op.isOverLimit && (
+                                                <div className='text-xs text-red-300'>
+                                                    ⚠️ Limit exceeded - requests throttled
+                                                </div>
+                                            )}
+                                            {op.isNearLimit && !op.isOverLimit && (
+                                                <div className='text-xs text-orange-300'>
+                                                    ⚡ {op.usagePercent.toFixed(0)}% used
+                                                </div>
+                                            )}
                                         </div>
                                         <div className='text-xs text-slate-500'>
-                                            {op.remaining} {t('dashboard.rateLimits.left')}
+                                            {t('dashboard.rateLimits.resetsIn')}{' '}
+                                            {getResetTimeDisplay(op.resetTime)}
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className='w-full bg-slate-700/50 rounded-full h-2 overflow-hidden'>
-                                    <div
-                                        className={`h-full ${colors.progress} transition-all duration-500 ease-out`}
-                                        style={{ width: `${Math.min(op.usagePercent, 100)}%` }}
-                                    />
-                                </div>
-
-                                <div className='mt-2 flex items-center justify-between'>
-                                    <div className='flex items-center gap-2'>
-                                        {op.isOverLimit && (
-                                            <div className='text-xs text-red-300'>
-                                                ⚠️ Limit exceeded - requests throttled
-                                            </div>
-                                        )}
-                                        {op.isNearLimit && !op.isOverLimit && (
-                                            <div className='text-xs text-orange-300'>
-                                                ⚡ {op.usagePercent.toFixed(0)}% used
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='text-xs text-slate-500'>
-                                        {t('dashboard.rateLimits.resetsIn')}{' '}
-                                        {getResetTimeDisplay(op.resetTime)}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
                 </div>
             )}
         </div>

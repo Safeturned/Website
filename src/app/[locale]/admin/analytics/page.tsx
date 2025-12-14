@@ -308,9 +308,17 @@ export default function AdminAnalyticsPage() {
 
                             <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h2 className='text-xl font-bold mb-4 text-white'>
-                                        Recent Users
-                                    </h2>
+                                    <div className='flex justify-between items-center mb-4'>
+                                        <h2 className='text-xl font-bold text-white'>
+                                            Recent Users
+                                        </h2>
+                                        <Link
+                                            href='/admin/users'
+                                            className='text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors'
+                                        >
+                                            Manage Users →
+                                        </Link>
+                                    </div>
                                     <div className='space-y-3'>
                                         {analytics.recent.users.map(u => (
                                             <div
@@ -343,9 +351,17 @@ export default function AdminAnalyticsPage() {
                                 </div>
 
                                 <div className='bg-slate-800/40 backdrop-blur-md border border-purple-500/20 rounded-xl p-6'>
-                                    <h2 className='text-xl font-bold mb-4 text-white'>
-                                        Recent Scans
-                                    </h2>
+                                    <div className='flex justify-between items-center mb-4'>
+                                        <h2 className='text-xl font-bold text-white'>
+                                            Recent Scans
+                                        </h2>
+                                        <Link
+                                            href='/admin/plugins'
+                                            className='text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors'
+                                        >
+                                            See All →
+                                        </Link>
+                                    </div>
                                     <div className='space-y-3'>
                                         {analytics.recent.scans.map(scan => (
                                             <div

@@ -487,6 +487,8 @@ export default function ResultPage() {
     }
 
     const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const ogImageUrl =
+        typeof window !== 'undefined' ? `${window.location.origin}/api/og-image/${hash}` : '';
 
     return (
         <div
@@ -501,6 +503,7 @@ export default function ResultPage() {
                 description={metaDescription}
                 url={pageUrl}
                 type='article'
+                image={ogImageUrl}
             />
 
             <Navigation />

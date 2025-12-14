@@ -437,6 +437,48 @@ export default function DashboardPage() {
                         </p>
                     </Link>
 
+                    <Link
+                        href='/dashboard/loader'
+                        className='bg-slate-800/40 backdrop-blur-md border border-cyan-500/20 rounded-xl p-5 hover:border-cyan-400/50 transition-all duration-200 group'
+                    >
+                        <div className='flex items-center justify-between mb-3'>
+                            <div className='w-10 h-10 bg-cyan-600/80 rounded-lg flex items-center justify-center'>
+                                <svg
+                                    className='w-5 h-5'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'
+                                    />
+                                </svg>
+                            </div>
+                            <svg
+                                className='w-4 h-4 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                            >
+                                <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 5l7 7-7 7'
+                                />
+                            </svg>
+                        </div>
+                        <h3 className='font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors'>
+                            {t('loader.title')}
+                        </h3>
+                        <p className='text-gray-400 text-sm leading-relaxed'>
+                            {t('loader.description')}
+                        </p>
+                    </Link>
+
                     {user.isAdmin && (
                         <Link
                             href='/admin'

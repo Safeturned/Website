@@ -352,6 +352,32 @@ export default function UserMenu() {
                                 </div>
                             </Link>
 
+                            <Link
+                                href='/dashboard/loader'
+                                className='block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors cursor-pointer'
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    setIsOpen(false);
+                                }}
+                            >
+                                <div className='flex items-center gap-3'>
+                                    <svg
+                                        className='w-5 h-5'
+                                        fill='none'
+                                        stroke='currentColor'
+                                        viewBox='0 0 24 24'
+                                    >
+                                        <path
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth={2}
+                                            d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'
+                                        />
+                                    </svg>
+                                    <span>{t('loader.title')}</span>
+                                </div>
+                            </Link>
+
                             {user.isAdmin && (
                                 <>
                                     <div className='border-t border-slate-700 my-2'></div>
