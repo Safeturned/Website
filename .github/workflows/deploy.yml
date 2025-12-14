@@ -153,13 +153,22 @@ jobs:
           VERSION="$1"
           BRANCH="$2"
           ENVIRONMENT="$3"
+          REGISTRY_USERNAME="$4"
+          REGISTRY_PASSWORD="$5"
+
           if [ -z "$VERSION" ] || [ -z "$BRANCH" ] || [ -z "$ENVIRONMENT" ]; then
-              echo "Usage: $0 <version> <branch> <environment>"
+              echo "Usage: $0 <version> <branch> <environment> [registry_username] [registry_password]"
               exit 1
           fi
           echo "Deploying version: $VERSION, branch: $BRANCH, environment: $ENVIRONMENT"
-          
+
           docker compose -f docker-compose.yaml -f docker-compose.override.yaml down || true
+
+          if [ -n "$REGISTRY_USERNAME" ] && [ -n "$REGISTRY_PASSWORD" ]; then
+              echo "Logging into registry ghcr.io..."
+              echo "$REGISTRY_PASSWORD" | docker login ghcr.io -u "$REGISTRY_USERNAME" --password-stdin
+          fi
+
           docker pull ghcr.io/safeturned/website:v${VERSION}
           docker compose -f docker-compose.yaml -f docker-compose.override.yaml up -d
           sleep 10
@@ -188,5 +197,5 @@ jobs:
             echo "=== Starting website deployment ==="
             cd ${{ steps.branch.outputs.branch == 'dev' && '/opt/dev-safeturned-website/deploy' || '/opt/safeturned-website/deploy' }}
             chmod +x deploy.sh
-            ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}"
+            ./deploy.sh "${{ steps.version.outputs.version }}" "${{ steps.branch.outputs.branch }}" "${{ steps.branch.outputs.environment }}" "${{ github.repository_owner }}" "${{ secrets.GITHUB_TOKEN }}"
             echo "=== Website deployment completed ==="
