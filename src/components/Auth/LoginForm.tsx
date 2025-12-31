@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { DiscordIcon, SteamIcon } from '@/components/Icons';
@@ -99,29 +100,29 @@ export default function LoginForm() {
                     </div>
                 </div>
 
-                <a
+                <Link
                     href='/'
                     className='block w-full text-center bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium py-3 px-6 rounded-lg transition-colors duration-200'
                 >
                     {t('login.continueGuest')}
-                </a>
+                </Link>
 
                 <div className='mt-8 text-center'>
                     <p className='text-slate-500 text-xs'>
                         {t('login.agreeTerms')}{' '}
-                        <a
+                        <Link
                             href='/terms'
                             className='text-purple-400 hover:text-purple-300 underline'
                         >
                             {t('login.termsOfService')}
-                        </a>{' '}
+                        </Link>{' '}
                         {t('login.and')}{' '}
-                        <a
+                        <Link
                             href='/privacy'
                             className='text-purple-400 hover:text-purple-300 underline'
                         >
                             {t('login.privacyPolicy')}
-                        </a>
+                        </Link>
                     </p>
                 </div>
 

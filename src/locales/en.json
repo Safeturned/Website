@@ -44,6 +44,9 @@
         "processingTime": "Processing time",
         "checkedItemsTitle": "Checked items:",
         "analyzerVersion": "Analyzer Version:",
+        "updateAvailable": "Update Available",
+        "whyRescan": "Why should I rescan?",
+        "outdatedVersionInfo": "This file was scanned with FileChecker {{scanVersion}}. The latest version ({{latestVersion}}) includes improved detection capabilities. Reanalyzing will use the most current security checks.",
         "safe": "Safe",
         "unsafe": "Unsafe",
         "suspicious": "Suspicious",
@@ -1126,5 +1129,36 @@
         "shareUrl": "Share Badge URL",
         "copy": "Copy",
         "copied": "Copied!"
+    },
+    "errors": {
+        "pageTitle": "Error",
+        "somethingWentWrong": "Something went wrong",
+        "unexpectedError": "An unexpected error has occurred. Please try again.",
+        "unexpectedErrorRefresh": "An unexpected error occurred. Please try refreshing the page.",
+        "tryAgain": "Try Again",
+        "refreshPage": "Refresh Page",
+        "errorDetailsDevOnly": "Error Details (Development Only)"
+    },
+    "apiMessages": {
+        "fileRetrievedFromDatabase": "File retrieved from database",
+        "newFileProcessedSuccessfully": "New file processed successfully",
+        "fileAlreadyUploadedSkippedAnalysis": "File already uploaded. Skipped analysis.",
+        "fileReanalyzedSuccessfully": "File re-analyzed successfully",
+        "fileNotDotNetAssembly": "File is not a valid .NET assembly",
+        "unknownError": "Unknown error occurred"
+    },
+    "auth": {
+        "callback": {
+            "checkingIdentity": "Checking your identity...",
+            "settingUpAccount": "Setting up your account...",
+            "gettingReady": "Getting you ready to go...",
+            "invalidCallback": "Invalid callback: missing state parameter",
+            "authFailed": "Authentication failed. Please ensure the backend is running and has the auth/callback endpoint implemented.",
+            "authError": "Authentication Error",
+            "backToLogin": "Back to Login"
+        }
+    },
+    "achievements": {
+        "unlocked": "Achievement Unlocked!"
     }
 }

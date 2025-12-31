@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AuthProvider } from '@/lib/auth-context';
-import { LanguageProvider } from '@/lib/language-context';
+import { Providers } from './providers';
 import { DEFAULT_LOCALE } from '@/lib/i18n-config';
 
 export const metadata: Metadata = {
@@ -22,9 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang={initialLocale} suppressHydrationWarning>
             <body suppressHydrationWarning>
-                <LanguageProvider initialLocale={initialLocale}>
-                    <AuthProvider>{children}</AuthProvider>
-                </LanguageProvider>
+                <Providers>{children}</Providers>
             </body>
         </html>
     );

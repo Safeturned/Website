@@ -433,7 +433,9 @@ export default function LoaderPage() {
                                             {t('loader.verified')}
                                         </span>
                                         <svg
-                                            onClick={() => setShowVerifiedTooltip(!showVerifiedTooltip)}
+                                            onClick={() =>
+                                                setShowVerifiedTooltip(!showVerifiedTooltip)
+                                            }
                                             className='w-4 h-4 text-slate-500 cursor-pointer ml-1'
                                             fill='none'
                                             stroke='currentColor'
@@ -449,7 +451,9 @@ export default function LoaderPage() {
                                         <div
                                             className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 text-slate-200 text-xs rounded-lg shadow-xl border border-green-500/30 z-10 ${showVerifiedTooltip ? 'block' : 'hidden md:group-hover:block'}`}
                                         >
-                                            <p className='font-semibold text-green-400 mb-2'>{t('loader.verifiedTitle')}</p>
+                                            <p className='font-semibold text-green-400 mb-2'>
+                                                {t('loader.verifiedTitle')}
+                                            </p>
                                             <p>{t('loader.verifiedDescription')}</p>
                                         </div>
                                     </div>

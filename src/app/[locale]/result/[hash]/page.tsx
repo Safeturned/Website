@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
@@ -10,6 +10,7 @@ import LoadingPage from '@/components/LoadingPage';
 import { useChunkedUpload } from '@/hooks/useChunkedUpload';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatFileSize, getRiskLevel, getRiskColor, encodeHashForUrl } from '@/lib/utils';
 import DynamicMetaTags from '@/components/DynamicMetaTags';
 import { api } from '@/lib/api-client';
@@ -18,7 +19,7 @@ interface AnalyticsData {
     fileName: string;
     score: number;
     checked: string[];
-    message: string;
+    messageType: string;
     lastScanned: string;
     fileSizeBytes: number;
     analyzerVersion?: string;
@@ -103,6 +104,7 @@ export default function ResultPage() {
     const [assemblyMetadataExpanded, setAssemblyMetadataExpanded] = useState(false);
     const [isFileStored, setIsFileStored] = useState<boolean | null>(null);
     const [showReanalyzeTooltip, setShowReanalyzeTooltip] = useState(false);
+    const [latestVersion, setLatestVersion] = useState<string | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const MAX_FILE_SIZE = 500 * 1024 * 1024;
@@ -196,6 +198,34 @@ export default function ResultPage() {
 
         checkFileStorage();
     }, [hash]);
+
+    useEffect(() => {
+        const fetchLatestVersion = async () => {
+            try {
+                const data = await api.get<{ version: string }>('/api/analyzer/version');
+                setLatestVersion(data.version);
+            } catch (error) {
+                console.error('Failed to fetch latest analyzer version:', error);
+            }
+        };
+
+        fetchLatestVersion();
+    }, []);
+
+    const compareVersions = (v1: string, v2: string): number => {
+        const parts1 = v1.split('.').map(Number);
+        const parts2 = v2.split('.').map(Number);
+        for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+            const diff = (parts1[i] || 0) - (parts2[i] || 0);
+            if (diff !== 0) return diff;
+        }
+        return 0;
+    };
+
+    const isOutdated = useMemo(() => {
+        if (!latestVersion || !analyticsData?.analyzerVersion) return false;
+        return compareVersions(analyticsData.analyzerVersion, latestVersion) < 0;
+    }, [latestVersion, analyticsData?.analyzerVersion]);
 
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
@@ -669,9 +699,9 @@ export default function ResultPage() {
 
                     {analyticsData.analyzerVersion && (
                         <div className='mt-4 pt-4 border-t border-purple-500/20'>
-                            <div className='flex items-center gap-2 text-xs text-gray-500'>
+                            <div className='flex items-center gap-2 text-xs'>
                                 <svg
-                                    className='w-3.5 h-3.5'
+                                    className='w-3.5 h-3.5 text-gray-500'
                                     fill='none'
                                     stroke='currentColor'
                                     viewBox='0 0 24 24'
@@ -683,10 +713,30 @@ export default function ResultPage() {
                                         d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
                                     />
                                 </svg>
-                                <span>
-                                    Scanned with FileChecker {analyticsData.analyzerVersion}
+                                <span className='text-gray-500'>
+                                    {t('results.analyzerVersion')} {analyticsData.analyzerVersion}
                                 </span>
+                                {isOutdated && (
+                                    <span className='px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full'>
+                                        {t('results.updateAvailable')}
+                                    </span>
+                                )}
                             </div>
+                            {isOutdated && (
+                                <details className='mt-2 text-xs text-blue-400'>
+                                    <summary className='cursor-pointer hover:text-blue-300'>
+                                        {t('results.whyRescan')}
+                                    </summary>
+                                    <p className='mt-2 text-slate-400'>
+                                        {t('results.outdatedVersionInfo')
+                                            .replace(
+                                                '{{scanVersion}}',
+                                                analyticsData.analyzerVersion
+                                            )
+                                            .replace('{{latestVersion}}', latestVersion || '')}
+                                    </p>
+                                </details>
+                            )}
                         </div>
                     )}
 
@@ -1430,14 +1480,17 @@ export default function ResultPage() {
                                     target='_blank'
                                     rel='noopener noreferrer'
                                 >
-                                    <img
+                                    <Image
                                         src={
                                             analyticsData
                                                 ? `/api/v1.0/badge/filename/${encodeURIComponent(analyticsData.fileName)}`
                                                 : ''
                                         }
                                         alt='Safeturned Scan Badge'
+                                        width={200}
+                                        height={20}
                                         className='inline-block'
+                                        unoptimized
                                         onError={e => {
                                             const target = e.target as HTMLImageElement;
                                             target.style.display = 'none';

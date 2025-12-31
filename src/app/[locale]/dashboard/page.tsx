@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -116,10 +117,13 @@ export default function DashboardPage() {
                 <div className='bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 mb-8'>
                     <div className='flex items-center gap-4'>
                         {user.avatarUrl ? (
-                            <img
+                            <Image
                                 src={user.avatarUrl}
-                                alt={user.username || user.email}
+                                alt={user.username || user.email || 'User'}
+                                width={64}
+                                height={64}
                                 className='w-16 h-16 rounded-full object-cover'
+                                unoptimized
                             />
                         ) : (
                             <div className='w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-semibold text-xl'>

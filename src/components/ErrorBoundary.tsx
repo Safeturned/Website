@@ -1,11 +1,18 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Props {
     children: ReactNode;
     fallback?: ReactNode;
     onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+    translations?: {
+        somethingWentWrong: string;
+        unexpectedErrorRefresh: string;
+        errorDetailsDevOnly: string;
+        refreshPage: string;
+    };
 }
 
 interface State {
@@ -13,7 +20,7 @@ interface State {
     error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryClass extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = { hasError: false };
@@ -56,16 +63,20 @@ export class ErrorBoundary extends Component<Props, State> {
                             </svg>
                         </div>
 
-                        <h2 className='text-2xl font-bold mb-2'>Something went wrong</h2>
+                        <h2 className='text-2xl font-bold mb-2'>
+                            {this.props.translations?.somethingWentWrong || 'Something went wrong'}
+                        </h2>
 
                         <p className='text-slate-300 mb-6'>
-                            An unexpected error occurred. Please try refreshing the page.
+                            {this.props.translations?.unexpectedErrorRefresh ||
+                                'An unexpected error occurred. Please try refreshing the page.'}
                         </p>
 
                         {this.state.error && process.env.NODE_ENV === 'development' && (
                             <details className='text-left mb-6 bg-slate-900/50 rounded p-4'>
                                 <summary className='cursor-pointer text-sm text-slate-400 mb-2'>
-                                    Error Details (Development Only)
+                                    {this.props.translations?.errorDetailsDevOnly ||
+                                        'Error Details (Development Only)'}
                                 </summary>
                                 <pre className='text-xs text-red-300 overflow-auto'>
                                     {this.state.error.toString()}
@@ -77,7 +88,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             onClick={() => window.location.reload()}
                             className='px-6 py-3 bg-purple-600 hover:bg-purple-700 transition-colors rounded-lg font-medium'
                         >
-                            Refresh Page
+                            {this.props.translations?.refreshPage || 'Refresh Page'}
                         </button>
                     </div>
                 </div>
@@ -86,4 +97,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
         return this.props.children;
     }
+}
+
+export function ErrorBoundary(props: Omit<Props, 'translations'>) {
+    const { t } = useTranslation();
+
+    const translations = {
+        somethingWentWrong: t('errors.somethingWentWrong'),
+        unexpectedErrorRefresh: t('errors.unexpectedErrorRefresh'),
+        errorDetailsDevOnly: t('errors.errorDetailsDevOnly'),
+        refreshPage: t('errors.refreshPage'),
+    };
+
+    return <ErrorBoundaryClass {...props} translations={translations} />;
 }

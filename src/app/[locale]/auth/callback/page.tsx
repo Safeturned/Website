@@ -6,23 +6,26 @@ import { useAuth } from '@/lib/auth-context';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useTypingEffect } from '@/hooks/useTypingEffect';
-
-const PROCESSING_MESSAGES = [
-    'Checking your identity...',
-    'Setting up your account...',
-    'Getting you ready to go...',
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AuthCallbackPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { refreshAuth } = useAuth();
+    const { t } = useTranslation();
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(true);
     const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
     const [finalReturnUrl, setFinalReturnUrl] = useState('');
+
+    const processingMessages = [
+        t('auth.callback.checkingIdentity'),
+        t('auth.callback.settingUpAccount'),
+        t('auth.callback.gettingReady'),
+    ];
+
     const { displayedText: typedMessage, isComplete } = useTypingEffect(
-        PROCESSING_MESSAGES[currentMessageIndex],
+        processingMessages[currentMessageIndex],
         15
     );
 
@@ -36,7 +39,7 @@ export default function AuthCallbackPage() {
                 const openidMode = params.get('openid.mode');
 
                 if (!state) {
-                    setError('Invalid callback: missing state parameter');
+                    setError(t('auth.callback.invalidCallback'));
                     setIsProcessing(false);
                     return;
                 }
@@ -85,11 +88,7 @@ export default function AuthCallbackPage() {
                 setCurrentMessageIndex(2);
             } catch (err) {
                 console.error('Auth callback error:', err);
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : 'Authentication failed. Please ensure the backend is running and has the auth/callback endpoint implemented.'
-                );
+                setError(err instanceof Error ? err.message : t('auth.callback.authFailed'));
                 setIsProcessing(false);
             }
         };
@@ -142,14 +141,14 @@ export default function AuthCallbackPage() {
                         ) : error ? (
                             <>
                                 <h2 className='text-xl font-semibold text-red-400 mb-4'>
-                                    Authentication Error
+                                    {t('auth.callback.authError')}
                                 </h2>
                                 <p className='text-slate-400 mb-6'>{error}</p>
                                 <button
                                     onClick={() => router.push('/login')}
                                     className='w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors'
                                 >
-                                    Back to Login
+                                    {t('auth.callback.backToLogin')}
                                 </button>
                             </>
                         ) : null}

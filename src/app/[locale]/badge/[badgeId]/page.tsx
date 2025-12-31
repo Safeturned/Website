@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { encodeHashForUrl } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatDateTime } from '@/lib/dateUtils';
@@ -182,10 +183,13 @@ export default function BadgeInfoPage() {
                                 {t('badgeInfo.badgePreview')}
                             </h3>
                             <div className='bg-slate-900/50 rounded-lg p-6 border border-slate-700'>
-                                <img
+                                <Image
                                     src={badgeImageUrl}
                                     alt={badge.name}
+                                    width={200}
+                                    height={20}
                                     className='inline-block'
+                                    unoptimized
                                     onError={e => {
                                         const target = e.target as HTMLImageElement;
                                         target.style.display = 'none';

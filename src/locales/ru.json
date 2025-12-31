@@ -44,6 +44,9 @@
         "processingTime": "Время обработки",
         "checkedItemsTitle": "Проверенные элементы:",
         "analyzerVersion": "Версия анализатора:",
+        "updateAvailable": "Доступно обновление",
+        "whyRescan": "Почему нужно повторно сканировать?",
+        "outdatedVersionInfo": "Этот файл был проверен с помощью FileChecker {{scanVersion}}. Последняя версия ({{latestVersion}}) включает улучшенные возможности обнаружения. Повторный анализ будет использовать самые актуальные проверки безопасности.",
         "safe": "Безопасно",
         "unsafe": "Небезопасно",
         "suspicious": "Подозрительно",
@@ -1126,5 +1129,36 @@
         "shareUrl": "Поделиться URL значка",
         "copy": "Копировать",
         "copied": "Скопировано!"
+    },
+    "errors": {
+        "pageTitle": "Ошибка",
+        "somethingWentWrong": "Что-то пошло не так",
+        "unexpectedError": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова.",
+        "unexpectedErrorRefresh": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте обновить страницу.",
+        "tryAgain": "Попробовать снова",
+        "refreshPage": "Обновить страницу",
+        "errorDetailsDevOnly": "Детали ошибки (только для разработки)"
+    },
+    "apiMessages": {
+        "fileRetrievedFromDatabase": "Файл получен из базы данных",
+        "newFileProcessedSuccessfully": "Новый файл успешно обработан",
+        "fileAlreadyUploadedSkippedAnalysis": "Файл уже загружен. Анализ пропущен.",
+        "fileReanalyzedSuccessfully": "Файл успешно переанализирован",
+        "fileNotDotNetAssembly": "Файл не является допустимой сборкой .NET",
+        "unknownError": "Произошла неизвестная ошибка"
+    },
+    "auth": {
+        "callback": {
+            "checkingIdentity": "Проверка вашей личности...",
+            "settingUpAccount": "Настройка вашего аккаунта...",
+            "gettingReady": "Подготовка к работе...",
+            "invalidCallback": "Неверный обратный вызов: отсутствует параметр состояния",
+            "authFailed": "Аутентификация не удалась. Пожалуйста, убедитесь, что бэкенд запущен и имеет реализованную конечную точку auth/callback.",
+            "authError": "Ошибка аутентификации",
+            "backToLogin": "Вернуться к входу"
+        }
+    },
+    "achievements": {
+        "unlocked": "Достижение разблокировано!"
     }
 }

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { api } from '@/lib/api-client';
 
 const PLAN_NAMES = ['Free', 'Verified', 'Premium'];
@@ -88,12 +89,14 @@ export default function UserMenu() {
             return (
                 <div className='flex items-center gap-3 px-3 py-2 rounded-lg self-center'>
                     {user.avatarUrl ? (
-                        <img
+                        <Image
                             src={user.avatarUrl}
                             alt={user.username || user.email || 'User'}
+                            width={32}
+                            height={32}
                             className='w-8 h-8 rounded-full object-cover flex-shrink-0'
-                            loading='eager'
-                            decoding='async'
+                            priority
+                            unoptimized
                         />
                     ) : (
                         <div className='w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-medium flex-shrink-0'>
@@ -130,12 +133,14 @@ export default function UserMenu() {
                 className='flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50 transition-colors self-center'
             >
                 {user.avatarUrl ? (
-                    <img
+                    <Image
                         src={user.avatarUrl}
-                        alt={user.username || user.email}
+                        alt={user.username || user.email || 'User'}
+                        width={32}
+                        height={32}
                         className='w-8 h-8 rounded-full object-cover flex-shrink-0'
-                        loading='eager'
-                        decoding='async'
+                        priority
+                        unoptimized
                     />
                 ) : (
                     <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0'>

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
+import { API_VERSION } from './apiConfig';
 
-export const API_VERSION = 'v1.0';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 function getApiUrl(endpoint: string): string {

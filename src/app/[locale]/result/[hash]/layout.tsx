@@ -16,7 +16,7 @@ function convertHashFormats(hash: string): string[] {
     return [
         hash,
         (() => {
-            let base64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+            const base64 = hash.replace(/-/g, '+').replace(/_/g, '/');
             const padding = (4 - (base64.length % 4)) % 4;
             return base64 + '='.repeat(padding);
         })(),

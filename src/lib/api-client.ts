@@ -1,6 +1,6 @@
 import { AUTH_HEADERS, AUTH_STORAGE_KEYS, AUTH_EVENTS } from './auth-constants';
+import { API_VERSION } from './apiConfig';
 
-export const API_VERSION = 'v1.0';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export function getApiUrl(endpoint: string): string {

@@ -171,7 +171,8 @@ export default function AchievementsPage() {
                             Achievement Master!
                         </h2>
                         <p className='text-gray-300'>
-                            You've unlocked all achievements! You're a true Safeturned champion!
+                            You&apos;ve unlocked all achievements! You&apos;re a true Safeturned
+                            champion!
                         </p>
                     </div>
                 )}

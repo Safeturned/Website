@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -542,10 +543,11 @@ export default function BadgesPage() {
                                         </p>
                                         <code className='text-green-300 text-xs block bg-slate-900/50 p-2 rounded mb-2 overflow-x-auto'>
                                             curl -X POST {API_BASE_URL}/v1.0/files \<br />
-                                            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \
+                                            &nbsp;&nbsp;-H &quot;Authorization: Bearer
+                                            YOUR_API_KEY&quot; \
                                             <br />
-                                            &nbsp;&nbsp;-F "file=@plugin.dll" \<br />
-                                            &nbsp;&nbsp;-F "badgeToken=YOUR_TOKEN_HERE"
+                                            &nbsp;&nbsp;-F &quot;file=@plugin.dll&quot; \<br />
+                                            &nbsp;&nbsp;-F &quot;badgeToken=YOUR_TOKEN_HERE&quot;
                                         </code>
                                         <p className='text-slate-400 text-xs'>
                                             {t('badges.tokenFieldDescription')}
@@ -914,10 +916,13 @@ export default function BadgesPage() {
                                                         {t('common.preview')}
                                                     </p>
                                                     <div className='flex items-center gap-4 flex-wrap'>
-                                                        <img
+                                                        <Image
                                                             src={`/api/v1.0/badge/${badge.id}`}
                                                             alt={badge.name}
+                                                            width={200}
+                                                            height={20}
                                                             className='inline-block'
+                                                            unoptimized
                                                             onError={e => {
                                                                 const target =
                                                                     e.target as HTMLImageElement;

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { AUTH_COOKIE_NAMES, AUTH_HEADERS } from './auth-constants';
-
-export const API_VERSION = 'v1.0';
+export { API_VERSION } from './apiConfig';
 
 export interface AuthHeaders {
     headers: Record<string, string>;

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { TIER_BADGE_COLORS } from '@/lib/tierConstants';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -487,14 +488,17 @@ export default function AdminUsersPage() {
                                                         <div className='flex items-center gap-3'>
                                                             <div className='flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden'>
                                                                 {u.avatarUrl ? (
-                                                                    <img
+                                                                    <Image
                                                                         src={u.avatarUrl}
                                                                         alt={
                                                                             u.username ||
                                                                             u.email ||
                                                                             ''
                                                                         }
+                                                                        width={40}
+                                                                        height={40}
                                                                         className='w-full h-full object-cover'
+                                                                        unoptimized
                                                                     />
                                                                 ) : (
                                                                     <span className='text-slate-400 font-semibold'>

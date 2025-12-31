@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useAchievements } from '@/lib/achievements-context';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AchievementToast() {
     const { showAchievementToast, dismissToast } = useAchievements();
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (showAchievementToast) {
@@ -25,7 +27,7 @@ export default function AchievementToast() {
                     <div className='text-5xl'>{showAchievementToast.icon}</div>
                     <div className='flex-1'>
                         <div className='text-yellow-400 font-bold text-sm mb-1'>
-                            Achievement Unlocked!
+                            {t('achievements.unlocked')}
                         </div>
                         <h3 className='text-white font-bold text-lg mb-1'>
                             {showAchievementToast.title}
