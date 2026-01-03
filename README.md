@@ -1,3 +1,15 @@
+# This repository has been archived.
+
+The website is now part of the main [Safeturned monorepo](https://github.com/Safeturned/Safeturned):
+
+The monorepo includes:
+- Website (Next.js)
+- API (.NET)
+- Discord Bot
+
+All future development continues there.
+
+
 # Safeturned WebSite
 
 A web application for scanning and analyzing Unturned server plugins for security threats and backdoors.
